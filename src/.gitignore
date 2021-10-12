@@ -1,0 +1,6 @@
+# Ignore the pycache directory
+__pycache__
+*.pyc
+
+# Except this file
+# !.gitignore
