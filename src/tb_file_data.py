@@ -38,7 +38,7 @@ gridded_elevation_bin_file = "../baseline_datasets/REMA_25km_resampled_TbGrid.bi
 
 # Tif file containing a gridded version assigning each pixel in the ice mask to a specific region.
 # The dictionary gives the names of each region based on the value in the tif file.
-antarctic_regions_tif = "../qgis/basins/Antarctica_Regions_Combined_v2.tif"
+antarctic_regions_tif = "../baseline_datasets/Antarctica_Regions_Combined_v2.tif"
 antarctic_regions_dict = {0: "Antarctica",
                           1: "Antarctic Peninsula",
                           2: "Ronne Embayment",
@@ -125,16 +125,16 @@ elif DATA_VERSION == 2.5:
     climatology_plots_directory = os.path.join(model_results_v2_5_plot_directory, "climatology")
 
 elif DATA_VERSION == 3:
-    model_results_v3_dir = "../data/v3/"
-    model_results_v3_picklefile = os.path.join(model_results_v3_dir, "v3_1979-2021_raw.pickle")
-    model_results_v3_picklefile_gap_filled = os.path.join(model_results_v3_dir, "v3_1979-2021_gap_filled.pickle")
+    model_results_v3_dir = "../data/"
+    model_results_v3_picklefile = os.path.join(model_results_v3_dir, "v3_1979-present_raw.pickle")
+    model_results_v3_picklefile_gap_filled = os.path.join(model_results_v3_dir, "v3_1979-present_gap_filled.pickle")
 
     model_results_dir = os.path.join(model_results_v3_dir, "daily_melt_bin_files")
     model_results_picklefile = model_results_v3_picklefile
-    model_results_plot_directory = "../plots/v3"
-    output_tifs_directory = os.path.join(model_results_v3_dir, "sample_results")
-    outputs_annual_tifs_directory = os.path.join(model_results_v3_dir, "annual_sums")
-    outputs_annual_plots_directory = os.path.join(model_results_plot_directory, "annual_maps")
+    model_results_plot_directory = "../plots/"
+    # output_tifs_directory = os.path.join(model_results_v3_dir, "sample_results")
+    outputs_annual_tifs_directory = os.path.join(model_results_v3_dir, "annual_sum_geotifs")
+    outputs_annual_plots_directory = os.path.join(model_results_plot_directory, "annual_maps_sum")
     mean_climatology_geotiff = os.path.join(model_results_v3_dir, "mean_climatology", "1990_2020_mean_climatology.tif")
     std_climatology_geotiff = os.path.join(model_results_v3_dir, "mean_climatology", "1990_2020_std_climatology.tif")
     gap_fill_data_folder = os.path.join(model_results_v3_dir, "gap_fill_data")
@@ -145,4 +145,4 @@ elif DATA_VERSION == 3:
     baseline_percentiles_csv = os.path.join(model_results_v3_dir, "baseline_percentiles_1990-2020.csv")
     daily_melt_csv = os.path.join(model_results_v3_dir, "daily_melt_totals.csv")
     gap_filled_melt_picklefile = os.path.join(model_results_v3_dir, "v3_1979_2021_gap_filled.pickle")
-    climatology_plots_directory = os.path.join(model_results_plot_directory, "climatology")
+    climatology_plots_directory = os.path.join(model_results_plot_directory, "annual_line_plots")

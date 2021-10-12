@@ -1,0 +1,5 @@
+# Ignore everything in this directory
+*.csv
+*.pickle
+# Except this file
+!.gitignore

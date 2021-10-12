@@ -91,11 +91,11 @@ def get_array_from_model_files(file_dir = model_results_dir, verbose=True):
     data_array = numpy.empty(array_shape, dtype=first_file_data.dtype)
 
     if verbose:
-        print("Retrieving model data from {0} binary files.".format(len(file_list)))
+        print("Retrieving melt data from {0} binary (.bin) files.".format(len(file_list)))
 
     for i,fname in enumerate(file_list):
         if verbose:
-            ProgressBar(i+1,len(file_list), suffix="{0} of {1}".format(i+1, len(file_list)))
+            ProgressBar(i+1,len(file_list), length=50, suffix="{0} of {1}".format(i+1, len(file_list)))
         data_array[:,:,i] = read_NSIDC_bin_file(fname, return_type=int)
 
     return data_array

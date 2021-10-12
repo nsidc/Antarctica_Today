@@ -332,7 +332,7 @@ def create_annual_melt_anomaly_tif(year,
 
     If None are selected for year_melt_tif or baseline_melt_tif, generate those files.
     """
-    dest_fname = os.path.join(os.path.split(outputs_annual_tifs_directory)[0], "annual_anomalies",
+    dest_fname = os.path.join(os.path.split(outputs_annual_tifs_directory)[0], "annual_anomaly_geotifs",
                             "{0}-{1}_anomaly{2}.tif".format(year, year+1, "_gap_filled" if gap_filled else ""))
 
     year_array = get_annual_melt_sum_array(year, fname=year_melt_tif, gap_filled=gap_filled)
