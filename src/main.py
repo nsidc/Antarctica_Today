@@ -59,7 +59,7 @@ def generate_all_plots_and_maps_main():
     4) Re-run the climatology & daily-melt plots for each year.
     5) Generate new annual maps.
     """
-    # 4) Re-run the climatology & daily-melt plots for each year.
+    # 4) Re-run the climatology & daily-melt plots for each year. Years with no data will be skipped (useful if we accidentally go 1 year too far).
     for year in range(1979,datetime.datetime.today().year+1):
         for region in range(0,7+1):
 
@@ -74,33 +74,38 @@ def generate_all_plots_and_maps_main():
     plot_daily_melt_and_climatology.simple_plot_date_check()
 
     # 6) Generate new annual maps.
-    mapper = generate_antarctica_today_map.AT_map_generator()
+    mapper = generate_antarctica_today_map.AT_map_generator(gap_filled=True)
     mapper.generate_annual_melt_map(dpi=300,
                                     year="all",
                                     reset_picklefile=True)
+
     mapper.generate_anomaly_melt_map(dpi=300,
                                      year="all",
                                      reset_picklefile=True)
 
-def generate_all_plots_for_a_given_year_main(year=2020):
-    """After all the pre-processing, generate the plots and maps (in both PNG and SVG).
+    # Create the latest anomaly map for a partial year (useful during the melt season).
+    mapper.generate_latest_partial_anomaly_melt_map(dpi=300)
 
-    NOTE: I never finished all this"""
-    for region in range(0,7+1):
 
-        fname = os.path.join(tb_file_data.climatology_plots_directory, "R{0}_{1}-{2}.png".format(region, year, year+1))
-        plot_daily_melt_and_climatology.plot_current_year_melt_over_baseline_stats(\
-                            datetime.datetime(year=year+1, month=4, day=30),
-                            region_num=region,
-                            outfile = fname)
+# def generate_all_plots_for_a_given_year_main(year=2021):
+#     """After all the pre-processing, generate the plots and maps (in both PNG and SVG).
 
-        fname_svg = os.path.join(tb_file_data.climatology_plots_directory, "R{0}_{1}-{2}.svg".format(region, year, year+1))
-        plot_daily_melt_and_climatology.plot_current_year_melt_over_baseline_stats(\
-                            datetime.datetime(year=year+1, month=4, day=30),
-                            region_num=region,
-                            outfile = fname_svg)
+#     NOTE: I never finished all this"""
+#     for region in range(0,7+1):
 
-    # TODO: Finish if you want.
+#         fname = os.path.join(tb_file_data.climatology_plots_directory, "R{0}_{1}-{2}.png".format(region, year, year+1))
+#         plot_daily_melt_and_climatology.plot_current_year_melt_over_baseline_stats(\
+#                             datetime.datetime(year=year+1, month=4, day=30),
+#                             region_num=region,
+#                             outfile = fname)
+
+#         fname_svg = os.path.join(tb_file_data.climatology_plots_directory, "R{0}_{1}-{2}.svg".format(region, year, year+1))
+#         plot_daily_melt_and_climatology.plot_current_year_melt_over_baseline_stats(\
+#                             datetime.datetime(year=year+1, month=4, day=30),
+#                             region_num=region,
+#                             outfile = fname_svg)
+
+#     # TODO: Finish if you want.
 
 def read_and_parse_args():
     """Define and parse command-line arguments."""

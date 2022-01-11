@@ -370,7 +370,7 @@ def download_new_files(short_name='NSIDC-0080',
                        time_end = datetime.datetime.now().strftime("%Y-%m-%dT00:00:00Z"),
                        bounding_box = '-180,-90,180,0',
                        polygon=[],
-                       filename_filters = ['*s19v*', '*s37v*'],
+                       filename_filters = ['*s19v*', '*s37v*', '*s37h*'],
                        url_list=[],
                        output_directory="../Tb/nsidc-0080",
                        argv=None):
@@ -424,4 +424,4 @@ def download_new_files(short_name='NSIDC-0080',
 
 
 if __name__ == '__main__':
-    download_new_files()
+    download_new_files(time_start="2021-10-01T00:00:00Z")

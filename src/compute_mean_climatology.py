@@ -275,8 +275,10 @@ def create_partial_year_melt_anomaly_tif(current_datetime=None,
                                          gap_filled=True,
                                          verbose=True):
     """Create a tif of melt anomlay compared to baseline climatology for that day of the melt season."""
+    # If no datetime is given, use "today"
     if current_datetime is None:
         now = datetime.datetime.today()
+        # Strip of the hour,min,second
         current_datetime = datetime.datetime(year=now.year, month=now.month, day=now.day)
 
     daily_melt_sums, daily_sums_dt_dict = read_daily_sum_melt_averages_picklefile()
@@ -288,14 +290,17 @@ def create_partial_year_melt_anomaly_tif(current_datetime=None,
                                                         month=first_mmdd_of_melt_season[0],
                                                         day=first_mmdd_of_melt_season[1])
 
+    # print(current_datetime)
+    # print(first_dt_of_present_melt_season)
     if gap_filled:
         melt_array, dt_dict = read_gap_filled_melt_picklefile(verbose=verbose)
     else:
         melt_array, dt_dict = read_model_array_picklefile(resample_melt_codes=True, verbose=verbose)
 
-    dt_list = list(dt_dict.keys())
+    dt_list = sorted(list(dt_dict.keys()))
     dt_mask = numpy.array([((dt >= first_dt_of_present_melt_season) and (dt <= current_datetime)) for dt in dt_list], dtype=numpy.bool)
     dts_masked = [dt for dt,mask_val in zip(dt_list, dt_mask) if mask_val]
+
     # If we don't have days in the picklefile up to the current date, readjust the date and inform the user.
     if dts_masked[-1] < current_datetime:
         print("{0} not in the melt files. Adjusting to last known date: {1}".format(current_datetime.strftime("%Y-%m-%d"),
@@ -303,7 +308,11 @@ def create_partial_year_melt_anomaly_tif(current_datetime=None,
         current_datetime = dts_masked[-1]
 
     current_season_melt_slice = melt_array[:,:,dt_mask]
-    sum_melt_days_current_season = numpy.sum(current_season_melt_slice, axis=2)
+    if gap_filled:
+        sum_melt_days_current_season = numpy.sum(current_season_melt_slice, axis=2)
+    else:
+        sum_melt_days_current_season = numpy.sum(current_season_melt_slice == 2, axis=2)
+
     avg_melt_days_for_this_mmdd = daily_melt_sums[:,:,daily_sums_dt_dict[(current_datetime.month, current_datetime.day)]]
 
     anomaly_this_season_so_far = sum_melt_days_current_season - avg_melt_days_for_this_mmdd

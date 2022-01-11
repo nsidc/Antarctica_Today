@@ -30,7 +30,7 @@ PLOT_LINEWIDTH = 1.5
 PLOT_GRID_LINEWIDTH = 0.25
 PLOT_GRID_LINECOLOR = "#b0b0b0"
 
-def simple_plot_date_check(fname=os.path.join(model_results_plot_directory, "v2_5_years_coverage.png")):
+def simple_plot_date_check(fname=os.path.join(model_results_plot_directory, "v3_years_coverage.png")):
     """See what dates are included in the dataset.
 
     Helpful for finding any missing data. Not useful for production, really, just for diagnostics.

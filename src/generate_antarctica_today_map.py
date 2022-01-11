@@ -32,7 +32,9 @@ from map_filedata import boundary_shapefile_reader, \
                          anomaly_maps_directory,    \
                          region_outline_shapefiles_dict
 
-from tb_file_data import model_results_picklefile
+from tb_file_data import model_results_picklefile, \
+                         model_results_dir,        \
+                         daily_melt_plots_dir
 
 from melt_array_picklefile import read_model_array_picklefile, \
                                   get_ice_mask_array
@@ -41,12 +43,9 @@ from compute_mean_climatology import create_partial_year_melt_anomaly_tif, \
                                      read_annual_melt_anomaly_tif
 
 def main():
-    """Do the stuff."""
-    # args = read_and_parse_args()
+    """Do stuff I want to do here."""
 
-    # TODO: Process arguments here.
-
-    m = AT_map_generator(fill_pole_hole=False, filter_out_error_swaths=True, verbose=True)
+    # m = AT_map_generator(fill_pole_hole=False, filter_out_error_swaths=True, verbose=True)
 
     # fig, ax = m.generate_daily_melt_map("../data/v2.5/antarctica_melt_S3B_2010-2020_20200129/antarctica_melt_20100101_S3B_20210129.bin",
     #                                     "../plots/v2.5/daily_maps/20100101_daily.png",
@@ -1172,7 +1171,7 @@ class AT_map_generator:
         return year_list, mask_list
 
 
-    def generate_daily_melt_map(self, infile,
+    def generate_daily_melt_map(self, infile="latest",
                                       outfile=None,
                                       dpi=150,
                                       region_number=0,
@@ -1185,6 +1184,10 @@ class AT_map_generator:
                                       include_date=True,
                                       reset_picklefile=False):
         """Generate a daily melt map. Output to "outfile"."""
+        # If infile == "latest", get the latest .bin file.
+        if infile.strip().lower() == "latest":
+            infile = os.path.join(model_results_dir, max(os.listdir(model_results_dir)))
+
         # 1: Read the data file into an array.
         if self.OPT_verbose:
             print ("Reading", infile)
@@ -1239,13 +1242,17 @@ class AT_map_generator:
             self._add_date_to_axes(ax, infile, (0.06, 0.93))
 
         if outfile != None:
+            if outfile.strip().lower() == "auto":
+                dt = self._get_date_from_filename(os.path.split(infile)[1])
+                outfile = os.path.join(daily_melt_plots_dir, dt.strftime("%Y.%m.%d.png"))
+
             new_dpi = self._scale_DPI_by_axes_size(fig, ax, dpi)
             fig.savefig(outfile, dpi=new_dpi)
 
             if self.OPT_verbose:
                 print(outfile, "written.")
 
-        self._strip_empty_image_border(outfile)
+            self._strip_empty_image_border(outfile)
 
         return fig, ax
 
@@ -1334,6 +1341,7 @@ class AT_map_generator:
                 ax = fig.axes[0]
 
             # Pull the data for just that year.
+            print(melt_array.shape, mask.shape, len(datetime_dict))
             year_slice = melt_array[:,:,mask]
 
             # Set the melt values above melt (2) but below the cutoff thresholds we've set in data version 2.5
@@ -1471,7 +1479,7 @@ class AT_map_generator:
                 datetime_this_year = datetime.datetime(year=year + (0 if mmdd_of_year >= melt_start_mmdd else 1),
                                                        month=mmdd_of_year[0],
                                                        day=mmdd_of_year[1])
-                anomaly_data = create_partial_year_melt_anomaly_tif(current_datetime=datetime_this_year, verbose=verbose)
+                anomaly_data = create_partial_year_melt_anomaly_tif(current_datetime=datetime_this_year, gap_filled=False, verbose=verbose)
 
             if anomaly_data is None:
                 continue
@@ -1511,6 +1519,53 @@ class AT_map_generator:
             self._strip_empty_image_border(outfile_fname)
 
         return fig, ax
+
+    def generate_latest_partial_anomaly_melt_map(self, outfile_template=None,
+                                                       fmt="png",
+                                                       dpi=150,
+                                                       melt_start_mmdd = (10,1),
+                                                       melt_end_mmdd = (4,30),
+                                                       region_number=0,
+                                                       include_region_name_if_not_0=True,
+                                                       include_region_outline_if_not_0=True,
+                                                       region_to_outline=None,
+                                                       include_scalebar=True,
+                                                       include_legend=True,
+                                                       include_mountains=True,
+                                                       include_year_label=True,
+                                                       keep_year_label_wrapped=True,
+                                                       reset_picklefile=False,
+                                                       message_below_year=None,
+                                                       verbose=True):
+        """Same as generate_anomaly_melt_map, but do it for only a partial year,
+        up until the last day of data that we have in the melt array.
+
+        Uses the "mmdd_of_year" parameter in the .generate_anomaly_melt_map() method to do this.
+        Just grabs the latest date in the array first."""
+        melt_array, dates = self._read_melt_array_and_datetimes()
+        # Get whatever the last date is
+        date = sorted(dates.keys())[-1]
+        year = date.year + (0 if ((date.month, date.day) >= melt_start_mmdd) else -1)
+        mmdd_today = (date.month, date.day)
+
+        self.generate_anomaly_melt_map(outfile_template=outfile_template,
+                                       year=year,
+                                       fmt=fmt,
+                                       mmdd_of_year = mmdd_today,
+                                       melt_start_mmdd = melt_start_mmdd,
+                                       melt_end_mmdd = melt_end_mmdd,
+                                       region_number = region_number,
+                                       include_region_name_if_not_0 = include_region_name_if_not_0,
+                                       include_region_outline_if_not_0= include_region_outline_if_not_0,
+                                       region_to_outline=region_to_outline,
+                                       include_scalebar = include_scalebar,
+                                       include_legend = include_legend,
+                                       include_mountains = include_mountains,
+                                       include_year_label = include_year_label,
+                                       keep_year_label_wrapped = keep_year_label_wrapped,
+                                       reset_picklefile = reset_picklefile,
+                                       message_below_year = message_below_year,
+                                       verbose=verbose)
 
 
 def SPECIAL_make_map_with_borders(year=2020):

@@ -144,5 +144,7 @@ elif DATA_VERSION == 3:
     # The percentiles (10,25,50,75,90) saved in a pandas dataframe.
     baseline_percentiles_csv = os.path.join(model_results_v3_dir, "baseline_percentiles_1990-2020.csv")
     daily_melt_csv = os.path.join(model_results_v3_dir, "daily_melt_totals.csv")
-    gap_filled_melt_picklefile = os.path.join(model_results_v3_dir, "v3_1979_2021_gap_filled.pickle")
+    gap_filled_melt_picklefile = model_results_v3_picklefile_gap_filled
     climatology_plots_directory = os.path.join(model_results_plot_directory, "annual_line_plots")
+    threshold_file_dir = os.path.join(model_results_v3_dir, "thresholds")
+    daily_melt_plots_dir = os.path.join(model_results_plot_directory, "daily_maps")

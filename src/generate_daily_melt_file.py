@@ -23,7 +23,7 @@ import write_NSIDC_bin_to_gtif
 import melt_array_picklefile
 import tb_file_data
 
-def generate_new_daily_melt_files(start_date="2021-02-17",
+def generate_new_daily_melt_files(start_date="2021-10-01",
                                   end_date=None,
                                   overwrite=True,
                                   warn_if_missing_files=True):
@@ -77,16 +77,22 @@ def generate_new_daily_melt_files(start_date="2021-02-17",
 
         outfile_name = os.path.join(tb_file_data.model_results_dir, dt.strftime("antarctica_melt_%Y%m%d_S3B_") + now.strftime("%Y%m%d.bin"))
 
+        threshold_file = get_correct_threshold_file(dt)
+        if threshold_file is None:
+            continue
+
         create_daily_melt_file(files_37h[0],
                                files_37v[0],
                                files_19v[0],
+                               threshold_file,
                                outfile_name)
+
 
 def create_daily_melt_file(tb_file_37h,
                            tb_file_37v,
                            tb_file_19v,
+                           threshold_file,
                            output_bin_filename,
-                           threshold_file = "../data/v3/thresholds/thresh.37h.2020.bin",
                            output_gtif_filename = None,
                            Tb_nodata_value = 0,
                            verbose = True):
@@ -115,6 +121,65 @@ def create_daily_melt_file(tb_file_37h,
                                             verbose=verbose)
 
     return output_array
+
+def get_melt_year_of_current_date(dt_object,
+                                  melt_doy_start = (10,1),
+                                  melt_doy_end = (4,30)):
+    """For a given datetime object, return the melt year number that corresponds to that date.
+    If the data falls outside of the melt year, return None.
+    """
+    # Find out which year this particular date should correspond with.
+    year, month, day = dt_object.year, dt_object.month, dt_object.day
+    doy = (month, day)
+    # In Antarctica, since the melt season spans the calendar new year.
+    if melt_doy_start > melt_doy_end:
+        # If this date is outside the melt season, just return None
+        if doy < melt_doy_start and doy > melt_doy_end:
+            return None
+        # If it's before the new year, return the current year
+        if doy >= melt_doy_start:
+            return year
+        # If it's after the new year, then return last yeaer (which was the start of the melt season)
+        elif doy <= melt_doy_end:
+            return (year - 1)
+        else:
+            raise RuntimeError("Should never get to this point. Something went wrong in the logic.")
+
+    # If the melt year ends in the same calendar year as the start, the logic is a bit simpler.
+    else:
+        # If it's outside the melt season, return None
+        if doy < melt_doy_start or doy > melt_doy_end:
+            return None
+        # If it's inside the melt season, return the current year.
+        else:
+            return year
+
+
+def get_correct_threshold_file(dt_object,
+                               melt_doy_start = (10,1),
+                               melt_doy_end = (4,30),
+                               thresholds_dir = tb_file_data.threshold_file_dir):
+    """For a given datetime object, return the threshold file that corresponds to that date.
+    If the data falls outside of the melt year,
+    or the threshold file doesn't exist in the directory, quietly return None.
+    """
+    # Get the list of all the threshold files.
+    threshold_files = os.listdir(thresholds_dir)
+    # Find out which year this particular date should correspond with.
+    year = get_melt_year_of_current_date(dt_object, melt_doy_start=melt_doy_start, melt_doy_end=melt_doy_end)
+    if year is None:
+        return None
+    year_str = str(year)
+
+    # If we find a threshold file with the selected year in it, return its path.
+    # This makes the assumption that the threshold file names only have one spot with a given year in the filename.
+    # If this is not the case, this code must change.
+    for tf in threshold_files:
+        if year_str in tf:
+            return os.path.join(thresholds_dir, tf)
+
+    return None
+
 
 def read_files_and_generate_melt_array(Tb_file_37h, Tb_file_37v, Tb_file_19v, threshold_file, Tb_nodata_value=0.0):
     """Generate a daily melt value array from the three flat-binary files."""
@@ -167,11 +232,11 @@ def create_daily_melt_array(Tb_array_37h, Tb_array_37v, Tb_array_19v, threshold_
 
     # No melt if it doesn't exceed the threshold at all.
     output_array[Tb_array_37h < threshold_array] = 1
-    # Melt if the (Tb_19 - Tb_37) >= 0 and (Tb_37 > threshold)
+    # Melt if the (Tb_19v - Tb_37v) >= 0 and (Tb_37h > threshold)
     output_array[((Tb_array_19v - Tb_array_37v) >= 0) & (Tb_array_37h >= threshold_array)] = 2
-    # Melt if the (Tb_19 - Tb_37) < 0 and (Tb_37 >= threshold + 10k)
+    # Melt if the (Tb_19v - Tb_37v) < 0 and (Tb_37h >= threshold + 10k)
     output_array[((Tb_array_19v - Tb_array_37v) < 0) & (Tb_array_37h >= (threshold_array + 10))] = 2
-    # No melt if (Tb_19 - Tb_37) < 0 and (Tb_38 < threshold + 10k)
+    # No melt if (Tb_19h - Tb_37h) < 0 and (Tb_38 < threshold + 10k)
     output_array[((Tb_array_19v - Tb_array_37v) < 0) & (Tb_array_37h < (threshold_array + 10))] = 1
     # Mark all "nodata" as no data.
     output_array[(Tb_array_37h == Tb_nodata_value) | \
@@ -198,11 +263,12 @@ def read_and_parse_args():
     return parser.parse_args()
 
 if __name__ == "__main__":
-    args = read_and_parse_args()
+    generate_new_daily_melt_files(start_date="2021-10-01")
+    # args = read_and_parse_args()
 
-    create_daily_melt_file(args.Tb_file_19h,
-                           args.Tb_file_37h,
-                           args.output_file,
-                           args.threshold_file,
-                           create_gtif=args.output_gtif,
-                           verbose=args.verbose)
+    # create_daily_melt_file(args.Tb_file_19h,
+    #                        args.Tb_file_37h,
+    #                        args.output_file,
+    #                        args.threshold_file,
+    #                        create_gtif=args.output_gtif,
+    #                        verbose=args.verbose)

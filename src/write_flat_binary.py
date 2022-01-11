@@ -10,7 +10,7 @@ write_flat_binary.py -- code to output a .tif or numpy array to a flat-binary fi
 
 import numpy
 import argparse
-import gdal
+from osgeo import gdal
 import os
 
 def write_array_to_binary(array,

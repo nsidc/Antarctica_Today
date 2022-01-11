@@ -140,6 +140,11 @@ def read_model_array_picklefile(picklefile = model_results_picklefile,
     Returns a 2-value tuple:
         - MxNxT array of (-1,0,1,2) values,
         - dictionary of {datetimes:index} indices
+
+
+    "resample_melt_codes" and "resample_melt_code_threshold" are relicts of the v2.5 data,
+    and irrelevant to the v3 data.
+    Just keep "resample_melt_codes" to False when running with v3 code.
     """
     if verbose:
         print("Reading", os.path.split(picklefile)[-1] + "...", end="")

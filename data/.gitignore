@@ -1,4 +1,4 @@
-# Ignore everything in this directory
+# Ignore CSV and PICKLE files in this directory
 *.csv
 *.pickle
 # Except this file
