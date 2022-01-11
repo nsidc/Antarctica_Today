@@ -80,16 +80,14 @@ def get_username():
         do_input = input
 
     while not username:
-        # username = do_input('Earthdata username: ')
-        username = 'mmacferrin'
+        username = do_input('Earthdata username: ')
     return username
 
 
 def get_password():
     password = ''
     while not password:
-        # password = getpass('password: ')
-        password = 'A1sldkfj;na'
+        password = getpass('password: ')
     return password
 
 
