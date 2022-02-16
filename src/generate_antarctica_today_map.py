@@ -45,7 +45,16 @@ from compute_mean_climatology import create_partial_year_melt_anomaly_tif, \
 def main():
     """Do stuff I want to do here."""
 
-    # m = AT_map_generator(fill_pole_hole=False, filter_out_error_swaths=True, verbose=True)
+    m = AT_map_generator(fill_pole_hole=False, filter_out_error_swaths=True, verbose=True)
+
+    for fmt in ("png", "pdf", "svg"):
+        m.generate_annual_melt_map(outfile_template="/home/mmacferrin/Dropbox/Research/Antarctica_Today/text/BAMS SoC 2021/R0_2020-2021_sum.{0}".format(fmt),
+                                   fmt=fmt,
+                                   year=2020,reset_picklefile=True,dpi=600)
+
+        m.generate_anomaly_melt_map(outfile_template="/home/mmacferrin/Dropbox/Research/Antarctica_Today/text/BAMS SoC 2021/R0_2020-2021_anomaly.{0}".format(fmt),
+                                    fmt=fmt,
+                                    year=2020,reset_picklefile=True,dpi=600)
 
     # fig, ax = m.generate_daily_melt_map("../data/v2.5/antarctica_melt_S3B_2010-2020_20200129/antarctica_melt_20100101_S3B_20210129.bin",
     #                                     "../plots/v2.5/daily_maps/20100101_daily.png",
@@ -273,12 +282,8 @@ class AT_map_generator:
             # Get the data x,y locations.
             x_vector, y_vector = write_NSIDC_bin_to_gtif.retrieve_ssmi_grid_coords(N_or_S="S", gridsize_km=25)
             # the grids are in km, put in m
-            # The cartopy pixels are arranged offset by half (center-pixels rather than edge)
-            # Adjust half a pixel (12.5 km) on each axis for that. Subtract in the y-direction because y-resolution is negative.
-            x_vector = x_vector * 1000 + 12500
-            y_vector = y_vector * 1000 - 12500
-
-            # print(x_vector, y_vector)
+            x_vector = x_vector * 1000
+            y_vector = y_vector * 1000
 
             grid_x, grid_y = numpy.meshgrid(x_vector, y_vector)
 
@@ -466,8 +471,8 @@ class AT_map_generator:
 
         new_levels = numpy.arange(levels[0], levels[-1]+increment, increment)
 
-        new_colors = numpy.empty((new_levels.shape[0], color_arrays.shape[1]), dtype=numpy.float)
-        boundaries = numpy.empty((new_levels.shape[0]+1), dtype=numpy.float)
+        new_colors = numpy.empty((new_levels.shape[0], color_arrays.shape[1]), dtype=float)
+        boundaries = numpy.empty((new_levels.shape[0]+1), dtype=float)
 
         boundaries[0] = new_levels[0] - 0.5*increment
         boundaries[1:] = new_levels + 0.5*increment
@@ -1163,7 +1168,7 @@ class AT_map_generator:
             # Only append if there are any days included in that particular year.
             # This avoids "extra" years being added at the tail-end of the dataset that contain
             # no actual data.
-            mask = numpy.array([(start_date <= dt <= end_date) for dt in datetimes_list], dtype=numpy.bool)
+            mask = numpy.array([(start_date <= dt <= end_date) for dt in datetimes_list], dtype=bool)
             if numpy.count_nonzero(mask) > 0:
                 year_list.append(iter_year)
                 mask_list.append(mask)
@@ -1331,7 +1336,7 @@ class AT_map_generator:
                                                            increment=1)
         data_z, data_alpha = self.layers_order_and_alpha_dict["data"]
 
-        ice_mask = numpy.array(get_ice_mask_array(), dtype=numpy.bool)
+        ice_mask = numpy.array(get_ice_mask_array(), dtype=bool)
 
         # Loop over each year/mask, pull out the data, sum up the days (at/under each threshold)
         for y,mask in zip(years, masks):
@@ -1341,7 +1346,7 @@ class AT_map_generator:
                 ax = fig.axes[0]
 
             # Pull the data for just that year.
-            print(melt_array.shape, mask.shape, len(datetime_dict))
+            # print(melt_array.shape, mask.shape, len(datetime_dict))
             year_slice = melt_array[:,:,mask]
 
             # Set the melt values above melt (2) but below the cutoff thresholds we've set in data version 2.5
@@ -1551,6 +1556,7 @@ class AT_map_generator:
         self.generate_anomaly_melt_map(outfile_template=outfile_template,
                                        year=year,
                                        fmt=fmt,
+                                       dpi=dpi,
                                        mmdd_of_year = mmdd_today,
                                        melt_start_mmdd = melt_start_mmdd,
                                        melt_end_mmdd = melt_end_mmdd,
@@ -1617,5 +1623,6 @@ def SPECIAL_make_map_with_borders(year=2020):
         print(fname, "overwritten.")
 
 if __name__ == "__main__":
-    # main()
-    SPECIAL_make_map_with_borders()
+    main()
+    # SPECIAL_make_map_with_borders()
+    # generate_annual_melt_map()

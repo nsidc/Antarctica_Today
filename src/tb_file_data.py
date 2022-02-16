@@ -148,3 +148,4 @@ elif DATA_VERSION == 3:
     climatology_plots_directory = os.path.join(model_results_plot_directory, "annual_line_plots")
     threshold_file_dir = os.path.join(model_results_v3_dir, "thresholds")
     daily_melt_plots_dir = os.path.join(model_results_plot_directory, "daily_maps")
+    daily_plots_gathered_dir = os.path.join(model_results_plot_directory, "daily_plots_gathered")

@@ -564,12 +564,13 @@ if __name__ == "__main__":
     year=2020
     # region=0
     for region_num in range(8):
-        for ext in ("png", "svg"):
+        for ext in ("png", "svg", "eps"):
             fname = os.path.join(climatology_plots_directory, "R{0}_{1}-{2}.{3}".format(region_num, year, year+1, ext))
-            plot_current_year_melt_over_baseline_stats(region_num=region_num,
-                                                        outfile = fname,
-                                                        dpi=600,
-                                                        gap_filled=True)
+            plot_current_year_melt_over_baseline_stats(current_date= datetime.datetime(year+1,4,30),
+                                                       region_num=region_num,
+                                                       outfile = fname,
+                                                       dpi=600,
+                                                       gap_filled=True)
 
     # df = plot_current_year_melt_over_baseline_stats(datetime.datetime(2020,6,30))
 
