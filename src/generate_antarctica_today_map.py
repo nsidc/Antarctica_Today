@@ -47,24 +47,33 @@ def main():
 
     m = AT_map_generator(fill_pole_hole=False, filter_out_error_swaths=True, verbose=True)
 
-    for fmt in ("png", "pdf", "svg"):
-        m.generate_annual_melt_map(outfile_template="/home/mmacferrin/Dropbox/Research/Antarctica_Today/text/BAMS SoC 2021/R0_2020-2021_sum.{0}".format(fmt),
-                                   fmt=fmt,
-                                   year=2020,reset_picklefile=True,dpi=600)
+    for region in [5]: #range(8):
+        for fmt in ("png", "pdf", "svg"):
+            fig, ax = m.generate_annual_melt_map(outfile_template="../plots/annual_maps_sum/R{0}_2021-2022_sum.{1}".format(region, fmt),
+                                                 fmt=fmt,
+                                                 year=2021,
+                                                 region_number=region,
+                                                 reset_picklefile=False,
+                                                 dpi=600)
 
-        m.generate_anomaly_melt_map(outfile_template="/home/mmacferrin/Dropbox/Research/Antarctica_Today/text/BAMS SoC 2021/R0_2020-2021_anomaly.{0}".format(fmt),
-                                    fmt=fmt,
-                                    year=2020,reset_picklefile=True,dpi=600)
+            plt.close(fig)
 
-    # fig, ax = m.generate_daily_melt_map("../data/v2.5/antarctica_melt_S3B_2010-2020_20200129/antarctica_melt_20100101_S3B_20210129.bin",
-    #                                     "../plots/v2.5/daily_maps/20100101_daily.png",
-    #                                     dpi=300,
-    #                                     melt_code_threshold=6,
-    #                                     include_scalebar=True,
-    #                                     include_mountains=True,
-    #                                     include_date=True,
-    #                                     include_legend=True,
-    #                                     reset_picklefile=False)
+            fig, ax = m.generate_anomaly_melt_map(outfile_template="../plots/annual_maps_anomaly/R{0}_2021-2022_anomaly.{1}".format(region, fmt),
+                                                  fmt=fmt,
+                                                  year=2021,
+                                                  region_number=region,
+                                                  reset_picklefile=False,
+                                                  dpi=600)
+
+            plt.close(fig)
+
+    # fig, ax = m.generate_anomaly_melt_map("../plots/annual_maps_anomaly/R0_2021-2022.04.30_text.png",
+    #                                       year=2021+1,
+    #                                       dpi=300,
+    #                                       include_scalebar=True,
+    #                                       include_mountains=True,
+    #                                       include_legend=True,
+    #                                       reset_picklefile=False)
 
 
 
@@ -276,7 +285,7 @@ class AT_map_generator:
 
             return fig
 
-    def _get_meshgrid_data_coordinates(self):
+    def _get_meshgrid_data_coordinates(self, add_row_and_col=True):
         """Get the x,y map coordinates of each data pixel."""
         if self.meshgrid_coords is None:
             # Get the data x,y locations.
@@ -287,18 +296,42 @@ class AT_map_generator:
 
             grid_x, grid_y = numpy.meshgrid(x_vector, y_vector)
 
-            self.meshgrid_coords = grid_x, grid_y
+            if add_row_and_col:
+                # When we use these coordinates in numpy.pmeshgrid() with flat shading, we need to add the outside
+                # corners on the last very pixel, which are omitted here. So, we are going to expand the array by 1 in
+                # each direction and add them here according to the spacing of the grid-cell before it. This will give us
+                # mesh coordinates that are (x+1,y+1) the size of the data itself, which is what's needed for this project.
+
+                grid_x_big = numpy.zeros([d+1 for d in grid_x.shape], dtype=grid_x.dtype)
+                grid_y_big = numpy.zeros([d+1 for d in grid_y.shape], dtype=grid_y.dtype)
+                # Fill in all the existing values
+                grid_x_big[:-1,:-1] = grid_x
+                grid_y_big[:-1,:-1] = grid_y
+                # Fill in the last row and col
+                grid_x_big[:-1,-1] = grid_x[:,-1] + (grid_x[:,-1] - grid_x[:,-2])
+                grid_x_big[-1,:-1] = grid_x[-1,:]
+                # Get the bottom corners too
+                grid_x_big[-1,-1] = grid_x_big[-2,-1]
+                # Fill in the last row and col of the y-values
+                grid_y_big[:-1,-1] = grid_y[:,-1]
+                grid_y_big[-1,:-1] = grid_y[-1,:] + (grid_y[-1,:] - grid_y[-2,:])
+                # Get the bottom corners too
+                grid_y_big[-1,-1] = grid_y_big[-1,-2]
+
+                self.meshgrid_coords = grid_x_big, grid_y_big
+
+            else:
+                self.meshgrid_coords = grid_x, grid_y
 
         return self.meshgrid_coords
 
-
-    def _get_map_extent(self, region_number):
+    def _get_map_extent(self, region_number: int):
         """For a given region number, provide the SouthPolarStereo map bounding box."""
         a = numpy.array # Just shorthand to make the code below cleaner
 
         # 50 km buffer. Can make bigger if we want.
         buffer = 50000
-        buffer_array = a([-buffer,+buffer,-buffer,+buffer])
+        buffer_array = a([-buffer, +buffer, -buffer, +buffer])
         # These extends are the boundary-envelope extents of each shapefile, grapped from QGIS.
         # I suppose I could open the shapefiles and extract the extents for each, but this works for now.
         if region_number in region_outline_shapefiles_dict:
@@ -307,7 +340,7 @@ class AT_map_generator:
                     2:a([-1675000,  900000, -200000, 1650000]) + buffer_array,
                     3:a([ -775000, 2275000,  825000, 2225000]) + buffer_array,
                     4:a([  800000, 2725000, -625000, 1200000]) + buffer_array,
-                    5:a([  675000, 2575000,-2125000, -100000]) + buffer_array,
+                    5:a([  675000 - 75000, 2575000,-2125000, -100000 + 25000]) + buffer_array * 3, # Region 5 gets kind of cro
                     6:a([-1200000, 1375000,-2100000,  275000]) + buffer_array,
                     7:a([-1975000, -800000,-1325000,  325000]) + buffer_array,
                     }[region_number]
@@ -1105,7 +1138,7 @@ class AT_map_generator:
                           facecolor='none', linewidth=0.18, edgecolor='black',
                           zorder=b_z, alpha=b_alpha)
 
-        grid_x, grid_y = self._get_meshgrid_data_coordinates()
+        grid_x, grid_y = self._get_meshgrid_data_coordinates(add_row_and_col=True)
 
         melt_cmap, melt_norm = self._get_colormap_and_norm(map_type="daily")
         data_z, data_alpha = self.layers_order_and_alpha_dict["data"]
@@ -1118,6 +1151,7 @@ class AT_map_generator:
         # Plot the data
         ax.pcolormesh(grid_x, grid_y, data_array, transform=self.SPS_projection,
                       cmap=melt_cmap, norm=melt_norm,
+                      shading="flat",
                       zorder=data_z, alpha=data_alpha)
 
         self._draw_legend_for_daily_melt(ax)
@@ -1232,7 +1266,7 @@ class AT_map_generator:
                                                              save_to_picklefile=reset_picklefile)
 
 
-        grid_x, grid_y = self._get_meshgrid_data_coordinates()
+        grid_x, grid_y = self._get_meshgrid_data_coordinates(add_row_and_col=True)
 
         melt_cmap, melt_norm = self._get_colormap_and_norm(map_type="daily")
         data_z, data_alpha = self.layers_order_and_alpha_dict["data"]
@@ -1240,6 +1274,7 @@ class AT_map_generator:
         # Plot the data
         ax.pcolormesh(grid_x, grid_y, data_array, transform=self.SPS_projection,
                       cmap=melt_cmap, norm=melt_norm,
+                      shading="flat",
                       zorder=data_z, alpha=data_alpha)
 
         if include_date:
@@ -1329,7 +1364,7 @@ class AT_map_generator:
         if len(years) > 1:
             self._save_figure_to_buffer(fig, map_type="annual", overwrite=False)
 
-        grid_x, grid_y = self._get_meshgrid_data_coordinates()
+        grid_x, grid_y = self._get_meshgrid_data_coordinates(add_row_and_col=True)
 
         melt_cmap, melt_norm = self._get_colormap_and_norm(map_type="annual",
                                                            interpolate=True,
@@ -1363,6 +1398,7 @@ class AT_map_generator:
                           grid_y,
                           cumulative_melt_slice,
                           transform=self.SPS_projection,
+                          shading="flat",
                           cmap=melt_cmap,
                           norm=melt_norm,
                           zorder=data_z,
@@ -1463,7 +1499,8 @@ class AT_map_generator:
         if len(years) > 1:
             self._save_figure_to_buffer(fig, map_type="anomaly", overwrite=False)
 
-        grid_x, grid_y = self._get_meshgrid_data_coordinates()
+        # We have an offset 1/2 bug in our use of pcolormesh().
+        grid_x, grid_y = self._get_meshgrid_data_coordinates(add_row_and_col=True)
 
         melt_cmap, melt_norm = self._get_colormap_and_norm(map_type="anomaly",
                                                            interpolate=True,
@@ -1496,6 +1533,7 @@ class AT_map_generator:
                           cmap=melt_cmap,
                           norm=melt_norm,
                           zorder=data_z,
+                          shading="flat",
                           alpha=data_alpha)
 
             if include_year_label:

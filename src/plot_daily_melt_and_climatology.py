@@ -10,6 +10,7 @@ import matplotlib as mpl
 import datetime
 import numpy
 import os
+import pandas
 
 from tb_file_data import antarctic_regions_dict, \
                          climatology_plots_directory, \
@@ -26,6 +27,7 @@ PLOT_LIGHT_GREY = "#e8e8e8"
 PLOT_MEDIUM_GREY = "#d0d0d0"
 PLOT_BLUE = "#0000ff"
 PLOT_RED = "#ff0000"
+PLOT_ORANGE = "#ffa500"
 PLOT_LINEWIDTH = 1.5
 PLOT_GRID_LINEWIDTH = 0.25
 PLOT_GRID_LINECOLOR = "#b0b0b0"
@@ -162,6 +164,7 @@ def plot_current_year_melt_over_baseline_stats(current_date=None,
                                                doy_end = (4,30),
                                                outfile=None,
                                                gap_filled=True,
+                                               add_max_line=False,
                                                dpi=300,
                                                verbose=True):
     """Read the melt data for the melt year up through the "current_datetime", and plot over the baseline climatology.
@@ -238,15 +241,16 @@ def plot_current_year_melt_over_baseline_stats(current_date=None,
     fraction_x = float((current_date - datetime_start).days) / (datetime_end - datetime_start).days
 
     _plot_current_year_and_baseline(datetime_start,
-                                   datetime_end,
-                                   datetimes,
-                                   melt_pcts,
-                                   fraction_x,
-                                   region_num=region_num,
-                                   outfile=outfile,
-                                   gap_filled=gap_filled,
-                                   dpi=dpi,
-                                   verbose=verbose)
+                                    datetime_end,
+                                    datetimes,
+                                    melt_pcts,
+                                    fraction_x,
+                                    region_num=region_num,
+                                    outfile=outfile,
+                                    gap_filled=gap_filled,
+                                    add_max_line=add_max_line,
+                                    dpi=dpi,
+                                    verbose=verbose)
 
     return
 
@@ -282,15 +286,16 @@ def _add_nans_in_gaps(datetimes,
 
 
 def _plot_current_year_and_baseline(datetime_start,
-                                   datetime_end,
-                                   datetimes,
-                                   current_year_percents,
-                                   fraction_x,
-                                   region_num=0,
-                                   outfile=None,
-                                   gap_filled=True,
-                                   dpi=300,
-                                   verbose=True):
+                                    datetime_end,
+                                    datetimes,
+                                    current_year_percents,
+                                    fraction_x,
+                                    region_num=0,
+                                    outfile=None,
+                                    gap_filled=True,
+                                    add_max_line=False,
+                                    dpi=300,
+                                    verbose=True):
     """Plot the current year's melt over the top of the baseline climatology.
 
     Climatology (in this case) defaults to fall 1980- spring 2011.
@@ -320,14 +325,16 @@ def _plot_current_year_and_baseline(datetime_start,
 
     # Plot the baseline climatology on the plot.
     _plot_baseline_climatology(region_num=region_num,
-                              mpl_axes = ax,
-                              return_axes=False,
-                              outfile=None,
-                              set_title=True,
-                              current_year=datetime_start.year,
-                              add_legend=False,
-                              gap_filled=gap_filled,
-                              verbose=False)
+                               mpl_axes = ax,
+                               return_axes=False,
+                               outfile=None,
+                               set_title=True,
+                               current_year=datetime_start.year,
+                               add_legend=False,
+                               add_max_line=add_max_line,
+                               current_year_percents_for_printout = current_year_percents,
+                               gap_filled=gap_filled,
+                               verbose=verbose)
 
     plot_label = (str(datetimes[0].year) \
                   if (datetime_start.year == datetime_end.year)
@@ -356,17 +363,60 @@ def _plot_current_year_and_baseline(datetime_start,
 
     plt.close(fig)
 
+
+def _get_previous_max_melt_values(current_datetimes,
+                                  fraction_or_area="fraction",
+                                  region_num=0,
+                                  gap_filled=True,
+                                  verbose=True):
+    # For a given set of datetimes in a melt year, return the previous datetime and previous max melt value
+    # ("fraction" or "area") of the previous highest melt in the observational record.
+    # Return two arrays, each of equal length to "current_datetimes":
+    #    previous_melt_dts = previous datetime of each max melt. Each datetime should have the same "month, day" value and be from a previous year.
+    #    previous_melt_vals = previous maximum melt value ("fraction" or "area") associated with that datetime, in the region specified.
+    df = read_daily_melt_numbers_as_dataframe(gap_filled=gap_filled, verbose=verbose)
+    # print(df)
+
+    # Convert the "YYYY-MM-DD" column into datetime objects.
+    # melt_dates_all = numpy.array([datetime.datetime.strptime(date, "%Y-%d-%m") for date in df['date']])
+    melt_dates_all = df['date'].apply(lambda t: t.to_pydatetime())
+
+    melt_colname = "R{0}_melt_{1}".format(region_num, fraction_or_area.lower().strip())
+    melt_vals = df[melt_colname]
+
+    prev_max_dts = numpy.empty((len(current_datetimes),), melt_dates_all.dtype)
+    prev_melt_vals = numpy.empty((len(current_datetimes),), melt_vals.dtype)
+    for i, current_dt in enumerate(current_datetimes):
+        # For each datetime of the current year, subset the previous days that have the same datetime and happen *before* the current date.
+        dt_mask = [True if ((current_dt.month == dt.month) and (current_dt.day == dt.day) and (dt.date() < current_dt)) else False \
+                   for dt in melt_dates_all]
+
+        prev_dts = melt_dates_all[dt_mask].to_numpy()
+        prev_dt_melts = melt_vals[dt_mask].to_numpy()
+        assert(len(prev_dts) == len(prev_dt_melts))
+
+        # Find the max melt value of those previous dates.
+        max_i = numpy.argmax(prev_dt_melts)
+
+        # Put it in the array for those days.
+        prev_max_dts[i] = prev_dts[max_i]
+        prev_melt_vals[i] = prev_dt_melts[max_i]
+
+    return prev_max_dts, prev_melt_vals
+
 def _plot_baseline_climatology(region_num=0,
-                              mpl_axes=None,
-                              baseline_start_year=1990,
-                              baseline_end_year=2020,
-                              return_axes=True,
-                              outfile=None,
-                              set_title=False,
-                              current_year=2000,
-                              add_legend=False,
-                              gap_filled=True,
-                              verbose=True):
+                               mpl_axes=None,
+                               baseline_start_year=1990,
+                               baseline_end_year=2020,
+                               return_axes=True,
+                               outfile=None,
+                               set_title=False,
+                               current_year=2000,
+                               add_legend=False,
+                               add_max_line = False,
+                               current_year_percents_for_printout = None,
+                               gap_filled=True,
+                               verbose=True):
     """Plot the baseline (median, inter-quartile, inter-decile) melt ranges into a matplotlib axis.
 
     Provides the opportunity to send the matplotlib.Axes instance as a parameter, so that
@@ -388,6 +438,8 @@ def _plot_baseline_climatology(region_num=0,
             If we will be plotting a given year's data over this, use that year (i.e. 2020, for the 2020-21 melt season)
             Otherwise, it will default to using the year 2000-2001
             The "leap day" (Feb 29th) will be kept or removed appropriately, depending upon the year given.
+
+    add_max_line: If True, add a dotted line for the "maximum" value of any given day in the entire melt record.
 
     Return
     ------
@@ -415,8 +467,10 @@ def _plot_baseline_climatology(region_num=0,
         if ((2,29) in md_tuples):
             leap_day_i = md_tuples.index((2,29))
             if leap_day_i <= md_tuple_wrap_position[0]:
+                # If the current year includes a leap day, then leave it alone
                 try:
                     datetime.date(current_year, 2, 29)
+                # If the current year does NOT include a leap day, then omit it from the record.
                 except ValueError:
                     md_tuples.remove((2,29))
                     p10 = numpy.append(p10[:leap_day_i], p10[(leap_day_i+1):])
@@ -426,8 +480,10 @@ def _plot_baseline_climatology(region_num=0,
                     p90 = numpy.append(p90[:leap_day_i], p90[(leap_day_i+1):])
 
             else:
+                # If the current year includes a leap day, then leave it alone
                 try:
                     datetime.date(current_year+1, 2, 29)
+                # If the current year does NOT include a leap day, then omit it from the record.
                 except ValueError:
                     md_tuples.remove((2,29))
                     p10 = numpy.append(p10[:leap_day_i], p10[(leap_day_i+1):])
@@ -456,6 +512,34 @@ def _plot_baseline_climatology(region_num=0,
     # Median (50%)
     baseline_label = "{0} - {1} Median".format(baseline_start_year, baseline_end_year)
     ax.plot(datetimes, p50, lw=PLOT_LINEWIDTH, color=PLOT_BLUE, ls="--", label=baseline_label)
+
+    if add_max_line:
+        max_dts, max_melt_frac = _get_previous_max_melt_values(datetimes,
+                                                               fraction_or_area="fraction",
+                                                               region_num=region_num,
+                                                               gap_filled=gap_filled,
+                                                               verbose=verbose)
+
+        # Plot the previous max in a thin organge line.
+        # Do not put it on the legend. (We can fix this later, but will not for now).
+        ax.plot(datetimes, max_melt_frac*100., lw=PLOT_LINEWIDTH/2, color=PLOT_ORANGE, ls="--",
+                label = "Previous Daily Maximum")
+                # label='{0} - {1} Daily Maximum'.format(1979, datetimes[-1].year - 1))
+
+        # NOTE: If I want to query what the previous dates were, I can put some logic here to print them to the console.
+        if verbose:
+            print("============")
+            print("Region {0} previous maximums:".format(region_num))
+            print("-- prev_date -- max_pct -- max_area -- cur_date -- cur_pct -- cur_area --")
+            region_area_km2 = _get_region_area_km2(region_num)
+            for pdt, pm, cdt, cm in zip(max_dts, max_melt_frac, datetimes, current_year_percents_for_printout):
+                print(pandas.Timestamp(pdt).to_pydatetime().strftime("%Y-%m-%d"),
+                      "      {0:>5.2f}  ".format(pm * 100.),
+                      "  {0:>7.0f}   ".format(pm * region_area_km2),
+                      cdt.strftime("%Y-%m-%d"),
+                      "  {0:>5.2f}  ".format(cm),
+                      "  {0:>7.0f}".format(cm / 100.0 * region_area_km2),
+                      "**" if cm > (pm*100) else "")
 
     # Put ticks every month, month names in between.
     ax.xaxis.set_major_locator(mpl.dates.MonthLocator()) # Tick every month.
@@ -561,16 +645,19 @@ if __name__ == "__main__":
 
     # for year in range(2019,2020):
     #     for region in range(0,8):
-    year=2020
+    year=2021
     # region=0
     for region_num in range(8):
-        for ext in ("png", "svg", "eps"):
-            fname = os.path.join(climatology_plots_directory, "R{0}_{1}-{2}.{3}".format(region_num, year, year+1, ext))
+        for ext in ("png",):
+        # for ext in ("png", "svg", "eps"):
+            fname = os.path.join(climatology_plots_directory, "R{0}_{1}-{2}_max.{3}".format(region_num, year, year+1, ext))
             plot_current_year_melt_over_baseline_stats(current_date= datetime.datetime(year+1,4,30),
                                                        region_num=region_num,
                                                        outfile = fname,
                                                        dpi=600,
-                                                       gap_filled=True)
+                                                       add_max_line=True,
+                                                       gap_filled=True,
+                                                       verbose=True)
 
     # df = plot_current_year_melt_over_baseline_stats(datetime.datetime(2020,6,30))
 

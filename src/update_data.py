@@ -10,6 +10,7 @@ import os
 import re
 import numpy
 import datetime
+import dateutil
 import pickle
 import shutil
 
@@ -55,7 +56,8 @@ def get_list_of_NSIDC_bin_files_to_import(datadir=tb_file_data.NSIDC_0080_file_d
 
 def update_everything_to_latest_date(overwrite = True,
                                      melt_bin_dir = tb_file_data.model_results_dir,
-                                     copy_to_gathered_dir = True):
+                                     copy_to_gathered_dir = True,
+                                     date_today = None):
     """Using today's date, do everything to update with the newest data.
 
     1) Download the NSIDC Tb files that are missing.
@@ -81,8 +83,14 @@ def update_everything_to_latest_date(overwrite = True,
     tb_file_list = [os.path.join("../Tb/nsidc-0080", fname) for fname in os.listdir("../Tb/nsidc-0080") if os.path.splitext(fname)[-1] == ".bin"]
 
     # Define "today" as today at midnight.
-    dt_today = datetime.datetime.today()
-    dt_today = datetime.datetime(year=dt_today.year, month=dt_today.month, day=dt_today.day)
+    if date_today is None:
+        dt_today = datetime.datetime.today()
+        dt_today = datetime.datetime(year=dt_today.year, month=dt_today.month, day=dt_today.day)
+    else:
+        if type(date_today) in (datetime.datetime, datetime.date):
+            dt_today = date_today
+        else:
+            dt_today = dateutil.parser.parse(date_today)
 
     # Collect all the new Tb .bin files and create a daily melt .bin file from each.
     for day_delta in range(1,((dt_today - latest_dt).days + 1)):
@@ -207,7 +215,7 @@ def update_everything_to_latest_date(overwrite = True,
                                                                                    verbose=True)
 
     if copy_to_gathered_dir:
-        copy_latest_date_plots_to_date_directory()
+        copy_latest_date_plots_to_date_directory(year = generate_daily_melt_file.get_melt_year_of_current_date(dt_today))
 
     return melt_array_updated, dt_dict
 
@@ -282,5 +290,5 @@ def copy_latest_date_plots_to_date_directory(year = generate_daily_melt_file.get
             print("{0} -> {1}.".format(src, dst))
 
 if __name__ == "__main__":
-    update_everything_to_latest_date()
+    update_everything_to_latest_date(date_today="2022.04.30")
     # copy_latest_date_plots_to_date_directory()

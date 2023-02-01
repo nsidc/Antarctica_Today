@@ -706,7 +706,10 @@ def _get_region_area_km2(region_number,
     If you want to get the pixel count, simply set "resolution_km" to 1.
     """
     region_mask_dict = _get_regional_tif_masks()
-    return numpy.count_nonzero(region_mask_dict[region_number]) * (resolution_km**2)
+    if region_number == 0:
+        return numpy.sum([(numpy.count_nonzero(region_mask_dict[i]) * (resolution_km**2)) for i in range(1, 8)])
+    else:
+        return numpy.count_nonzero(region_mask_dict[region_number]) * (resolution_km**2)
 
 def _compute_baseline_melt_percentiles(melt_array,
                                        datetimes_dict,

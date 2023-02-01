@@ -253,8 +253,9 @@ def create_daily_melt_array(Tb_array_37h, Tb_array_37v, Tb_array_19v, threshold_
 def read_and_parse_args():
     """Read and parse the command-line arguments."""
     parser = argparse.ArgumentParser(description="Generates a single daily melt file from NSIDC Tb files.")
-    parser.add_argument("Tb_file_19h", type=str, help="A daily NSIDC Polar-stereo Tb files (.bin)")
     parser.add_argument("Tb_file_37h", type=str, help="A daily NSIDC Polar-stereo Tb files (.bin)")
+    parser.add_argument("Tb_file_37v", type=str, help="A daily NSIDC Polar-stereo Tb files (.bin)")
+    parser.add_argument("Tb_file_19v", type=str, help="A daily NSIDC Polar-stereo Tb files (.bin)")
     parser.add_argument("threshold_file", type=str, help="A file of Tb threshold values (.bin)")
     parser.add_argument("output_file", type=str, help="Integer output file (.bin)")
     parser.add_argument("--ouput_gtif",  action="store_true", default=False, help="Output a GeoTiff (.tif) in addtion to the flat binary.")
@@ -263,12 +264,27 @@ def read_and_parse_args():
     return parser.parse_args()
 
 if __name__ == "__main__":
-    generate_new_daily_melt_files(start_date="2021-10-01")
-    # args = read_and_parse_args()
+    # generate_new_daily_melt_files(start_date="2021-10-01")
+    args = read_and_parse_args()
 
-    # create_daily_melt_file(args.Tb_file_19h,
-    #                        args.Tb_file_37h,
-    #                        args.output_file,
-    #                        args.threshold_file,
-    #                        create_gtif=args.output_gtif,
-    #                        verbose=args.verbose)
+# def create_daily_melt_file(tb_file_37h,
+#                            tb_file_37v,
+#                            tb_file_19v,
+#                            threshold_file,
+#                            output_bin_filename,
+#                            output_gtif_filename = None,
+#                            Tb_nodata_value = 0,
+#                            verbose = True):
+
+    if args.output_gtif:
+        gtif_name = os.path.splitext(args.output_file)[0] + ".tif"
+    else:
+        gtif_name = None
+
+    create_daily_melt_file(args.Tb_file_37h,
+                            args.Tb_file_37v,
+                            args.Tb_file_19v,
+                            args.threshold_file,
+                            args.output_file,
+                            output_gtif_filename=gtif_name,
+                            verbose=args.verbose)

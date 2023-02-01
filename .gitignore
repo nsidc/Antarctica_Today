@@ -150,3 +150,15 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+/plots/v2_5_years_coverage.png
+*.bin
+/.idea/.gitignore
+/.idea/Antarctica_Today.iml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/plots/daily_plots_gathered/.gitignore
+/plots/Antarctic_Regions_Map_v3.png
+/.idea/vcs.xml
+*.pyc

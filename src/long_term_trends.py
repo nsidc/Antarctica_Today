@@ -15,10 +15,10 @@ from statsmodels.stats.outliers_influence import summary_table
 matplotlib.style.use("default")
 
 from melt_array_picklefile import get_ice_mask_array
-from tb_file_data import outputs_v2_5_annual_tifs_directory, \
+from tb_file_data import outputs_annual_tifs_directory, \
                          antarctic_regions_tif,              \
                          antarctic_regions_dict,             \
-                         model_results_v2_5_plot_directory
+                         model_results_plot_directory
 
 def read_annual_sum_tif(year, gap_filled=True):
     """Read the total melt days from the annual sums tif.
@@ -29,7 +29,7 @@ def read_annual_sum_tif(year, gap_filled=True):
     If 'gap_filled', look for the 'YYYY-ZZZZ_gap_filled.tif' file.
     """
     tif_name = "{0}-{1}{2}.tif".format(year, year+1, "_gap_filled" if gap_filled else "")
-    tif_name = os.path.join(outputs_v2_5_annual_tifs_directory, tif_name)
+    tif_name = os.path.join(outputs_annual_tifs_directory, tif_name)
 
     ds = gdal.Open(tif_name,gdal.GA_ReadOnly)
     if ds is None:
@@ -78,8 +78,8 @@ def get_time_series_data(region_number=0,
     else:
         N = end_year - start_year + 1
 
-    years = numpy.empty((N,),dtype=numpy.int)
-    melt_vector = numpy.empty((N,),dtype=numpy.int)
+    years = numpy.empty((N,),dtype=int)
+    melt_vector = numpy.empty((N,),dtype=int)
 
     if region_number == 0:
         mask = get_ice_mask_array()
@@ -117,6 +117,7 @@ def get_time_series_data(region_number=0,
         melt_vector = melt_vector * (25**2)
 
     return years, melt_vector
+
 
 def plot_time_series(fname_template=None,
                      region_number="all",
@@ -317,7 +318,7 @@ def plot_time_series(fname_template=None,
 
     return results
 
-def special_plot_antarctica_and_peninsula_index(figname = os.path.join(model_results_v2_5_plot_directory,
+def special_plot_antarctica_and_peninsula_index(figname = os.path.join(model_results_plot_directory,
                                                                        "trends","R0_R1_index_trends.png")):
     """Make a special plot for the BAMS report, just having Antarctica & the Peninsula in it."""
     fig, axes = plt.subplots(2,1, figsize=(6.4, 5.5))
@@ -352,7 +353,7 @@ def special_plot_antarctica_and_peninsula_index(figname = os.path.join(model_res
 
     return results
 
-def special_plot_antarctica_and_all_regions(figname = os.path.join(model_results_v2_5_plot_directory,
+def special_plot_antarctica_and_all_regions(figname = os.path.join(model_results_plot_directory,
                                                                    "trends","ALL_regions_index_trends.png")):
     """Make a special plot for the BAMS report, having all the regions in it."""
     fig, axes = plt.subplots(2,4, sharex=True, sharey=False, figsize=(12., 4.))
@@ -429,6 +430,50 @@ def special_plot_antarctica_and_all_regions(figname = os.path.join(model_results
     return
 
 
+def compare_ind_year_to_baseline_averages(year, baseline_start=1990, baseline_end=2019, gap_filled=True, omit_1987=True,
+                                          verbose=True):
+    """Print a chart that compares the baseline annual sum melt indices
+    (mean, std, min_base, max_base, min_all, max_all, mi_this_year) for each region.
+    """
+    print("All values in km2*days, x 1e3.")
+    print("R# | {0:>8s} | {1:>8s} | {2:>8s} | {3:>8s} | {4:>8s} | {5:>8s} | {6:>8s} | {7:>8d}".format("BL-med", "BL-mean", "BL-std", "BL-min",
+                                                                                          "BL-max", "all-min",
+                                                                                          "all-max", year))
+    for region in range(0, 8):
+        years, melt_index = get_time_series_data(region_number=region,
+                                                 melt_index_or_extent="index",
+                                                 start_year=1979,
+                                                 end_year=year,
+                                                 omit_1987=omit_1987,
+                                                 gap_filled=gap_filled,
+                                                 return_in_km2=True)
+
+        baseline_mask = (years >= baseline_start) & (years <= baseline_end)
+        baseline_melt_i = melt_index[baseline_mask]
+        baseline_mean = numpy.mean(baseline_melt_i)
+        baseline_max = numpy.max(baseline_melt_i)
+        baseline_min = numpy.min(baseline_melt_i)
+        baseline_std = numpy.std(baseline_melt_i)
+        baseline_med = numpy.median(baseline_melt_i)
+        min_all = numpy.min(melt_index)
+        max_all = numpy.max(melt_index)
+        melt_i_this_year = melt_index[years == year]
+        assert len(melt_i_this_year) == 1
+        melt_i_this_year = melt_i_this_year[0]
+
+        print("{0:>2d} | {1:>8.1f} | {2:>8.1f} | {3:>8.1f} | {4:>8.1f} | {5:>8.1f} | {6:>8.1f} | {7:>8.1f} | {8:>8.1f}".format(
+            region,
+            baseline_med * 1e-3,
+            baseline_mean * 1e-3,
+            baseline_std * 1e-3,
+            baseline_min * 1e-3,
+            baseline_max * 1e-3,
+            min_all * 1e-3,
+            max_all * 1e-3,
+            melt_i_this_year * 1e-3))
+
+    return
+
 
 if __name__ == "__main__":
     # results = special_plot_antarctica_and_peninsula_index()
@@ -444,4 +489,5 @@ if __name__ == "__main__":
     #                       dpi=300,
     #                       extent_melt_days_threshold = 1,
     #                       verbose=True)
-    special_plot_antarctica_and_all_regions()
+    # special_plot_antarctica_and_all_regions()
+    compare_ind_year_to_baseline_averages(2021)
