@@ -47,20 +47,25 @@ def main():
 
     m = AT_map_generator(fill_pole_hole=False, filter_out_error_swaths=True, verbose=True)
 
-    for region in [5]: #range(8):
-        for fmt in ("png", "pdf", "svg"):
-            fig, ax = m.generate_annual_melt_map(outfile_template="../plots/annual_maps_sum/R{0}_2021-2022_sum.{1}".format(region, fmt),
+    for region in [1,]: #range(8):
+    # for region in [0,5]: #range(8):
+        for fmt in ("png",):
+            year = 2022
+#        for fmt in ("png", "pdf", "svg"):
+            fig, ax = m.generate_annual_melt_map(outfile_template="../plots/annual_maps_sum/R{0}_{1}-{2}_sum.{3}".format(region, year, year+1, fmt),
                                                  fmt=fmt,
-                                                 year=2021,
+                                                 mmdd_of_year = [3,22],
+                                                 year=2022,
                                                  region_number=region,
                                                  reset_picklefile=False,
                                                  dpi=600)
 
             plt.close(fig)
 
-            fig, ax = m.generate_anomaly_melt_map(outfile_template="../plots/annual_maps_anomaly/R{0}_2021-2022_anomaly.{1}".format(region, fmt),
+            fig, ax = m.generate_anomaly_melt_map(outfile_template="../plots/annual_maps_anomaly/R{0}_{1}-{2}_anomaly.{3}".format(region, year, year+1, fmt),
                                                   fmt=fmt,
-                                                  year=2021,
+                                                  mmdd_of_year = [3,22],
+                                                  year=2022,
                                                   region_number=region,
                                                   reset_picklefile=False,
                                                   dpi=600)
@@ -1156,7 +1161,10 @@ class AT_map_generator:
 
         self._draw_legend_for_daily_melt(ax)
 
-        fig.savefig(outfile, dpi=150)
+        if os.path.splitext(outfile)[1].lower() == ".eps":
+            fig.savefig(outfile, dpi=150, format="eps")
+        else:
+            fig.savefig(outfile, dpi=150)
         print(outfile, "written.")
 
         self._strip_empty_image_border(outfile)
@@ -1281,13 +1289,16 @@ class AT_map_generator:
             # TODO: Adjust to give region_number, not a specific location.
             self._add_date_to_axes(ax, infile, (0.06, 0.93))
 
-        if outfile != None:
+        if outfile is not None:
             if outfile.strip().lower() == "auto":
                 dt = self._get_date_from_filename(os.path.split(infile)[1])
-                outfile = os.path.join(daily_melt_plots_dir, dt.strftime("%Y.%m.%d.png"))
+                outfile = os.path.join(daily_melt_plots_dir, "R{0}_{1}_daily.png".format(region_number, dt.strftime("%Y.%m.%d")))
 
             new_dpi = self._scale_DPI_by_axes_size(fig, ax, dpi)
-            fig.savefig(outfile, dpi=new_dpi)
+            if os.path.splitext(outfile)[1].lower() == ".eps":
+                fig.savefig(outfile, dpi=new_dps, format="eps")
+            else:
+                fig.savefig(outfile, dpi=new_dpi)
 
             if self.OPT_verbose:
                 print(outfile, "written.")
@@ -1301,6 +1312,7 @@ class AT_map_generator:
                                        fmt="png",
                                        melt_start_mmdd = (10,1),
                                        melt_end_mmdd = (4,30),
+                                       mmdd_of_year=None,
                                        dpi=150,
                                        region_number=0,
                                        include_region_name_if_not_0=True,
@@ -1319,8 +1331,8 @@ class AT_map_generator:
         outfile_template can be a name of an output image file, but can also have
         up to three format codes "{0} {1} {2}" anywhere in the file name. Those
         codes will be filled with:
-        - {0}: the melt year being used (2019, e.g.)
-        - {1}: the region_number,
+        - {0}: the region_number
+        - {1}: the melt year being used (2019, e.g.)
         - {2}: the *next* year (useful if you want to name it 2019-2020.tif, for instance.)
 
         These fields are only included in the output filename where the above codes
@@ -1404,21 +1416,34 @@ class AT_map_generator:
                           zorder=data_z,
                           alpha=data_alpha)
 
+            if mmdd_of_year is not None:
+                datetime_of_year = datetime.datetime(year=(y + 1) if (tuple(mmdd_of_year) < tuple(melt_end_mmdd)) else y,
+                                                     month=mmdd_of_year[0],
+                                                     day=mmdd_of_year[1])
+
             if include_year_label:
                 if keep_year_label_wrapped or (melt_end_mmdd < melt_start_mmdd):
                     year_str = "{0:d}-{1:d}".format(y, y+1)
                 else:
                     year_str = str(y)
 
+                if message_below_year is None and mmdd_of_year is not None:
+                    message_below_year = "through {}".format(datetime_of_year.strftime("%d %B %Y").lstrip("0"))
+
                 self._add_year_to_axes(ax, year_str, region_number=region_number, message_below_year=message_below_year)
 
-            if outfile_template == None:
-                outfile_template = os.path.join(annual_maps_directory, "R{1}_{0}-{2}." + ("png" if fmt is None else fmt))
+            if outfile_template is None:
+                outfile_template = os.path.join(annual_maps_directory, "R{0}_{1}-{2}" + \
+                                                (datetime_of_year.strftime("_%Y.%m.%d") if (mmdd_of_year is not None) else "") + \
+                                                "_sum." + ("png" if fmt is None else fmt))
 
-            outfile_fname = outfile_template.format(y, region_number, y+1)
+            outfile_fname = outfile_template.format(region_number, y, y+1)
 
             new_dpi = self._scale_DPI_by_axes_size(fig, ax, dpi)
-            fig.savefig(outfile_fname, dpi=new_dpi)
+            if os.path.splitext(outfile_fname)[1].lower() == ".eps":
+                fig.savefig(outfile_fname, dpi=new_dpi, format="eps")
+            else:
+                fig.savefig(outfile_fname, dpi=new_dpi)
 
             if self.OPT_verbose:
                 print(outfile_fname, "written.")
@@ -1518,7 +1543,7 @@ class AT_map_generator:
                 anomaly_data = read_annual_melt_anomaly_tif(year=year,
                                                             verbose=verbose)
             else:
-                datetime_this_year = datetime.datetime(year=year + (0 if mmdd_of_year >= melt_start_mmdd else 1),
+                datetime_this_year = datetime.datetime(year=year + (0 if (tuple(mmdd_of_year) >= tuple(melt_start_mmdd)) else 1),
                                                        month=mmdd_of_year[0],
                                                        day=mmdd_of_year[1])
                 anomaly_data = create_partial_year_melt_anomaly_tif(current_datetime=datetime_this_year, gap_filled=False, verbose=verbose)
@@ -1542,19 +1567,29 @@ class AT_map_generator:
                 else:
                     year_str = str(year)
 
+                if mmdd_of_year is not None and (message_below_year is None or message_below_year.find("through") == -1):
+                    if len(message_below_year) > 0:
+                        message_below_year = ("" if (message_below_year is None) else message_below_year) + "\n"
+                    message_below_year = message_below_year + "through {}".format(datetime_this_year.strftime("%d %B %Y").lstrip("0"))
+
                 self._add_year_to_axes(ax, year_str, region_number=region_number, message_below_year=message_below_year)
 
 
-            if outfile_template == None:
-                outfile_template = os.path.join(anomaly_maps_directory, "R{1}_{0}-{2}.png")
+            if outfile_template is None:
+                outfile_template = os.path.join(anomaly_maps_directory, "R{1}_{0}-{2}" + \
+                                                ("" if (mmdd_of_year is None) else "_{3}") + \
+                                                "_anomaly.png")
 
             if mmdd_of_year is None:
                 outfile_fname = outfile_template.format(year, region_number, year+1)
             else:
-                outfile_fname = outfile_template.format(year, region_number, datetime_this_year.strftime("%Y.%m.%d"), year+1)
+                outfile_fname = outfile_template.format(year, region_number, year+1, datetime_this_year.strftime("%Y.%m.%d"))
 
             new_dpi = self._scale_DPI_by_axes_size(fig, ax, dpi)
-            fig.savefig(outfile_fname, dpi=new_dpi)
+            if os.path.splitext(outfile_fname)[1].lower() == ".eps":
+                fig.savefig(outfile_fname, dpi=new_dpi, format="eps")
+            else:
+                fig.savefig(outfile_fname, dpi=new_dpi)
 
             if self.OPT_verbose:
                 print(outfile_fname, "written.")
@@ -1652,10 +1687,13 @@ def SPECIAL_make_map_with_borders(year=2020):
         ax.text(0.7, 0.6, "Amery and\nShackleton", va="top", ha="left", fontsize=fs, fontweight="semibold",transform=ax.transAxes)
         ax.text(0.76, 0.28, "Wilkes and\nAdelie", va="top", ha="left", fontsize=fs, fontweight="semibold",transform=ax.transAxes)
         ax.text(0.56, 0.4, "Ross\nEmbayment", va="top", ha="left", fontsize=fs, fontweight="semibold",transform=ax.transAxes)
-        ax.text(0.12, 0.23, "Amundsen\nBellinghausen", va="top", ha="left", fontsize=fs, fontweight="semibold",transform=ax.transAxes)
+        ax.text(0.12, 0.23, "Amundsen\nBellingshausen", va="top", ha="left", fontsize=fs, fontweight="semibold",transform=ax.transAxes)
 
         dpi = at._scale_DPI_by_axes_size(fig, ax, 600)
-        fig.savefig(fname, dpi=dpi)
+        if os.path.splitext(fname)[1].lower() == ".eps":
+            fig.savefig(fname, dpi=new_dpi, format="eps")
+        else:
+            fig.savefig(fname, dpi=dpi)
         at._strip_empty_image_border(fname)
 
         print(fname, "overwritten.")

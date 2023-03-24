@@ -57,6 +57,9 @@ def get_list_of_NSIDC_bin_files_to_import(datadir=tb_file_data.NSIDC_0080_file_d
 def update_everything_to_latest_date(overwrite = True,
                                      melt_bin_dir = tb_file_data.model_results_dir,
                                      copy_to_gathered_dir = True,
+                                     melt_season_only = True,
+                                     melt_season_start_mmdd = [10,1],
+                                     melt_season_end_mmdd = [4,30],
                                      date_today = None):
     """Using today's date, do everything to update with the newest data.
 
@@ -95,12 +98,19 @@ def update_everything_to_latest_date(overwrite = True,
     # Collect all the new Tb .bin files and create a daily melt .bin file from each.
     for day_delta in range(1,((dt_today - latest_dt).days + 1)):
         dt = latest_dt + datetime.timedelta(days=day_delta)
+
+        if melt_season_only:
+            dt_mmdd = [dt.month, dt.day]
+            if ((melt_season_start_mmdd > melt_season_end_mmdd) and (melt_season_end_mmdd < dt_mmdd < melt_season_start_mmdd)) or \
+               ((melt_season_start_mmdd <= melt_season_end_mmdd) and ((dt_mmdd < melt_season_start_mmdd) or (dt_mmdd > melt_season_end_mmdd))):
+                continue
+
         fnames_37h = [fname for fname in tb_file_list if \
-                      (fname.find(dt.strftime("%Y%m%d")) > -1 and fname.find("s37h.bin") > -1)]
+                      (fname.find(dt.strftime("%Y%m%d")) > -1 and (fname.find("s37h.bin") > -1) and (fname.find(".xml") == -1))]
         fnames_19v = [fname for fname in tb_file_list if \
-                      (fname.find(dt.strftime("%Y%m%d")) > -1 and fname.find("s19v.bin") > -1)]
+                      (fname.find(dt.strftime("%Y%m%d")) > -1 and (fname.find("s19v.bin") > -1) and (fname.find(".xml") == -1))]
         fnames_37v = [fname for fname in tb_file_list if \
-                      (fname.find(dt.strftime("%Y%m%d")) > -1 and fname.find("s37v.bin") > -1)]
+                      (fname.find(dt.strftime("%Y%m%d")) > -1 and (fname.find("s37v.bin") > -1) and (fname.find(".xml") == -1))]
         # Make sure there's just one of each file. If not, figure out what's going on here.
         try:
             assert len(fnames_37h) == 1
@@ -201,13 +211,23 @@ def update_everything_to_latest_date(overwrite = True,
 
     latest_date = sorted(dt_dict.keys())[-1]
     date_message = "through " + latest_date.strftime("%d %b %Y").lstrip('0')
-    mapper.generate_annual_melt_map(year=year, dpi=300, message_below_year = date_message)
-    mapper.generate_latest_partial_anomaly_melt_map(dpi=300, message_below_year = date_message + "\nrelative to 1990-2020")
-    mapper.generate_daily_melt_map(infile="latest", outfile="auto", dpi=300)
 
     # Plot the latest line plots.
     for region_num in range(0,7+1):
-        outfile = os.path.join(tb_file_data.climatology_plots_directory, "R{0}_{1}-{2}_gap_filled.png".format(region_num, year, year+1))
+        mapper.generate_annual_melt_map(year=year,
+                                        region_number=region_num,
+                                        mmdd_of_year = (latest_date.month, latest_date.day),
+                                        dpi=300,
+                                        message_below_year=date_message)
+        mapper.generate_latest_partial_anomaly_melt_map(dpi=300,
+                                                        region_number=region_num,
+                                                        message_below_year=date_message + "\nrelative to 1990-2020 averages")
+        mapper.generate_daily_melt_map(infile="latest",
+                                       outfile="auto",
+                                       region_number=region_num,
+                                       dpi=300)
+
+        outfile = os.path.join(tb_file_data.climatology_plots_directory, "R{0}_{1}-{2}_{3}_gap_filled.png".format(region_num, year, year+1, latest_date.strftime("%Y.%m.%d")))
         plot_daily_melt_and_climatology.plot_current_year_melt_over_baseline_stats(current_date=latest_date,
                                                                                    region_num=region_num,
                                                                                    gap_filled=True,
@@ -215,11 +235,13 @@ def update_everything_to_latest_date(overwrite = True,
                                                                                    verbose=True)
 
     if copy_to_gathered_dir:
-        copy_latest_date_plots_to_date_directory(year = generate_daily_melt_file.get_melt_year_of_current_date(dt_today))
+        copy_latest_date_plots_to_date_directory(year = generate_daily_melt_file.get_melt_year_of_current_date(dt_today),
+                                                 date = latest_date)
 
     return melt_array_updated, dt_dict
 
-def copy_latest_date_plots_to_date_directory(year = generate_daily_melt_file.get_melt_year_of_current_date(datetime.datetime.today()),
+def copy_latest_date_plots_to_date_directory(year = generate_daily_melt_file.get_melt_year_of_current_date(datetime.datetime.today() - datetime.timedelta(days=1)),
+                                             date = datetime.datetime.today() - datetime.timedelta(days=1),
                                              dest_parent_dir = tb_file_data.daily_plots_gathered_dir,
                                              daily_melt_maps_dir = map_filedata.daily_maps_directory,
                                              sum_maps_dir = map_filedata.annual_maps_directory,
@@ -231,18 +253,18 @@ def copy_latest_date_plots_to_date_directory(year = generate_daily_melt_file.get
     with all the latest plots just made."""
 
     # Get latest file from melt anomaly directory. Also, get the date we're computing up to.
-    search_str = "R[0-7]_{0}-{1}".format(year, year+1) + "\.(\d{2})\.(\d{2})\.png\Z"
+    date_string = date.strftime("%Y.%m.%d")
+    search_str = "R[0-7]_{0}-{1}_{2}".format(year, year+1, date_string) + "(\w)*\.png\Z"
     # Get all the files that match our search string. May be different dates and possibly different regions.
-    dated_files_in_anomaly_map_dir = sorted([fn for fn in os.listdir(anomaly_maps_dir) if re.search(search_str, fn) != None])
-    latest_file_in_anomaly_maps_dir = dated_files_in_anomaly_map_dir[-1]
 
-    date_string_with_second_year = re.search( "(?<=R[0-7]_{0}-)".format(year) + str(year+1) + "\.(\d{2})\.(\d{2})(?=\.png\Z)", latest_file_in_anomaly_maps_dir).group()
-    # If the date string is later than today (right now) then it has to be last year's data.
-    # Swap out the string.
-    if date_string_with_second_year > datetime.datetime.today().strftime("%Y.%m.%d"):
-        date_string = date_string_with_second_year.replace(str(year+1), str(year))
-    else:
-        date_string = date_string_with_second_year
+    files_in_anomaly_maps_dir = [os.path.join(anomaly_maps_dir, fn) for fn in os.listdir(anomaly_maps_dir) if re.search(search_str, fn) is not None]
+    files_in_sum_maps_dir = [os.path.join(sum_maps_dir, fn) for fn in os.listdir(sum_maps_dir) if re.search(search_str, fn) is not None]
+    # The daily maps don't list the melt year, so we use a slightly different search string for those.
+    daily_search_str = "R[0-7]_{0}_daily.png".format(date_string)
+    files_in_daily_maps_dir = [os.path.join(daily_melt_maps_dir, fn) for fn in os.listdir(daily_melt_maps_dir) if re.search(daily_search_str, fn) is not None]
+    files_in_line_plots_dir = [os.path.join(line_plots_dir, fn) for fn in os.listdir(line_plots_dir) if re.search(search_str, fn) is not None]
+
+    files_to_move = files_in_anomaly_maps_dir + files_in_sum_maps_dir + files_in_daily_maps_dir + files_in_line_plots_dir
 
     # If the sub-directory with this latest date doesn't exist, create it.
     dest_dir_location = os.path.join(dest_parent_dir, date_string)
@@ -251,44 +273,18 @@ def copy_latest_date_plots_to_date_directory(year = generate_daily_melt_file.get
         if verbose:
             print("Created directory '{0}'.".format(dest_dir_location))
 
-    # Now, copy all the anomaly files created that match that date.
-    anomaly_files_to_copy = [fn for fn in dated_files_in_anomaly_map_dir if (fn.find(date_string_with_second_year) > -1)]
-    # print(anomaly_files_to_copy)
-    for fn in anomaly_files_to_copy:
-        src = os.path.join(anomaly_maps_dir, fn)
-        dst = os.path.join(dest_dir_location, fn)
-        shutil.copyfile(src, dst)
-        if verbose:
-            print("{0} -> {1}.".format(src, dst))
+    for fn in files_to_move:
+        src = fn
+        dst = os.path.join(dest_dir_location, os.path.basename(fn))
+        if os.path.exists(dst) and os.path.exists(src):
+            os.remove(dst)
 
-
-    # Get latest files from melt sum directory that match this year. NOTE: I should probably timestamp these.
-    files_in_sum_maps_dir = [fn for fn in os.listdir(sum_maps_dir) if re.search("R[0-7]_{0}-{1}.png\Z".format(year, year+1), fn) != None]
-    for fn in files_in_sum_maps_dir:
-        src = os.path.join(sum_maps_dir, fn)
-        dst = os.path.join(dest_dir_location, fn)
         shutil.copyfile(src, dst)
-        if verbose:
-            print("{0} -> {1}.".format(src, dst))
 
-    # Get latest file from daily melt directory
-    files_in_daily_maps_dir = [fn for fn in os.listdir(daily_melt_maps_dir) if (fn.find(date_string) > -1)]
-    for fn in files_in_daily_maps_dir:
-        src = os.path.join(daily_melt_maps_dir, fn)
-        dst = os.path.join(dest_dir_location, fn)
-        shutil.copyfile(src, dst)
-        if verbose:
-            print("{0} -> {1}.".format(src, dst))
-
-    # Get latest files (for each region) from line-plot climatologies directory.
-    files_in_line_plots_dir = [fn for fn in os.listdir(line_plots_dir) if (fn.find(date_string_with_second_year[:4] + "_gap_filled.png") > -1)]
-    for fn in files_in_line_plots_dir:
-        src = os.path.join(line_plots_dir, fn)
-        dst = os.path.join(dest_dir_location, fn)
-        shutil.copyfile(src, dst)
         if verbose:
             print("{0} -> {1}.".format(src, dst))
 
 if __name__ == "__main__":
-    update_everything_to_latest_date(date_today="2022.04.30")
+    update_everything_to_latest_date(date_today=datetime.datetime.today().strftime("%Y.%m.%d"), copy_to_gathered_dir=True)
+    # update_everything_to_latest_date(date_today="2022.04.30")
     # copy_latest_date_plots_to_date_directory()
