@@ -5,6 +5,11 @@ channels:
 platforms:
   - linux-64
 dependencies:
-  # Before np.int was deprecated
+  # Runtime dependencies
+  ## Need a numpy version before np.int was deprecated:
   - numpy ~=1.19.4
+
+
+  # Development dependencies
   - matplotlib
+  - pre-commit
