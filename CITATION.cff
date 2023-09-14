@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: |
+  Please cite this software using these metadata.
+
+title: "Antarctica Today"
+doi: "<TODO>"
+abstract: "This software creates the Antarctica Today database, updates it, and generates plots and maps of results."
+contact:
+  - name: "<TODO>"
+    email: "<TODO>"
+type: "software"
+license: ["MIT"]
+keywords:
+  - "Antarctica"
+
+url: "<TODO>"
+repository-code: "https://github.com/<TODO>/Antarctica_Today"
+
+version: "1.0.0"
+date-released: "<TODO>"
+
+authors:
+- family-names: "MacFerrin"
+  given-names: "Michael"
+  orcid: "https://orcid.org/0000-0001-8157-7159"
+  website: "<TODO>"
+
+# TODO: Funding. This is what QGreenland's references section looked like. Are there other references?
+# references:
+# - type: "grant"
+#   intitution:
+#     name: "National Science Foundation"
+#   number: "1928393"
