@@ -1,0 +1,7 @@
+# This file enables certain commits to be ignored when using GitHub's "blame"
+# view. This is useful for ignoring changes made by automations, e.g. Ruff.
+# Please isolate those changes to a single commit and add a line here (with a
+# comment) for each.
+#
+# Learn more:
+#     https://docs.github.com/en/repositories/working-with-files/using-files/viewing-a-file#ignore-commits-in-the-blame-view
