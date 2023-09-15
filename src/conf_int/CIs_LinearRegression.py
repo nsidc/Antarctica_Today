@@ -68,7 +68,7 @@ def conf_calc(x, y_err, c_limit=0.975, test_n=50):
              of the critical value in the t-statistic table
              eg: for a 2 tailed 95% confidence interval (the default)
                     c_limit = 0.975
-    test_n:  (optional) integer representing numer of equally-spaced
+    test_n:  (optional) integer representing number of equally-spaced
              x-points to predict in the range min(x) to max(x)
 
     Returns
@@ -81,7 +81,7 @@ def conf_calc(x, y_err, c_limit=0.975, test_n=50):
     # Define the variables you need
     # to calculate the confidence interval
     mean_x = np.mean(x)			# mean of x
-    n = len(x)				# number of samples in origional fit
+    n = len(x)				# number of samples in original fit
     tstat = t.ppf(c_limit, n-1)         # appropriate t value
     s_err = np.sum(np.power(y_err,2))	# sum of the squares of the residuals
 
@@ -157,7 +157,7 @@ def confidence_bounds(x, y, c_limit=0.975, test_n=50):
              of the critical value in the t-statistic table
              eg: for a 2 tailed 95% confidence interval (the default)
                     c_limit = 0.975
-    test_n:  (optional) integer representing numer of equally-spaced
+    test_n:  (optional) integer representing number of equally-spaced
              x-points to predict in the range min(x) to max(x)
 
     Returns

@@ -126,7 +126,7 @@ def read_and_parse_args():
     parser.add_argument("-year", type=str, default="all", help="Year to map, for annual and annual_anomaly plots only. Ignored for daily plots. Years refer to the beginning of the melt season: i.e. '2019' means the 2019-2020 melt season.")
     parser.add_argument("-region", type=int, default=0, help="The region number 0-7. Default 0 (all of Antarctica). 1 is the Antarctic Peninsula, going clockwise.")
     parser.add_argument("-melt_code_threshold", type=int, default=8, help="The melt threshold code 2-8, used in v2.5 of the data. 8 is all-inclusive, 2 is most-restrictive. Default 8. Use -1 if you want to plat them all.")
-    parser.add_argument("-dpi", type=int, default=150, help="Resolution of output figure, in dots-per-inch (DPI). Ignored if 'output_map' is ununsed. Default 150. (NOTE: This DPI is off by about a factor of 50%. Cartopy determines image size by map extent (rather than imager aspect set by us), and thus often puts a large blank boundary around the image that we crop off. So the final image may be less DPI than specified here. The solution, if it's not adequate resolution, is to either save as a vector image (SVG), or increase the DPI to compensate.")
+    parser.add_argument("-dpi", type=int, default=150, help="Resolution of output figure, in dots-per-inch (DPI). Ignored if 'output_map' is unused. Default 150. (NOTE: This DPI is off by about a factor of 50%. Cartopy determines image size by map extent (rather than imager aspect set by us), and thus often puts a large blank boundary around the image that we crop off. So the final image may be less DPI than specified here. The solution, if it's not adequate resolution, is to either save as a vector image (SVG), or increase the DPI to compensate.")
     parser.add_argument("--omit_scalebar", action="store_true", default=False, help="Omit the 1000 km scale bar. Default if not set: include it.")
     parser.add_argument("--omit_mountains", action="store_true", default=False, help="Omit the mountains from the figure. Default if not set: include them.")
     parser.add_argument("--omit_date", action="store_true", default=False, help="Keep the date off the figure (DD MMM YYYY for daily files, XXXX-YYYY melt year for annual files. Default if not set: Include the date.")
@@ -376,7 +376,7 @@ class AT_map_generator:
                                                 include_region_outline_if_not_0 = True,
                                                 region_to_outline = None,
                                                 save_to_picklefile= True):
-        """Read all the data, genereate a new baseline map figure.
+        """Read all the data, generate a new baseline map figure.
 
         The map will contain
             (1) the continent outline,
@@ -390,7 +390,7 @@ class AT_map_generator:
         """
         map_type_lower = map_type.strip().lower()
         if map_type_lower not in ("daily", "annual", "anomaly"):
-            raise ValueError("Uknown map type '{0}'.".format(map_type))
+            raise ValueError("Unknown map type '{0}'.".format(map_type))
 
         fig = plt.figure(frameon=False)
         ax = fig.add_subplot(1,1,1, projection=self.SPS_projection)
@@ -437,7 +437,7 @@ class AT_map_generator:
                 self._draw_legend_for_melt_anomaly(fig, ax)
 
             else:
-                raise ValueError("Uknown map type '{0}'.".format(map_type))
+                raise ValueError("Unknown map type '{0}'.".format(map_type))
 
         if include_region_name_if_not_0 and region_number != 0:
             # TODO: implement this for different sub-regions
@@ -496,7 +496,7 @@ class AT_map_generator:
         0.5 * increment.
 
         NOTE: Increment should be as small or smaller than the smallest gap between
-        defined color levels. Behavoir is untested if it isn't.
+        defined color levels. Behavior is untested if it isn't.
 
         Return
         ------
@@ -605,7 +605,7 @@ class AT_map_generator:
             # Finish filling these in. Use RGB values from eyedrop in a photo-editing program.
             # Can tweak these RBG values to adjust the color-scale on the map.
             grey_neg999     = [c/255. for c in (204, 204, 204)]
-            darkblue_neg200 = [c/255. for c in (  0,   0, 127)] # Create a far-out -200 value just to keep it from interpolating out ot -999.
+            darkblue_neg200 = [c/255. for c in (  0,   0, 127)] # Create a far-out -200 value just to keep it from interpolating out to -999.
             darkblue_neg45  = [c/255. for c in (  0,   0, 127)]
             blue_neg30      = [c/255. for c in (  0,   0, 255)]
             lightblue_neg15 = [c/255. for c in (127, 127, 255)]
@@ -669,7 +669,7 @@ class AT_map_generator:
     def _get_colormap_and_norm(self, map_type = "daily",
                                      interpolate=False,
                                      increment=1):
-        """Retreive the color map and norm for a particular map type.
+        """Retrieve the color map and norm for a particular map type.
 
         map_type can be "daily", "annual", or "anomaly".
         (For now, the "annual" and "anomaly" maps use the same color scale.)

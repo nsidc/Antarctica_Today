@@ -596,7 +596,7 @@ def _get_baseline_percentiles_from_csv(region_number=0,
     ----------
     region_num: 0 thru 7. See tb_file_data.antarctic_regions_dict for details.
     df:  Pandas datafram containing the data. If None, open the dataframe and read from it.
-        (Useful to open it only once and pass it along if we will be calling this fucntion repeatedlly.)
+        (Useful to open it only once and pass it along if we will be calling this function repeatedlly.)
     verbose: Specifies whether to provide feedback (primarily if opening the CSV file.)
 
     Return
@@ -841,7 +841,7 @@ def special_figure_REG5_FEB_APR_2022(outfile):
     ----------
     region_num: 0 thru 7. See tb_file_data.antarctic_regions_dict for details.
     df:  Pandas datafram containing the data. If None, open the dataframe and read from it.
-        (Useful to open it only once and pass it along if we will be calling this fucntion repeatedlly.)
+        (Useful to open it only once and pass it along if we will be calling this function repeatedly.)
     verbose: Specifies whether to provide feedback (primarily if opening the CSV file.)
 
     Return

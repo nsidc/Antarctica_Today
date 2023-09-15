@@ -136,7 +136,7 @@ def plot_time_series(fname_template=None,
                      add_confidence_intervals=True,
                      add_prediction_intervals=True,
                      verbose=True):
-    """Cretae a plot of the time series of melt.
+    """Create a plot of the time series of melt.
 
     In fname_template, if you specify a {0} tag in the name, it will be filled
     in with the region number. This is useful if you want to use region_number="all",
