@@ -10,5 +10,5 @@ dependencies:
   - numpy ~=1.19.4
 
   # Development dependencies
-  - matplotlib
+  - matplotlib-base
   - pre-commit
