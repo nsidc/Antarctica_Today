@@ -32,59 +32,63 @@ import argparse
 import subprocess
 import cairo
 import gi
-gi.require_version('Rsvg', '2.0')
+
+gi.require_version("Rsvg", "2.0")
 gi.require_foreign("cairo")
 from gi.repository import Rsvg
 
+
 def query_svg(svgfile):
     """Parses the output from inkscape --query-all"""
+
     def parse_line(line):
-        split = line.split(b',')
+        split = line.split(b",")
         return [split[0]] + [float(x) for x in split[1:]]
+
     output = subprocess.check_output(["inkscape", "--query-all", svgfile])
-    lines = output.split(b'\n')
+    lines = output.split(b"\n")
     return [parse_line(line) for line in lines]
+
 
 def get_bounding_box(svgfile):
     all = query_svg(svgfile)
     # The first line seems to always be the full drawing
     return all[0]
 
+
 def print_info(svgfile):
     bbox = get_bounding_box(svgfile)
-    print("""
+    print(
+        """
 X:      %f
 Y:      %f
 Width:  %f
-Height: %f""".strip() % tuple(bbox[1:]))
+Height: %f""".strip()
+        % tuple(bbox[1:])
+    )
+
 
 def clip(inputfile, outputfile, margin):
     name, x, y, width, height = get_bounding_box(inputfile)
 
     handle = Rsvg.Handle()
     svg = handle.new_from_file(inputfile)
-    surface = cairo.SVGSurface(outputfile,
-                               width + margin * 2,
-                               height + margin * 2)
+    surface = cairo.SVGSurface(outputfile, width + margin * 2, height + margin * 2)
     ctx = cairo.Context(surface)
     ctx.translate(-x + margin, -y + margin)
     svg.render_cairo(ctx)
     surface.finish()
 
+
 def arg_parser():
-    parser = argparse.ArgumentParser(description=
-                                     'Clip SVG file to bounding box.')
-    parser.add_argument('input',
-                        help="SVG file to read")
-    parser.add_argument('-o', '--output',
-                        help="SVG file to write",
-                        metavar="SVGFILE")
-    parser.add_argument('-m', '--margin',
-                        help="Margin to add",
-                        metavar="PIXELS",
-                        default=0,
-                        type=float)
+    parser = argparse.ArgumentParser(description="Clip SVG file to bounding box.")
+    parser.add_argument("input", help="SVG file to read")
+    parser.add_argument("-o", "--output", help="SVG file to write", metavar="SVGFILE")
+    parser.add_argument(
+        "-m", "--margin", help="Margin to add", metavar="PIXELS", default=0, type=float
+    )
     return parser
+
 
 if __name__ == "__main__":
     args = arg_parser().parse_args()

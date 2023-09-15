@@ -15,13 +15,16 @@ import numpy
 # For Arctic, (rows, cols) = (448, 304)
 DEFAULT_GRID_SHAPE = (332, 316)
 
-def read_NSIDC_bin_file(fname,
-                        grid_shape = DEFAULT_GRID_SHAPE,
-                        header_size=0,
-                        element_size=2,
-                        return_type=float,
-                        signed=False,
-                        multiplier=0.1):
+
+def read_NSIDC_bin_file(
+    fname,
+    grid_shape=DEFAULT_GRID_SHAPE,
+    header_size=0,
+    element_size=2,
+    return_type=float,
+    signed=False,
+    multiplier=0.1,
+):
     """Read an SSMI file, return a 2D grid of integer values.
 
     header_size - size, in bytes, of the header. Defaults to zero for
@@ -43,7 +46,7 @@ def read_NSIDC_bin_file(fname,
         This is ignored if the return type is "int" or a numpy integer type.
     """
     # Data is in two-byte, little-endian integers, array of size GRID_SHAPE
-    with open(fname, 'rb') as fin:
+    with open(fname, "rb") as fin:
         raw_data = fin.read()
         fin.close()
 
@@ -55,45 +58,64 @@ def read_NSIDC_bin_file(fname,
     # TODO: The NSIDC-0051 data has the rows,cols in the header. We could read it from there,
     # although right now we just get the grid size from the parameter.
     if int(len(raw_data) / element_size) != int(numpy.product(grid_shape)):
-        raise ValueError("File {0} has {1} elements, does not match grid size {2}.".format(
-                         fname, int(len(raw_data)/element_size), str(grid_shape)))
+        raise ValueError(
+            "File {0} has {1} elements, does not match grid size {2}.".format(
+                fname, int(len(raw_data) / element_size), str(grid_shape)
+            )
+        )
 
     # Creating a uint16 array to read the data in
     int_array = numpy.empty(grid_shape, dtype=return_type)
     int_array = int_array.flatten()
 
     # Read the data. The built_int "from_bytes" function does the work here.
-    for i in range(0, int(len(raw_data)/element_size)):
-        int_array[i] = int.from_bytes(raw_data[(i*element_size):((i+1)*element_size)],
-                                      byteorder="little",
-                                      signed=signed)
+    for i in range(0, int(len(raw_data) / element_size)):
+        int_array[i] = int.from_bytes(
+            raw_data[(i * element_size) : ((i + 1) * element_size)],
+            byteorder="little",
+            signed=signed,
+        )
 
     # Unflatten the array back into the grid shape
     int_array.shape = grid_shape
 
     # If the file is meant to be an integer array, just return it.
-    if return_type in (int, numpy.int, numpy.uint8, numpy.int8, numpy.uint16, numpy.int16, numpy.uint32, numpy.int32, numpy.uint64, numpy.int64):
+    if return_type in (
+        int,
+        numpy.int,
+        numpy.uint8,
+        numpy.int8,
+        numpy.uint16,
+        numpy.int16,
+        numpy.uint32,
+        numpy.int32,
+        numpy.uint64,
+        numpy.int64,
+    ):
         return_array = numpy.array(int_array, dtype=return_type)
     # Else, if it's meant to be a floating-point array, scale by the multiplier
     # and return the floating-point array. If the mutiplier is a float (i.e. 0.1),
     # numpy will convert and return an array of floats
     else:
-        return_array = numpy.array( int_array * multiplier, dtype=return_type)
+        return_array = numpy.array(int_array * multiplier, dtype=return_type)
 
     return return_array
+
 
 if __name__ == "__main__":
     # Testing this out on a few files, examples using different types of data products.
 
     # An NSIDC-0001 brightness-temperature file, in 2-byte little-endian integers
     # converted to floating point. No header.
-    array1 = read_NSIDC_bin_file("../Tb/nsidc-0001/tb_f08_19870709_v5_s19h.bin",
-                                 grid_shape=(332,316),
-                                 header_size=0,
-                                 element_size=2,
-                                 return_type=float,
-                                 signed=False,
-                                 multiplier=0.1)
+    array1 = read_NSIDC_bin_file(
+        "../Tb/nsidc-0001/tb_f08_19870709_v5_s19h.bin",
+        grid_shape=(332, 316),
+        header_size=0,
+        element_size=2,
+        return_type=float,
+        signed=False,
+        multiplier=0.1,
+    )
 
     print(array1.shape, array1.dtype)
     print(array1)
@@ -102,23 +124,27 @@ if __name__ == "__main__":
     # a 300-byte header.
 
     # For an Arctic file
-    array2 = read_NSIDC_bin_file("../Tb/nsidc-0051/nt_20201231_f17_v1.1_n.bin",
-                                 grid_shape=(448, 304),
-                                 header_size=300,
-                                 element_size=1,
-                                 return_type=int,
-                                 signed=False)
+    array2 = read_NSIDC_bin_file(
+        "../Tb/nsidc-0051/nt_20201231_f17_v1.1_n.bin",
+        grid_shape=(448, 304),
+        header_size=300,
+        element_size=1,
+        return_type=int,
+        signed=False,
+    )
 
     print(array2.shape, array2.dtype)
     print(array2)
 
     # For an Antarctic file
-    array3 = read_NSIDC_bin_file("../Tb/nsidc-0051/nt_20201231_f17_v1.1_s.bin",
-                                 grid_shape=(332,316),
-                                 header_size=300,
-                                 element_size=1,
-                                 return_type=int,
-                                 signed=False)
+    array3 = read_NSIDC_bin_file(
+        "../Tb/nsidc-0051/nt_20201231_f17_v1.1_s.bin",
+        grid_shape=(332, 316),
+        header_size=300,
+        element_size=1,
+        return_type=int,
+        signed=False,
+    )
 
     print(array3.shape, array3.dtype)
     print(array3)
@@ -127,24 +153,28 @@ if __name__ == "__main__":
     # a 300-byte header.
 
     # For an Arctic file, returning the array in integer values.
-    array4 = read_NSIDC_bin_file("../Tb/nsidc-0079/bt_20201231_f17_v3.1_n.bin",
-                                 grid_shape=(448, 304),
-                                 header_size=0,
-                                 element_size=2,
-                                 return_type=int,
-                                 signed=False)
+    array4 = read_NSIDC_bin_file(
+        "../Tb/nsidc-0079/bt_20201231_f17_v3.1_n.bin",
+        grid_shape=(448, 304),
+        header_size=0,
+        element_size=2,
+        return_type=int,
+        signed=False,
+    )
 
     print(array4.shape, array4.dtype)
     print(array4)
 
     # For an Antarctic file, alternately returning the array in floating-point values (your choice, just pick the parameter you want.)
-    array5 = read_NSIDC_bin_file("../Tb/nsidc-0079/bt_20201231_f17_v3.1_s.bin",
-                                 grid_shape=(332,316),
-                                 header_size=0,
-                                 element_size=2,
-                                 return_type=float,
-                                 signed=False,
-                                 multiplier=0.1)
+    array5 = read_NSIDC_bin_file(
+        "../Tb/nsidc-0079/bt_20201231_f17_v3.1_s.bin",
+        grid_shape=(332, 316),
+        header_size=0,
+        element_size=2,
+        return_type=float,
+        signed=False,
+        multiplier=0.1,
+    )
 
     print(array5.shape, array5.dtype)
     print(array5)

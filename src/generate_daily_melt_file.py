@@ -23,38 +23,47 @@ import write_NSIDC_bin_to_gtif
 import melt_array_picklefile
 import tb_file_data
 
-def generate_new_daily_melt_files(start_date="2021-10-01",
-                                  end_date=None,
-                                  overwrite=True,
-                                  warn_if_missing_files=True):
+
+def generate_new_daily_melt_files(
+    start_date="2021-10-01", end_date=None, overwrite=True, warn_if_missing_files=True
+):
     """Look through the .bin melt files, and create new ones.
 
     This function assumes the necessary .bin Tb files from NSIDC are downloaded.
     If not, go to "nsidc_download_Tb_data.py" and update there first.
     """
-    start_dt = datetime.datetime(year=int(start_date[0:4]), month=int(start_date[5:7]), day=int(start_date[8:10]))
+    start_dt = datetime.datetime(
+        year=int(start_date[0:4]), month=int(start_date[5:7]), day=int(start_date[8:10])
+    )
     now = datetime.datetime.today()
     if end_date is None:
         end_dt = datetime.datetime(year=now.year, month=now.month, day=now.day)
     else:
-        end_dt = datetime.datetime(year=int(end_date[0:4]), month=int(end_date[5:7]), day=int(end_date[8:10]))
+        end_dt = datetime.datetime(
+            year=int(end_date[0:4]), month=int(end_date[5:7]), day=int(end_date[8:10])
+        )
 
     # Get a list of .bin files already in the directory.
-    existing_melt_files = [fname for fname in os.listdir(tb_file_data.model_results_dir) if os.path.splitext(fname)[1].lower() == ".bin"]
+    existing_melt_files = [
+        fname
+        for fname in os.listdir(tb_file_data.model_results_dir)
+        if os.path.splitext(fname)[1].lower() == ".bin"
+    ]
 
-    for day_offset in range((end_dt - start_dt).days+1):
+    for day_offset in range((end_dt - start_dt).days + 1):
         dt = start_dt + datetime.timedelta(days=day_offset)
 
         # Only overwrite if a .bin melt file doesn't already exist there.
         skip_this_file = False
         for meltfile in existing_melt_files:
-            match = re.search(dt.strftime("(?<=antarctica_melt_)%Y%m%d(?=_S3B)"), meltfile)
+            match = re.search(
+                dt.strftime("(?<=antarctica_melt_)%Y%m%d(?=_S3B)"), meltfile
+            )
             if match != None:
                 if overwrite:
                     os.remove(os.path.join(tb_file_data.model_results_dir, meltfile))
                 else:
                     skip_this_file = True
-
 
         if skip_this_file:
             continue
@@ -62,69 +71,97 @@ def generate_new_daily_melt_files(start_date="2021-10-01",
         # Find files in the NSIDC-0080 directory that match this date.
         nsidc_dir = tb_file_data.NSIDC_0080_file_dir
         # First fine all the .bin files that match that date stamp in the string
-        nsidc_fnames = [fname for fname in os.listdir(nsidc_dir) if (fname.find(dt.strftime("%Y%m%d")) > -1 and os.path.splitext(fname)[1].lower() == ".bin")]
+        nsidc_fnames = [
+            fname
+            for fname in os.listdir(nsidc_dir)
+            if (
+                fname.find(dt.strftime("%Y%m%d")) > -1
+                and os.path.splitext(fname)[1].lower() == ".bin"
+            )
+        ]
         # Then look specifically for the files for each frequency & polarization
-        files_37h = [os.path.join(nsidc_dir, fname) for fname in nsidc_fnames if fname.find("s37h") > -1]
-        files_37v = [os.path.join(nsidc_dir, fname) for fname in nsidc_fnames if fname.find("s37v") > -1]
-        files_19v = [os.path.join(nsidc_dir, fname) for fname in nsidc_fnames if fname.find("s19v") > -1]
+        files_37h = [
+            os.path.join(nsidc_dir, fname)
+            for fname in nsidc_fnames
+            if fname.find("s37h") > -1
+        ]
+        files_37v = [
+            os.path.join(nsidc_dir, fname)
+            for fname in nsidc_fnames
+            if fname.find("s37v") > -1
+        ]
+        files_19v = [
+            os.path.join(nsidc_dir, fname)
+            for fname in nsidc_fnames
+            if fname.find("s19v") > -1
+        ]
         # There shouldn't be more than one file for reach frequency & polarization on that date.
         assert (len(files_37h) <= 1) and (len(files_37v) <= 1) and (len(files_19v) <= 1)
         # Make sure there's at least one of each file (i.e. exactly one). If not, just skip & continue
         if (len(files_37h) == 0) or (len(files_37v) == 0) or (len(files_19v) == 0):
             if warn_if_missing_files:
-                warnings.warn("Warning: At least one NSIDC Tb file on date '" + dt.strftime("%Y%m%d") + "' is missing. Skipping that date.")
+                warnings.warn(
+                    "Warning: At least one NSIDC Tb file on date '"
+                    + dt.strftime("%Y%m%d")
+                    + "' is missing. Skipping that date."
+                )
             continue
 
-        outfile_name = os.path.join(tb_file_data.model_results_dir, dt.strftime("antarctica_melt_%Y%m%d_S3B_") + now.strftime("%Y%m%d.bin"))
+        outfile_name = os.path.join(
+            tb_file_data.model_results_dir,
+            dt.strftime("antarctica_melt_%Y%m%d_S3B_") + now.strftime("%Y%m%d.bin"),
+        )
 
         threshold_file = get_correct_threshold_file(dt)
         if threshold_file is None:
             continue
 
-        create_daily_melt_file(files_37h[0],
-                               files_37v[0],
-                               files_19v[0],
-                               threshold_file,
-                               outfile_name)
+        create_daily_melt_file(
+            files_37h[0], files_37v[0], files_19v[0], threshold_file, outfile_name
+        )
 
 
-def create_daily_melt_file(tb_file_37h,
-                           tb_file_37v,
-                           tb_file_19v,
-                           threshold_file,
-                           output_bin_filename,
-                           output_gtif_filename = None,
-                           Tb_nodata_value = 0,
-                           verbose = True):
+def create_daily_melt_file(
+    tb_file_37h,
+    tb_file_37v,
+    tb_file_19v,
+    threshold_file,
+    output_bin_filename,
+    output_gtif_filename=None,
+    Tb_nodata_value=0,
+    verbose=True,
+):
     """Read input files and generate a daily melt file. Primary function."""
-    output_array = read_files_and_generate_melt_array(tb_file_37h,
-                                                      tb_file_37v,
-                                                      tb_file_19v,
-                                                      threshold_file,
-                                                      Tb_nodata_value=Tb_nodata_value)
-
+    output_array = read_files_and_generate_melt_array(
+        tb_file_37h,
+        tb_file_37v,
+        tb_file_19v,
+        threshold_file,
+        Tb_nodata_value=Tb_nodata_value,
+    )
 
     # Write the output .bin file
-    write_flat_binary.write_array_to_binary(output_array,
-                                            output_bin_filename,
-                                            numbytes=2,
-                                            signed=True,
-                                            verbose=verbose)
+    write_flat_binary.write_array_to_binary(
+        output_array, output_bin_filename, numbytes=2, signed=True, verbose=verbose
+    )
 
     # Write the output.tif file, if called for
     if output_gtif_filename != None:
-        write_NSIDC_bin_to_gtif.output_gtif(output_array,
-                                            output_gtif_filename,
-                                            resolution=25,
-                                            hemisphere="S",
-                                            nodata=None,
-                                            verbose=verbose)
+        write_NSIDC_bin_to_gtif.output_gtif(
+            output_array,
+            output_gtif_filename,
+            resolution=25,
+            hemisphere="S",
+            nodata=None,
+            verbose=verbose,
+        )
 
     return output_array
 
-def get_melt_year_of_current_date(dt_object,
-                                  melt_doy_start = (10,1),
-                                  melt_doy_end = (4,30)):
+
+def get_melt_year_of_current_date(
+    dt_object, melt_doy_start=(10, 1), melt_doy_end=(4, 30)
+):
     """For a given datetime object, return the melt year number that corresponds to that date.
     If the data falls outside of the melt year, return None.
     """
@@ -141,9 +178,11 @@ def get_melt_year_of_current_date(dt_object,
             return year
         # If it's after the new year, then return last yeaer (which was the start of the melt season)
         elif doy <= melt_doy_end:
-            return (year - 1)
+            return year - 1
         else:
-            raise RuntimeError("Should never get to this point. Something went wrong in the logic.")
+            raise RuntimeError(
+                "Should never get to this point. Something went wrong in the logic."
+            )
 
     # If the melt year ends in the same calendar year as the start, the logic is a bit simpler.
     else:
@@ -155,10 +194,12 @@ def get_melt_year_of_current_date(dt_object,
             return year
 
 
-def get_correct_threshold_file(dt_object,
-                               melt_doy_start = (10,1),
-                               melt_doy_end = (4,30),
-                               thresholds_dir = tb_file_data.threshold_file_dir):
+def get_correct_threshold_file(
+    dt_object,
+    melt_doy_start=(10, 1),
+    melt_doy_end=(4, 30),
+    thresholds_dir=tb_file_data.threshold_file_dir,
+):
     """For a given datetime object, return the threshold file that corresponds to that date.
     If the data falls outside of the melt year,
     or the threshold file doesn't exist in the directory, quietly return None.
@@ -166,7 +207,9 @@ def get_correct_threshold_file(dt_object,
     # Get the list of all the threshold files.
     threshold_files = os.listdir(thresholds_dir)
     # Find out which year this particular date should correspond with.
-    year = get_melt_year_of_current_date(dt_object, melt_doy_start=melt_doy_start, melt_doy_end=melt_doy_end)
+    year = get_melt_year_of_current_date(
+        dt_object, melt_doy_start=melt_doy_start, melt_doy_end=melt_doy_end
+    )
     if year is None:
         return None
     year_str = str(year)
@@ -181,23 +224,42 @@ def get_correct_threshold_file(dt_object,
     return None
 
 
-def read_files_and_generate_melt_array(Tb_file_37h, Tb_file_37v, Tb_file_19v, threshold_file, Tb_nodata_value=0.0):
+def read_files_and_generate_melt_array(
+    Tb_file_37h, Tb_file_37v, Tb_file_19v, threshold_file, Tb_nodata_value=0.0
+):
     """Generate a daily melt value array from the three flat-binary files."""
-    Tb_array_19v    = read_NSIDC_bin_file.read_NSIDC_bin_file(Tb_file_19v,    return_type=float, multiplier=0.1)
-    Tb_array_37v    = read_NSIDC_bin_file.read_NSIDC_bin_file(Tb_file_37v,    return_type=float, multiplier=0.1)
-    Tb_array_37h    = read_NSIDC_bin_file.read_NSIDC_bin_file(Tb_file_37h,    return_type=float, multiplier=0.1)
-    threshold_array = read_NSIDC_bin_file.read_NSIDC_bin_file(threshold_file, return_type=float, multiplier=0.1)
-    ice_mask_array  = melt_array_picklefile.get_ice_mask_array()
+    Tb_array_19v = read_NSIDC_bin_file.read_NSIDC_bin_file(
+        Tb_file_19v, return_type=float, multiplier=0.1
+    )
+    Tb_array_37v = read_NSIDC_bin_file.read_NSIDC_bin_file(
+        Tb_file_37v, return_type=float, multiplier=0.1
+    )
+    Tb_array_37h = read_NSIDC_bin_file.read_NSIDC_bin_file(
+        Tb_file_37h, return_type=float, multiplier=0.1
+    )
+    threshold_array = read_NSIDC_bin_file.read_NSIDC_bin_file(
+        threshold_file, return_type=float, multiplier=0.1
+    )
+    ice_mask_array = melt_array_picklefile.get_ice_mask_array()
 
-    return create_daily_melt_array(Tb_array_37h,
-                                   Tb_array_37v,
-                                   Tb_array_19v,
-                                   threshold_array,
-                                   ice_mask_array,
-                                   Tb_nodata_value=Tb_nodata_value)
+    return create_daily_melt_array(
+        Tb_array_37h,
+        Tb_array_37v,
+        Tb_array_19v,
+        threshold_array,
+        ice_mask_array,
+        Tb_nodata_value=Tb_nodata_value,
+    )
 
 
-def create_daily_melt_array(Tb_array_37h, Tb_array_37v, Tb_array_19v, threshold_array, ice_mask_array, Tb_nodata_value = 0):
+def create_daily_melt_array(
+    Tb_array_37h,
+    Tb_array_37v,
+    Tb_array_19v,
+    threshold_array,
+    ice_mask_array,
+    Tb_nodata_value=0,
+):
     """Create an NxM array of daily melt values.
 
     This function uses the parameters set out for Antarctica Today to derive melt
@@ -225,7 +287,13 @@ def create_daily_melt_array(Tb_array_37h, Tb_array_37v, Tb_array_19v, threshold_
         +2 : Melt (Tb >= threshold)
     """
     # All these arrays should be the same size and shape
-    assert Tb_array_37h.shape == Tb_array_37v.shape == Tb_array_19v.shape == threshold_array.shape == ice_mask_array.shape
+    assert (
+        Tb_array_37h.shape
+        == Tb_array_37v.shape
+        == Tb_array_19v.shape
+        == threshold_array.shape
+        == ice_mask_array.shape
+    )
 
     # Create empty output array. Use -999 as a temporary empty_value to ensure all cells get assigned something.
     output_array = numpy.zeros(Tb_array_37h.shape, dtype=numpy.int16) - 999
@@ -233,15 +301,23 @@ def create_daily_melt_array(Tb_array_37h, Tb_array_37v, Tb_array_19v, threshold_
     # No melt if it doesn't exceed the threshold at all.
     output_array[Tb_array_37h < threshold_array] = 1
     # Melt if the (Tb_19v - Tb_37v) >= 0 and (Tb_37h > threshold)
-    output_array[((Tb_array_19v - Tb_array_37v) >= 0) & (Tb_array_37h >= threshold_array)] = 2
+    output_array[
+        ((Tb_array_19v - Tb_array_37v) >= 0) & (Tb_array_37h >= threshold_array)
+    ] = 2
     # Melt if the (Tb_19v - Tb_37v) < 0 and (Tb_37h >= threshold + 10k)
-    output_array[((Tb_array_19v - Tb_array_37v) < 0) & (Tb_array_37h >= (threshold_array + 10))] = 2
+    output_array[
+        ((Tb_array_19v - Tb_array_37v) < 0) & (Tb_array_37h >= (threshold_array + 10))
+    ] = 2
     # No melt if (Tb_19h - Tb_37h) < 0 and (Tb_38 < threshold + 10k)
-    output_array[((Tb_array_19v - Tb_array_37v) < 0) & (Tb_array_37h < (threshold_array + 10))] = 1
+    output_array[
+        ((Tb_array_19v - Tb_array_37v) < 0) & (Tb_array_37h < (threshold_array + 10))
+    ] = 1
     # Mark all "nodata" as no data.
-    output_array[(Tb_array_37h == Tb_nodata_value) | \
-                 (Tb_array_37v == Tb_nodata_value) | \
-                 (Tb_array_19v == Tb_nodata_value)] = 0
+    output_array[
+        (Tb_array_37h == Tb_nodata_value)
+        | (Tb_array_37v == Tb_nodata_value)
+        | (Tb_array_19v == Tb_nodata_value)
+    ] = 0
     # Everything outside the mask is -1
     output_array[ice_mask_array == 0] = -1
 
@@ -250,42 +326,66 @@ def create_daily_melt_array(Tb_array_37h, Tb_array_37v, Tb_array_19v, threshold_
 
     return output_array
 
+
 def read_and_parse_args():
     """Read and parse the command-line arguments."""
-    parser = argparse.ArgumentParser(description="Generates a single daily melt file from NSIDC Tb files.")
-    parser.add_argument("Tb_file_37h", type=str, help="A daily NSIDC Polar-stereo Tb files (.bin)")
-    parser.add_argument("Tb_file_37v", type=str, help="A daily NSIDC Polar-stereo Tb files (.bin)")
-    parser.add_argument("Tb_file_19v", type=str, help="A daily NSIDC Polar-stereo Tb files (.bin)")
-    parser.add_argument("threshold_file", type=str, help="A file of Tb threshold values (.bin)")
+    parser = argparse.ArgumentParser(
+        description="Generates a single daily melt file from NSIDC Tb files."
+    )
+    parser.add_argument(
+        "Tb_file_37h", type=str, help="A daily NSIDC Polar-stereo Tb files (.bin)"
+    )
+    parser.add_argument(
+        "Tb_file_37v", type=str, help="A daily NSIDC Polar-stereo Tb files (.bin)"
+    )
+    parser.add_argument(
+        "Tb_file_19v", type=str, help="A daily NSIDC Polar-stereo Tb files (.bin)"
+    )
+    parser.add_argument(
+        "threshold_file", type=str, help="A file of Tb threshold values (.bin)"
+    )
     parser.add_argument("output_file", type=str, help="Integer output file (.bin)")
-    parser.add_argument("--ouput_gtif",  action="store_true", default=False,
-                        help="Output a GeoTiff (.tif) in addition to the flat binary.")
-    parser.add_argument("--verbose", "-v", action="store_true", default=False, help="Increase output verbosity.")
+    parser.add_argument(
+        "--ouput_gtif",
+        action="store_true",
+        default=False,
+        help="Output a GeoTiff (.tif) in addition to the flat binary.",
+    )
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        default=False,
+        help="Increase output verbosity.",
+    )
 
     return parser.parse_args()
+
 
 if __name__ == "__main__":
     # generate_new_daily_melt_files(start_date="2021-10-01")
     args = read_and_parse_args()
 
-# def create_daily_melt_file(tb_file_37h,
-#                            tb_file_37v,
-#                            tb_file_19v,
-#                            threshold_file,
-#                            output_bin_filename,
-#                            output_gtif_filename = None,
-#                            Tb_nodata_value = 0,
-#                            verbose = True):
+    # def create_daily_melt_file(tb_file_37h,
+    #                            tb_file_37v,
+    #                            tb_file_19v,
+    #                            threshold_file,
+    #                            output_bin_filename,
+    #                            output_gtif_filename = None,
+    #                            Tb_nodata_value = 0,
+    #                            verbose = True):
 
     if args.output_gtif:
         gtif_name = os.path.splitext(args.output_file)[0] + ".tif"
     else:
         gtif_name = None
 
-    create_daily_melt_file(args.Tb_file_37h,
-                            args.Tb_file_37v,
-                            args.Tb_file_19v,
-                            args.threshold_file,
-                            args.output_file,
-                            output_gtif_filename=gtif_name,
-                            verbose=args.verbose)
+    create_daily_melt_file(
+        args.Tb_file_37h,
+        args.Tb_file_37v,
+        args.Tb_file_19v,
+        args.threshold_file,
+        args.output_file,
+        output_gtif_filename=gtif_name,
+        verbose=args.verbose,
+    )

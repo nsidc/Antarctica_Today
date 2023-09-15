@@ -51,7 +51,14 @@ try:
     from urllib.error import HTTPError, URLError
 except ImportError:
     from urlparse import urlparse
-    from urllib2 import urlopen, Request, HTTPError, URLError, build_opener, HTTPCookieProcessor
+    from urllib2 import (
+        urlopen,
+        Request,
+        HTTPError,
+        URLError,
+        build_opener,
+        HTTPCookieProcessor,
+    )
 
 # short_name = 'NSIDC-0080'
 # version = '1'
@@ -62,16 +69,18 @@ except ImportError:
 # filename_filter = ''
 # url_list = []
 
-CMR_URL = 'https://cmr.earthdata.nasa.gov'
-URS_URL = 'https://urs.earthdata.nasa.gov'
+CMR_URL = "https://cmr.earthdata.nasa.gov"
+URS_URL = "https://urs.earthdata.nasa.gov"
 CMR_PAGE_SIZE = 2000
-CMR_FILE_URL = ('{0}/search/granules.json?provider=NSIDC_ECS'
-                '&sort_key[]=start_date&sort_key[]=producer_granule_id'
-                '&scroll=true&page_size={1}'.format(CMR_URL, CMR_PAGE_SIZE))
+CMR_FILE_URL = (
+    "{0}/search/granules.json?provider=NSIDC_ECS"
+    "&sort_key[]=start_date&sort_key[]=producer_granule_id"
+    "&scroll=true&page_size={1}".format(CMR_URL, CMR_PAGE_SIZE)
+)
 
 
 def get_username():
-    username = ''
+    username = ""
 
     # For Python 2/3 compatibility:
     try:
@@ -80,28 +89,28 @@ def get_username():
         do_input = input
 
     while not username:
-        username = do_input('Earthdata username: ')
+        username = do_input("Earthdata username: ")
     return username
 
 
 def get_password():
-    password = ''
+    password = ""
     while not password:
-        password = getpass('password: ')
+        password = getpass("password: ")
     return password
 
 
 def get_credentials(url):
     """Get user credentials from .netrc or prompt for input."""
     credentials = None
-    errprefix = ''
+    errprefix = ""
     try:
         info = netrc.netrc()
         username, account, password = info.authenticators(urlparse(URS_URL).hostname)
-        errprefix = 'netrc error: '
+        errprefix = "netrc error: "
     except Exception as e:
-        if (not ('No such file' in str(e))):
-            print('netrc error: {0}'.format(str(e)))
+        if not ("No such file" in str(e)):
+            print("netrc error: {0}".format(str(e)))
         username = None
         password = None
 
@@ -109,18 +118,18 @@ def get_credentials(url):
         if not username:
             username = get_username()
             password = get_password()
-        credentials = '{0}:{1}'.format(username, password)
-        credentials = base64.b64encode(credentials.encode('ascii')).decode('ascii')
+        credentials = "{0}:{1}".format(username, password)
+        credentials = base64.b64encode(credentials.encode("ascii")).decode("ascii")
 
         if url:
             try:
                 req = Request(url)
-                req.add_header('Authorization', 'Basic {0}'.format(credentials))
+                req.add_header("Authorization", "Basic {0}".format(credentials))
                 opener = build_opener(HTTPCookieProcessor())
                 opener.open(req)
             except HTTPError:
-                print(errprefix + 'Incorrect username or password')
-                errprefix = ''
+                print(errprefix + "Incorrect username or password")
+                errprefix = ""
                 credentials = None
                 username = None
                 password = None
@@ -135,41 +144,47 @@ def build_version_query_params(version):
         quit()
 
     version = str(int(version))  # Strip off any leading zeros
-    query_params = ''
+    query_params = ""
 
     while len(version) <= desired_pad_length:
         padded_version = version.zfill(desired_pad_length)
-        query_params += '&version={0}'.format(padded_version)
+        query_params += "&version={0}".format(padded_version)
         desired_pad_length -= 1
     return query_params
 
 
 def filter_add_wildcards(filter):
-    if not filter.startswith('*'):
-        filter = '*' + filter
-    if not filter.endswith('*'):
-        filter = filter + '*'
+    if not filter.startswith("*"):
+        filter = "*" + filter
+    if not filter.endswith("*"):
+        filter = filter + "*"
     return filter
 
 
 def build_filename_filter(filename_filter):
-    filters = filename_filter.split(',')
-    result = '&options[producer_granule_id][pattern]=true'
+    filters = filename_filter.split(",")
+    result = "&options[producer_granule_id][pattern]=true"
     for filter in filters:
-        result += '&producer_granule_id[]=' + filter_add_wildcards(filter)
+        result += "&producer_granule_id[]=" + filter_add_wildcards(filter)
     return result
 
 
-def build_cmr_query_url(short_name, version, time_start, time_end,
-                        bounding_box=None, polygon=None,
-                        filename_filter=None):
-    params = '&short_name={0}'.format(short_name)
+def build_cmr_query_url(
+    short_name,
+    version,
+    time_start,
+    time_end,
+    bounding_box=None,
+    polygon=None,
+    filename_filter=None,
+):
+    params = "&short_name={0}".format(short_name)
     params += build_version_query_params(version)
-    params += '&temporal[]={0},{1}'.format(time_start, time_end)
+    params += "&temporal[]={0},{1}".format(time_start, time_end)
     if polygon:
-        params += '&polygon={0}'.format(polygon)
+        params += "&polygon={0}".format(polygon)
     elif bounding_box:
-        params += '&bounding_box={0}'.format(bounding_box)
+        params += "&bounding_box={0}".format(bounding_box)
     if filename_filter:
         params += build_filename_filter(filename_filter)
     return CMR_FILE_URL + params
@@ -177,25 +192,25 @@ def build_cmr_query_url(short_name, version, time_start, time_end,
 
 def get_speed(time_elapsed, chunk_size):
     if time_elapsed <= 0:
-        return ''
+        return ""
     speed = chunk_size / time_elapsed
     if speed <= 0:
         speed = 1
-    size_name = ('', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
+    size_name = ("", "k", "M", "G", "T", "P", "E", "Z", "Y")
     i = int(math.floor(math.log(speed, 1000)))
     p = math.pow(1000, i)
-    return '{0:.1f}{1}B/s'.format(speed / p, size_name[i])
+    return "{0:.1f}{1}B/s".format(speed / p, size_name[i])
 
 
-def output_progress(count, total, status='', bar_len=60):
+def output_progress(count, total, status="", bar_len=60):
     if total <= 0:
         return
     fraction = min(max(count / float(total), 0), 1)
     filled_len = int(round(bar_len * fraction))
     percents = int(round(100.0 * fraction))
-    bar = '=' * filled_len + ' ' * (bar_len - filled_len)
-    fmt = '  [{0}] {1:3d}%  {2}   '.format(bar, percents, status)
-    print('\b' * (len(fmt) + 4), end='')  # clears the line
+    bar = "=" * filled_len + " " * (bar_len - filled_len)
+    fmt = "  [{0}] {1:3d}%  {2}   ".format(bar, percents, status)
+    print("\b" * (len(fmt) + 4), end="")  # clears the line
     sys.stdout.write(fmt)
     sys.stdout.flush()
 
@@ -216,19 +231,22 @@ def cmr_download(urls, force=False, quiet=False, output_directory=None):
 
     url_count = len(urls)
     if not quiet:
-        print('Downloading {0} files...'.format(url_count))
+        print("Downloading {0} files...".format(url_count))
     credentials = None
 
     files_saved = []
 
     for index, url in enumerate(urls, start=1):
-        if not credentials and urlparse(url).scheme == 'https':
+        if not credentials and urlparse(url).scheme == "https":
             credentials = get_credentials(url)
 
-        filename = url.split('/')[-1]
+        filename = url.split("/")[-1]
         if not quiet:
-            print('{0}/{1}: {2}'.format(str(index).zfill(len(str(url_count))),
-                                        url_count, filename))
+            print(
+                "{0}/{1}: {2}".format(
+                    str(index).zfill(len(str(url_count))), url_count, filename
+                )
+            )
 
         # Put the new file into the output directory where we want it.
         if output_directory:
@@ -237,14 +255,14 @@ def cmr_download(urls, force=False, quiet=False, output_directory=None):
         try:
             req = Request(url)
             if credentials:
-                req.add_header('Authorization', 'Basic {0}'.format(credentials))
+                req.add_header("Authorization", "Basic {0}".format(credentials))
             opener = build_opener(HTTPCookieProcessor())
             response = opener.open(req)
-            length = int(response.headers['content-length'])
+            length = int(response.headers["content-length"])
             try:
                 if not force and length == os.path.getsize(filename):
                     if not quiet:
-                        print('  File exists, skipping')
+                        print("  File exists, skipping")
                     continue
             except OSError:
                 pass
@@ -252,7 +270,7 @@ def cmr_download(urls, force=False, quiet=False, output_directory=None):
             chunk_size = min(max(length, 1), 1024 * 1024)
             max_chunks = int(math.ceil(length / chunk_size))
             time_initial = time.time()
-            with open(filename, 'wb') as out_file:
+            with open(filename, "wb") as out_file:
                 for data in cmr_read_in_chunks(response, chunk_size=chunk_size):
                     out_file.write(data)
                     if not quiet:
@@ -266,64 +284,76 @@ def cmr_download(urls, force=False, quiet=False, output_directory=None):
             files_saved.append(filename)
 
         except HTTPError as e:
-            print('HTTP error {0}, {1}'.format(e.code, e.reason))
+            print("HTTP error {0}, {1}".format(e.code, e.reason))
         except URLError as e:
-            print('URL error: {0}'.format(e.reason))
+            print("URL error: {0}".format(e.reason))
         except IOError:
             raise
 
     return files_saved
 
+
 def cmr_filter_urls(search_results):
     """Select only the desired data files from CMR response."""
-    if 'feed' not in search_results or 'entry' not in search_results['feed']:
+    if "feed" not in search_results or "entry" not in search_results["feed"]:
         return []
 
-    entries = [e['links']
-               for e in search_results['feed']['entry']
-               if 'links' in e]
+    entries = [e["links"] for e in search_results["feed"]["entry"] if "links" in e]
     # Flatten "entries" to a simple list of links
     links = list(itertools.chain(*entries))
 
     urls = []
     unique_filenames = set()
     for link in links:
-        if 'href' not in link:
+        if "href" not in link:
             # Exclude links with nothing to download
             continue
-        if 'inherited' in link and link['inherited'] is True:
+        if "inherited" in link and link["inherited"] is True:
             # Why are we excluding these links?
             continue
-        if 'rel' in link and 'data#' not in link['rel']:
+        if "rel" in link and "data#" not in link["rel"]:
             # Exclude links which are not classified by CMR as "data" or "metadata"
             continue
 
-        if 'title' in link and 'opendap' in link['title'].lower():
+        if "title" in link and "opendap" in link["title"].lower():
             # Exclude OPeNDAP links--they are responsible for many duplicates
             # This is a hack; when the metadata is updated to properly identify
             # non-datapool links, we should be able to do this in a non-hack way
             continue
 
-        filename = link['href'].split('/')[-1]
+        filename = link["href"].split("/")[-1]
         if filename in unique_filenames:
             # Exclude links with duplicate filenames (they would overwrite)
             continue
         unique_filenames.add(filename)
 
-        urls.append(link['href'])
+        urls.append(link["href"])
 
     return urls
 
 
-def cmr_search(short_name, version, time_start, time_end,
-               bounding_box='', polygon='', filename_filter='', quiet=False):
+def cmr_search(
+    short_name,
+    version,
+    time_start,
+    time_end,
+    bounding_box="",
+    polygon="",
+    filename_filter="",
+    quiet=False,
+):
     """Perform a scrolling CMR query for files matching input criteria."""
-    cmr_query_url = build_cmr_query_url(short_name=short_name, version=version,
-                                        time_start=time_start, time_end=time_end,
-                                        bounding_box=bounding_box,
-                                        polygon=polygon, filename_filter=filename_filter)
+    cmr_query_url = build_cmr_query_url(
+        short_name=short_name,
+        version=version,
+        time_start=time_start,
+        time_end=time_end,
+        bounding_box=bounding_box,
+        polygon=polygon,
+        filename_filter=filename_filter,
+    )
     if not quiet:
-        print('Querying for data:\n\t{0}\n'.format(cmr_query_url))
+        print("Querying for data:\n\t{0}\n".format(cmr_query_url))
 
     cmr_scroll_id = None
     ctx = ssl.create_default_context()
@@ -335,25 +365,25 @@ def cmr_search(short_name, version, time_start, time_end,
     while True:
         req = Request(cmr_query_url)
         if cmr_scroll_id:
-            req.add_header('cmr-scroll-id', cmr_scroll_id)
+            req.add_header("cmr-scroll-id", cmr_scroll_id)
         response = urlopen(req, context=ctx)
         if not cmr_scroll_id:
             # Python 2 and 3 have different case for the http headers
             headers = {k.lower(): v for k, v in dict(response.info()).items()}
-            cmr_scroll_id = headers['cmr-scroll-id']
-            hits = int(headers['cmr-hits'])
+            cmr_scroll_id = headers["cmr-scroll-id"]
+            hits = int(headers["cmr-hits"])
             if not quiet:
                 if hits > 0:
-                    print('Found {0} matches.'.format(hits))
+                    print("Found {0} matches.".format(hits))
                 else:
-                    print('Found no matches.')
+                    print("Found no matches.")
         search_page = response.read()
-        search_page = json.loads(search_page.decode('utf-8'))
+        search_page = json.loads(search_page.decode("utf-8"))
         url_scroll_results = cmr_filter_urls(search_page)
         if not url_scroll_results:
             break
         if not quiet and hits > CMR_PAGE_SIZE:
-            print('.', end='')
+            print(".", end="")
             sys.stdout.flush()
         urls += url_scroll_results
 
@@ -362,16 +392,18 @@ def cmr_search(short_name, version, time_start, time_end,
     return urls
 
 
-def download_new_files(short_name='NSIDC-0080',
-                       version = '1',
-                       time_start = '2021-02-17T00:00:00Z',
-                       time_end = datetime.datetime.now().strftime("%Y-%m-%dT00:00:00Z"),
-                       bounding_box = '-180,-90,180,0',
-                       polygon=[],
-                       filename_filters = ['*s19v*', '*s37v*', '*s37h*'],
-                       url_list=[],
-                       output_directory="../Tb/nsidc-0080",
-                       argv=None):
+def download_new_files(
+    short_name="NSIDC-0080",
+    version="1",
+    time_start="2021-02-17T00:00:00Z",
+    time_end=datetime.datetime.now().strftime("%Y-%m-%dT00:00:00Z"),
+    bounding_box="-180,-90,180,0",
+    polygon=[],
+    filename_filters=["*s19v*", "*s37v*", "*s37h*"],
+    url_list=[],
+    output_directory="../Tb/nsidc-0080",
+    argv=None,
+):
     """Download new files into the directory of your choice."""
 
     if argv is None:
@@ -379,16 +411,16 @@ def download_new_files(short_name='NSIDC-0080',
 
     force = False
     quiet = False
-    usage = 'usage: nsidc-download_***.py [--help, -h] [--force, -f] [--quiet, -q]'
+    usage = "usage: nsidc-download_***.py [--help, -h] [--force, -f] [--quiet, -q]"
 
     try:
-        opts, args = getopt.getopt(argv, 'hfq', ['help', 'force', 'quiet'])
+        opts, args = getopt.getopt(argv, "hfq", ["help", "force", "quiet"])
         for opt, _arg in opts:
-            if opt in ('-f', '--force'):
+            if opt in ("-f", "--force"):
                 force = True
-            elif opt in ('-q', '--quiet'):
+            elif opt in ("-q", "--quiet"):
                 quiet = True
-            elif opt in ('-h', '--help'):
+            elif opt in ("-h", "--help"):
                 print(usage)
                 sys.exit(0)
     except getopt.GetoptError as e:
@@ -398,22 +430,38 @@ def download_new_files(short_name='NSIDC-0080',
 
     try:
         if url_list or filename_filters is None or len(filename_filters) == 0:
-
-            filename_filter = ''
+            filename_filter = ""
             if not url_list:
-                url_list = cmr_search(short_name, version, time_start, time_end,
-                                      bounding_box=bounding_box, polygon=polygon,
-                                      filename_filter=filename_filter, quiet=quiet)
+                url_list = cmr_search(
+                    short_name,
+                    version,
+                    time_start,
+                    time_end,
+                    bounding_box=bounding_box,
+                    polygon=polygon,
+                    filename_filter=filename_filter,
+                    quiet=quiet,
+                )
 
         else:
             url_list = []
             for filename_filter in filename_filters:
-                url_list.extend( cmr_search(short_name, version, time_start, time_end,
-                                      bounding_box=bounding_box, polygon=polygon,
-                                      filename_filter=filename_filter, quiet=quiet)
-                                )
+                url_list.extend(
+                    cmr_search(
+                        short_name,
+                        version,
+                        time_start,
+                        time_end,
+                        bounding_box=bounding_box,
+                        polygon=polygon,
+                        filename_filter=filename_filter,
+                        quiet=quiet,
+                    )
+                )
 
-        files_saved = cmr_download(url_list, output_directory=output_directory, force=force, quiet=quiet)
+        files_saved = cmr_download(
+            url_list, output_directory=output_directory, force=force, quiet=quiet
+        )
 
     except KeyboardInterrupt:
         quit()
@@ -421,5 +469,5 @@ def download_new_files(short_name='NSIDC-0080',
     return files_saved
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     download_new_files(time_start="2021-10-01T00:00:00Z")
