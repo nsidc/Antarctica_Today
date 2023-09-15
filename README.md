@@ -1,3 +1,6 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8349799.svg)](https://doi.org/10.5281/zenodo.8349799)
+
+
 # Antarctica_Today
 The "Antarctica Today" code and datasets necessary to create the database, update it, and generate plots and maps of results.
 

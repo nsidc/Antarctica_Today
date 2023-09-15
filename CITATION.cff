@@ -4,11 +4,16 @@ message: |
 
 title: "Antarctica Today"
 type: "software"
-license: ["MIT"]
+license: "MIT"
 # doi: "<TODO>"
 abstract: "This software creates the Antarctica Today database, updates it, and generates plots and maps of results."
 keywords:
+  - "Antarctic"
   - "Antarctica"
+  - "Antarctica Today"
+  - "Melt"
+  - "Passive Microwave"
+  - "Ice sheet"
 
 contact:
   - name: "Mike MacFerrin"
