@@ -5,4 +5,5 @@ not completely ready yet, please open a "draft" PR. -->
 
 - [ ] Has a descriptive title
 - [ ] Has a descriptive body
-- [ ] Passes checks (to auto-fix a pre-commit.ci failure, add a comment containing "pre-commit.ci autofix") 
+- [ ] Passes checks (to auto-fix a pre-commit.ci failure, add a comment
+      containing "pre-commit.ci autofix")
