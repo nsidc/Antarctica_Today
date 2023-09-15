@@ -2,7 +2,6 @@
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/nsidc/Antarctica_Today/main.svg)](https://results.pre-commit.ci/latest/github/nsidc/Antarctica_Today/main)
 [![GitHub Discussion](https://img.shields.io/static/v1?label=Discussions&message=Ask&color=blue&logo=github)](https://github.com/nsidc/Antarctica_Today/discussions)
 
-
 # Antarctica_Today
 
 The "Antarctica Today" code and datasets necessary to create the database,
