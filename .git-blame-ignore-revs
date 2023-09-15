@@ -18,3 +18,6 @@ e320428813b994474d40fc4407164fbe2bf2b262
 
 # Fix spelling errors found by codespell
 722c5f437f54c438da58b3f1da9c39aec3e462e1
+
+# Format with Black
+33b20db7972fd0e7a2406a759d00cb28349a20df

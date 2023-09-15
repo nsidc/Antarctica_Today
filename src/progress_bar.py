@@ -5,8 +5,19 @@ Created on Wed Oct 14 16:32:25 2020
 
 @author: mmacferrin
 """
+
+
 # Print iterations progress
-def ProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
+def ProgressBar(
+    iteration,
+    total,
+    prefix="",
+    suffix="",
+    decimals=1,
+    length=100,
+    fill="█",
+    printEnd="\r",
+):
     """
     Call in a loop to create terminal progress bar
     @params:
@@ -19,13 +30,16 @@ def ProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, lengt
         fill        - Optional  : bar fill character (Str)
         printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
     """
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (float(iteration) / float(total)))
+    percent = ("{0:." + str(decimals) + "f}").format(
+        100 * (float(iteration) / float(total))
+    )
     filledLength = int((length * iteration) // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
+    bar = fill * filledLength + "-" * (length - filledLength)
+    print(f"\r{prefix} |{bar}| {percent}% {suffix}", end=printEnd)
     # Print New Line on Complete
     if iteration == total:
         print()
+
 
 # Sample Usage
 # import time

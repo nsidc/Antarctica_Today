@@ -50,8 +50,9 @@ def preprocessing_main():
     compute_mean_climatology.create_baseline_climatology_tif(gap_filled=True)
 
     # 6) Loop through all the years. Any "blank" years will simply be ignored.
-    for year in range(1979,datetime.datetime.today().year+1):
+    for year in range(1979, datetime.datetime.today().year + 1):
         compute_mean_climatology.create_annual_melt_anomaly_tif(year, gap_filled=True)
+
 
 def generate_all_plots_and_maps_main():
     """After all the preprocessing, re-generate all the plots and maps.
@@ -60,28 +61,27 @@ def generate_all_plots_and_maps_main():
     5) Generate new annual maps.
     """
     # 4) Re-run the climatology & daily-melt plots for each year. Years with no data will be skipped (useful if we accidentally go 1 year too far).
-    for year in range(1979,datetime.datetime.today().year+1):
-        for region in range(0,7+1):
+    for year in range(1979, datetime.datetime.today().year + 1):
+        for region in range(0, 7 + 1):
+            fname = os.path.join(
+                tb_file_data.climatology_plots_directory,
+                "R{0}_{1}-{2}.png".format(region, year, year + 1),
+            )
 
-            fname = os.path.join(tb_file_data.climatology_plots_directory, "R{0}_{1}-{2}.png".format(region, year, year+1))
-
-            plot_daily_melt_and_climatology.plot_current_year_melt_over_baseline_stats(\
-                                datetime.datetime(year=year+1, month=4, day=30),
-                                region_num=region,
-                                outfile = fname)
+            plot_daily_melt_and_climatology.plot_current_year_melt_over_baseline_stats(
+                datetime.datetime(year=year + 1, month=4, day=30),
+                region_num=region,
+                outfile=fname,
+            )
 
     # 5) Get a quick status check on the dates coverage.
     plot_daily_melt_and_climatology.simple_plot_date_check()
 
     # 6) Generate new annual maps.
     mapper = generate_antarctica_today_map.AT_map_generator(gap_filled=True)
-    mapper.generate_annual_melt_map(dpi=300,
-                                    year="all",
-                                    reset_picklefile=True)
+    mapper.generate_annual_melt_map(dpi=300, year="all", reset_picklefile=True)
 
-    mapper.generate_anomaly_melt_map(dpi=300,
-                                     year="all",
-                                     reset_picklefile=True)
+    mapper.generate_anomaly_melt_map(dpi=300, year="all", reset_picklefile=True)
 
     # Create the latest anomaly map for a partial year (useful during the melt season).
     mapper.generate_latest_partial_anomaly_melt_map(dpi=300)
@@ -107,16 +107,21 @@ def generate_all_plots_and_maps_main():
 
 #     # TODO: Finish if you want.
 
+
 def read_and_parse_args():
     """Define and parse command-line arguments."""
-    parser = argparse.ArgumentParser(description=
-                                     'Generate preprocessing or processing steps for Antarctica Today data.')
-    parser.add_argument('--preprocess',
-                        help="Generate all pre-processed data.",
-                        default=False,
-                        action="store_true")
+    parser = argparse.ArgumentParser(
+        description="Generate preprocessing or processing steps for Antarctica Today data."
+    )
+    parser.add_argument(
+        "--preprocess",
+        help="Generate all pre-processed data.",
+        default=False,
+        action="store_true",
+    )
 
     return parser.parse_args()
+
 
 if __name__ == "__main__":
     args = read_and_parse_args()

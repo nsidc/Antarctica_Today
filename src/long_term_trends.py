@@ -6,6 +6,7 @@ import os
 from osgeo import gdal
 import matplotlib.pyplot as plt
 import matplotlib
+
 # from matplotlib import rc
 import numpy
 import statsmodels
@@ -15,10 +16,13 @@ from statsmodels.stats.outliers_influence import summary_table
 matplotlib.style.use("default")
 
 from melt_array_picklefile import get_ice_mask_array
-from tb_file_data import outputs_annual_tifs_directory, \
-                         antarctic_regions_tif,              \
-                         antarctic_regions_dict,             \
-                         model_results_plot_directory
+from tb_file_data import (
+    outputs_annual_tifs_directory,
+    antarctic_regions_tif,
+    antarctic_regions_dict,
+    model_results_plot_directory,
+)
+
 
 def read_annual_sum_tif(year, gap_filled=True):
     """Read the total melt days from the annual sums tif.
@@ -28,18 +32,19 @@ def read_annual_sum_tif(year, gap_filled=True):
     Look in there for the file name YYYY-ZZZZ.tif .
     If 'gap_filled', look for the 'YYYY-ZZZZ_gap_filled.tif' file.
     """
-    tif_name = "{0}-{1}{2}.tif".format(year, year+1, "_gap_filled" if gap_filled else "")
+    tif_name = "{0}-{1}{2}.tif".format(
+        year, year + 1, "_gap_filled" if gap_filled else ""
+    )
     tif_name = os.path.join(outputs_annual_tifs_directory, tif_name)
 
-    ds = gdal.Open(tif_name,gdal.GA_ReadOnly)
+    ds = gdal.Open(tif_name, gdal.GA_ReadOnly)
     if ds is None:
         raise FileNotFoundError("Could not open {0}".format(tif_name))
     array = ds.GetRasterBand(1).ReadAsArray()
     return array
 
-def compute_annual_extent_array(year,
-                                gap_filled=False,
-                                days_threshold=1):
+
+def compute_annual_extent_array(year, gap_filled=False, days_threshold=1):
     """Compute the annual melt extent, any pixel where melt_days >= days_threshold.
 
     Return as an MxN, (-1,0,1)-value grid for (no-data, melt>=threshold, melt<threshold).
@@ -49,18 +54,21 @@ def compute_annual_extent_array(year,
 
     melt_array[melt_array < days_threshold] = 0
     melt_array[melt_array >= days_threshold] = 1
-    melt_array[mask==0] = -1
+    melt_array[mask == 0] = -1
 
     return melt_array
 
-def get_time_series_data(region_number=0,
-                         melt_index_or_extent="index",
-                         start_year=1979,
-                         end_year=2019,
-                         extent_melt_days_threshold=1,
-                         omit_1987=True,
-                         gap_filled=True,
-                         return_in_km2=True):
+
+def get_time_series_data(
+    region_number=0,
+    melt_index_or_extent="index",
+    start_year=1979,
+    end_year=2019,
+    extent_melt_days_threshold=1,
+    omit_1987=True,
+    gap_filled=True,
+    return_in_km2=True,
+):
     """Return two vectors of (years, melt-each-year) for the whole time series.
 
     Includes years from start_year through end_year, inclusive. (Note: End year
@@ -78,22 +86,22 @@ def get_time_series_data(region_number=0,
     else:
         N = end_year - start_year + 1
 
-    years = numpy.empty((N,),dtype=int)
-    melt_vector = numpy.empty((N,),dtype=int)
+    years = numpy.empty((N,), dtype=int)
+    melt_vector = numpy.empty((N,), dtype=int)
 
     if region_number == 0:
         mask = get_ice_mask_array()
     else:
-        ds = gdal.Open(antarctic_regions_tif,gdal.GA_ReadOnly)
+        ds = gdal.Open(antarctic_regions_tif, gdal.GA_ReadOnly)
         if ds is None:
             raise FileNotFoundError("Could not open {0}".format(antarctic_regions_tif))
         regions_array = ds.GetRasterBand(1).ReadAsArray()
-        mask = (regions_array == region_number)
+        mask = regions_array == region_number
 
     melt_index_or_extent_lower = melt_index_or_extent.strip().lower()
 
-    i=0
-    for year in range(start_year,end_year+1):
+    i = 0
+    for year in range(start_year, end_year + 1):
         if (year == 1987) and omit_1987:
             continue
 
@@ -102,13 +110,19 @@ def get_time_series_data(region_number=0,
         if melt_index_or_extent_lower == "index":
             melt_array = read_annual_sum_tif(year, gap_filled=gap_filled)
         elif melt_index_or_extent_lower == "extent":
-            melt_array = compute_annual_extent_array(year, gap_filled=gap_filled, days_threshold=extent_melt_days_threshold)
+            melt_array = compute_annual_extent_array(
+                year, gap_filled=gap_filled, days_threshold=extent_melt_days_threshold
+            )
         else:
-            raise ValueError("Unknown value for parameter 'melt_index_or_extent': {0}".format(melt_index_or_extent))
+            raise ValueError(
+                "Unknown value for parameter 'melt_index_or_extent': {0}".format(
+                    melt_index_or_extent
+                )
+            )
 
-        melt_vector[i] = numpy.sum(melt_array[mask==1])
+        melt_vector[i] = numpy.sum(melt_array[mask == 1])
 
-        i=i+1
+        i = i + 1
 
     # Make sure we didn't leave any blank values.
     assert numpy.all([val != None for val in melt_vector])
@@ -119,23 +133,25 @@ def get_time_series_data(region_number=0,
     return years, melt_vector
 
 
-def plot_time_series(fname_template=None,
-                     region_number="all",
-                     dpi=150,
-                     ax = None,
-                     melt_index_or_extent="index",
-                     extent_melt_days_threshold=2,
-                     include_ylabel=True,
-                     gap_filled=True,
-                     include_trendline=False,
-                     include_trendline_only_if_significant=True,
-                     include_legend_if_significant=True,
-                     include_name_in_title=True,
-                     print_trendline_summary=True,
-                     offset_years_by_one=True,
-                     add_confidence_intervals=True,
-                     add_prediction_intervals=True,
-                     verbose=True):
+def plot_time_series(
+    fname_template=None,
+    region_number="all",
+    dpi=150,
+    ax=None,
+    melt_index_or_extent="index",
+    extent_melt_days_threshold=2,
+    include_ylabel=True,
+    gap_filled=True,
+    include_trendline=False,
+    include_trendline_only_if_significant=True,
+    include_legend_if_significant=True,
+    include_name_in_title=True,
+    print_trendline_summary=True,
+    offset_years_by_one=True,
+    add_confidence_intervals=True,
+    add_prediction_intervals=True,
+    verbose=True,
+):
     """Create a plot of the time series of melt.
 
     In fname_template, if you specify a {0} tag in the name, it will be filled
@@ -154,11 +170,13 @@ def plot_time_series(fname_template=None,
     ax_provided = ax
 
     for region_n in region_nums:
-        years, melt = get_time_series_data(region_number=region_n,
-                                           melt_index_or_extent=melt_index_or_extent,
-                                           extent_melt_days_threshold = extent_melt_days_threshold,
-                                           gap_filled=gap_filled,
-                                           return_in_km2=True)
+        years, melt = get_time_series_data(
+            region_number=region_n,
+            melt_index_or_extent=melt_index_or_extent,
+            extent_melt_days_threshold=extent_melt_days_threshold,
+            gap_filled=gap_filled,
+            return_in_km2=True,
+        )
 
         # Since the "2019" melt season (.e.g) in Antarctica actually spans 2019-2020,
         # it makes more sense to center it over the Jan 1, 2020 date rather than
@@ -180,31 +198,52 @@ def plot_time_series(fname_template=None,
 
         # Create a new figure if no axis is provided.
         if ax_provided is None:
-            fig, ax = plt.subplots(1,1)
+            fig, ax = plt.subplots(1, 1)
 
-        ax.plot(years, melt, color="maroon", label = "Annual melt {0}".format("index" if melt_index_or_extent == "index" else "extent"))
+        ax.plot(
+            years,
+            melt,
+            color="maroon",
+            label="Annual melt {0}".format(
+                "index" if melt_index_or_extent == "index" else "extent"
+            ),
+        )
 
         melt_index_or_extent_lower = melt_index_or_extent.strip().lower()
 
         if include_ylabel:
             if melt_index_or_extent_lower == "index":
-                ax.set_ylabel("Melt Index (10$^{0}$ km$^2\cdot$days)".format(figure_exp))
+                ax.set_ylabel(
+                    "Melt Index (10$^{0}$ km$^2\cdot$days)".format(figure_exp)
+                )
                 # ax.set_ylabel("Melt Index (million km$^2$ days)")
             elif melt_index_or_extent_lower == "extent":
                 ax.set_ylabel("Melt Extent (10$^{0}$ km$^2$)".format(figure_exp))
             else:
-                raise ValueError("Unknown value for parameter 'melt_index_or_extent': {0}".format(melt_index_or_extent))
+                raise ValueError(
+                    "Unknown value for parameter 'melt_index_or_extent': {0}".format(
+                        melt_index_or_extent
+                    )
+                )
 
-        ax.tick_params(direction="in", bottom=True, left=True, right=True, top=False, labeltop=False, labelright=False, which="major")
+        ax.tick_params(
+            direction="in",
+            bottom=True,
+            left=True,
+            right=True,
+            top=False,
+            labeltop=False,
+            labelright=False,
+            which="major",
+        )
         ax.tick_params(direction="in", bottom=True, which="minor")
-        ax.tick_params(axis='x', length=4, which="major")
-        ax.tick_params(axis='x', length=2, which="minor")
+        ax.tick_params(axis="x", length=4, which="major")
+        ax.tick_params(axis="x", length=2, which="minor")
 
         if include_name_in_title:
             region_name = antarctic_regions_dict[region_n]
 
             ax.set_title(region_name)
-
 
         # Limit lower-bounds to zero
         ylim = ax.get_ylim()
@@ -225,7 +264,6 @@ def plot_time_series(fname_template=None,
 
         # If go into all this if we've indicated we might want to plot a trendline.
         if include_trendline or include_trendline_only_if_significant:
-
             # print(results.params)
             # print(results.pvalues)
             pval_int, pval_slope = results.pvalues
@@ -233,12 +271,18 @@ def plot_time_series(fname_template=None,
             # fit_func = numpy.poly1d((slope, intercept))
 
             if print_trendline_summary:
-               print("\n")
-               print("============", antarctic_regions_dict[region_n] + ",", melt_index_or_extent, "==============")
-               print(results.summary())
+                print("\n")
+                print(
+                    "============",
+                    antarctic_regions_dict[region_n] + ",",
+                    melt_index_or_extent,
+                    "==============",
+                )
+                print(results.summary())
 
-            if include_trendline or (pval_slope <= 0.05 and include_trendline_only_if_significant):
-
+            if include_trendline or (
+                pval_slope <= 0.05 and include_trendline_only_if_significant
+            ):
                 st, data, ss2 = summary_table(results, alpha=0.05)
                 fittedvalues = data[:, 2]
                 # predict_mean_se  = data[:, 3]
@@ -246,16 +290,23 @@ def plot_time_series(fname_template=None,
                 predict_ci_low, predict_ci_upp = data[:, 6:8].T
 
                 # Put the p-value in the legend text.
-                p_value_text = ("{0:0.3f}" if (pval_slope > 0.001) else "{0:0.1e}").format(pval_slope)
+                p_value_text = (
+                    "{0:0.3f}" if (pval_slope > 0.001) else "{0:0.1e}"
+                ).format(pval_slope)
                 # ax.plot(years, fit_func(years), color="blue", label = r"Linear Trend (\textit{p=" + p_value_text + "})")
                 # ax.plot(years, fit_func(years), color="blue", label = r"Linear Trend ($\it{p=" + p_value_text + "}$)")
-                ax.plot(years, fittedvalues, color="blue", label = r"Linear trend ($\it{p=" + p_value_text + "}$)")
+                ax.plot(
+                    years,
+                    fittedvalues,
+                    color="blue",
+                    label=r"Linear trend ($\it{p=" + p_value_text + "}$)",
+                )
 
                 if add_confidence_intervals:
                     # Regression errors, Y minus Y_fit
                     # y_err = melt - fit_func(years)
 
-                                    # Calculate confidence intervals
+                    # Calculate confidence intervals
                     # p_x, confs = CI.conf_calc(years, y_err, c_limit=0.975, test_n=50)
 
                     # Calculate the lines for plotting:
@@ -264,44 +315,69 @@ def plot_time_series(fname_template=None,
 
                     # plot confidence limits
                     # ax.plot(p_x, lower, 'c--',
-                    ax.plot(years, predict_mean_ci_low, color='blue', linestyle='--',
-                            label='95% confidence interval',
-                            # label='95\% Confidence Interval',
-                            alpha=0.5,
-                            linewidth=0.8)
+                    ax.plot(
+                        years,
+                        predict_mean_ci_low,
+                        color="blue",
+                        linestyle="--",
+                        label="95% confidence interval",
+                        # label='95\% Confidence Interval',
+                        alpha=0.5,
+                        linewidth=0.8,
+                    )
                     # ax.plot(p_x, upper, 'c--',
-                    ax.plot(years, predict_mean_ci_upp, color='blue', linestyle='--',
-                            label=None,
-                            alpha=0.5,
-                            linewidth=0.8)
+                    ax.plot(
+                        years,
+                        predict_mean_ci_upp,
+                        color="blue",
+                        linestyle="--",
+                        label=None,
+                        alpha=0.5,
+                        linewidth=0.8,
+                    )
 
                 if add_prediction_intervals:
-                    ax.plot(years, predict_ci_low, color="red", linestyle='--',
-                            label='95% prediction interval',
-                            # label='95\% Confidence Interval',
-                            alpha=0.5,
-                            linewidth=0.5)
+                    ax.plot(
+                        years,
+                        predict_ci_low,
+                        color="red",
+                        linestyle="--",
+                        label="95% prediction interval",
+                        # label='95\% Confidence Interval',
+                        alpha=0.5,
+                        linewidth=0.5,
+                    )
                     # ax.plot(p_x, upper, 'c--',
-                    ax.plot(years, predict_ci_upp, color="red", linestyle='--',
-                            label=None,
-                            alpha=0.5,
-                            linewidth=0.5)
+                    ax.plot(
+                        years,
+                        predict_ci_upp,
+                        color="red",
+                        linestyle="--",
+                        label=None,
+                        alpha=0.5,
+                        linewidth=0.5,
+                    )
 
                     # The prediction intervals are quite wide. Rescale the y-limits
                     # to be no more than 10% above/below the max/min of the data,
                     # even if it makes the prediction intervals trail off the figure
                     # a bit.
                     ylim = ax.get_ylim()
-                    if (ylim[0] < 0) or (ylim[0] < (min(melt) - 0.1*(max(melt) - min(melt)))):
-                        ax.set_ylim(max(0, min(melt)- 0.1*(max(melt) - min(melt))), ylim[1])
+                    if (ylim[0] < 0) or (
+                        ylim[0] < (min(melt) - 0.1 * (max(melt) - min(melt)))
+                    ):
+                        ax.set_ylim(
+                            max(0, min(melt) - 0.1 * (max(melt) - min(melt))), ylim[1]
+                        )
 
                     ylim = ax.get_ylim()
-                    if (ylim[1] > (max(melt) + 0.1*(max(melt) - min(melt)))):
-                        ax.set_ylim(ylim[0], (max(melt) + 0.1*(max(melt) - min(melt))))
+                    if ylim[1] > (max(melt) + 0.1 * (max(melt) - min(melt))):
+                        ax.set_ylim(
+                            ylim[0], (max(melt) + 0.1 * (max(melt) - min(melt)))
+                        )
 
                 if include_legend_if_significant:
                     ax.legend(fontsize="small", labelspacing=0.1, framealpha=0.95)
-
 
         if ax_provided is None:
             fig.tight_layout()
@@ -318,31 +394,55 @@ def plot_time_series(fname_template=None,
 
     return results
 
-def special_plot_antarctica_and_peninsula_index(figname = os.path.join(model_results_plot_directory,
-                                                                       "trends","R0_R1_index_trends.png")):
+
+def special_plot_antarctica_and_peninsula_index(
+    figname=os.path.join(
+        model_results_plot_directory, "trends", "R0_R1_index_trends.png"
+    )
+):
     """Make a special plot for the BAMS report, just having Antarctica & the Peninsula in it."""
-    fig, axes = plt.subplots(2,1, figsize=(6.4, 5.5))
+    fig, axes = plt.subplots(2, 1, figsize=(6.4, 5.5))
     ax1, ax2 = axes
 
     # Plot Antarctica on top
-    results = plot_time_series(region_number=0,
-                     melt_index_or_extent="index",
-                     ax=ax1,
-                     include_name_in_title=False,
-                     offset_years_by_one=False,
-                     add_confidence_intervals=True,
-                     add_prediction_intervals=False)
-    ax1.text(0.03, 0.85, antarctic_regions_dict[0], ha="left", va="top", fontsize="x-large", transform=ax1.transAxes)
+    results = plot_time_series(
+        region_number=0,
+        melt_index_or_extent="index",
+        ax=ax1,
+        include_name_in_title=False,
+        offset_years_by_one=False,
+        add_confidence_intervals=True,
+        add_prediction_intervals=False,
+    )
+    ax1.text(
+        0.03,
+        0.85,
+        antarctic_regions_dict[0],
+        ha="left",
+        va="top",
+        fontsize="x-large",
+        transform=ax1.transAxes,
+    )
 
     # Plot Antarctic Peninsula on bottom
-    plot_time_series(region_number=1,
-                     melt_index_or_extent="index",
-                     ax=ax2,
-                     include_name_in_title=False,
-                     offset_years_by_one=False,
-                     add_confidence_intervals=True,
-                     add_prediction_intervals=False)
-    ax2.text(0.03, 0.85, antarctic_regions_dict[1].replace(" ","\n"), ha="left", va="top", fontsize="x-large", transform=ax2.transAxes)
+    plot_time_series(
+        region_number=1,
+        melt_index_or_extent="index",
+        ax=ax2,
+        include_name_in_title=False,
+        offset_years_by_one=False,
+        add_confidence_intervals=True,
+        add_prediction_intervals=False,
+    )
+    ax2.text(
+        0.03,
+        0.85,
+        antarctic_regions_dict[1].replace(" ", "\n"),
+        ha="left",
+        va="top",
+        fontsize="x-large",
+        transform=ax2.transAxes,
+    )
 
     fig.tight_layout()
 
@@ -353,26 +453,31 @@ def special_plot_antarctica_and_peninsula_index(figname = os.path.join(model_res
 
     return results
 
-def special_plot_antarctica_and_all_regions(figname = os.path.join(model_results_plot_directory,
-                                                                   "trends","ALL_regions_index_trends.png")):
+
+def special_plot_antarctica_and_all_regions(
+    figname=os.path.join(
+        model_results_plot_directory, "trends", "ALL_regions_index_trends.png"
+    )
+):
     """Make a special plot for the BAMS report, having all the regions in it."""
-    fig, axes = plt.subplots(2,4, sharex=True, sharey=False, figsize=(12., 4.))
+    fig, axes = plt.subplots(2, 4, sharex=True, sharey=False, figsize=(12.0, 4.0))
     print(axes)
 
     for region in range(8):
-
-        ax = axes[int(int(region)/4), int(region%4)]
+        ax = axes[int(int(region) / 4), int(region % 4)]
 
         # Plot Antarctica on top
-        results = plot_time_series(region_number=region,
-                                   melt_index_or_extent="index",
-                                   ax=ax,
-                                   include_name_in_title=False,
-                                   offset_years_by_one=False,
-                                   add_confidence_intervals=True,
-                                   add_prediction_intervals=False,
-                                   include_ylabel = False,
-                                   include_legend_if_significant=False)
+        results = plot_time_series(
+            region_number=region,
+            melt_index_or_extent="index",
+            ax=ax,
+            include_name_in_title=False,
+            offset_years_by_one=False,
+            add_confidence_intervals=True,
+            add_prediction_intervals=False,
+            include_ylabel=False,
+            include_legend_if_significant=False,
+        )
 
         region_name = antarctic_regions_dict[region]
         # Adjust the region placements
@@ -382,45 +487,88 @@ def special_plot_antarctica_and_all_regions(figname = os.path.join(model_results
             x = 0.30
             ha = "left"
 
-        elif region==6:
+        elif region == 6:
             x = 0.35
             ha = "left"
 
         elif region == 7:
             region_name = region_name.replace(" ", "\n")
 
-        ax.text(x, 0.97, region_name,
-                ha=ha, va="top",
-                fontsize="medium",
-                transform=ax.transAxes)
+        ax.text(
+            x,
+            0.97,
+            region_name,
+            ha=ha,
+            va="top",
+            fontsize="medium",
+            transform=ax.transAxes,
+        )
 
         # Add equation if significant.
         if results.pvalues[1] <= 0.05:
             intercept, slope = results.params
             # equation_text = r"$\it{" + r"{0:0.02f}".format(slope) + r"\cdot" + " year\n+" + r"{0:0.02f}".format(intercept) + r"}$"
-            equation_text = r"$\bf{y}$" + "={0:0.3g}".format(slope) + r"$\bf{x}$" + "+{0:0.3g}\n".format(intercept) + \
-                            r"$\it{p}$=" + "{0:0.2g}".format(results.pvalues[1])
-            ax.text(0.96, 0.80, equation_text, ha="right", va="top", transform=ax.transAxes, fontsize="small")
+            equation_text = (
+                r"$\bf{y}$"
+                + "={0:0.3g}".format(slope)
+                + r"$\bf{x}$"
+                + "+{0:0.3g}\n".format(intercept)
+                + r"$\it{p}$="
+                + "{0:0.2g}".format(results.pvalues[1])
+            )
+            ax.text(
+                0.96,
+                0.80,
+                equation_text,
+                ha="right",
+                va="top",
+                transform=ax.transAxes,
+                fontsize="small",
+            )
 
         # Add the plot letter.0
-        letter = ['a','b','c','d','e','f','g','h'][region]
-        ax.text(0.025, 0.98, letter, ha="left", va="top", transform=ax.transAxes, fontsize="medium", fontweight="bold")
+        letter = ["a", "b", "c", "d", "e", "f", "g", "h"][region]
+        ax.text(
+            0.025,
+            0.98,
+            letter,
+            ha="left",
+            va="top",
+            transform=ax.transAxes,
+            fontsize="medium",
+            fontweight="bold",
+        )
 
-    fig.text(0.001, 0.5, "Melt Index (10$^6$ km$^2\cdot$days)", rotation="vertical", size="large", ha="left", va="center", transform = fig.transFigure)
+    fig.text(
+        0.001,
+        0.5,
+        "Melt Index (10$^6$ km$^2\cdot$days)",
+        rotation="vertical",
+        size="large",
+        ha="left",
+        va="center",
+        transform=fig.transFigure,
+    )
 
     fig.tight_layout()
 
     fig.subplots_adjust(left=0.04, top=0.925, hspace=0.075, wspace=0.13)
 
-    ax = axes[0,0]
-    ax.legend(bbox_to_anchor=(0.034, 1),
-              loc="upper left",
-              ncol=3,
-              bbox_transform=fig.transFigure,
-              labels=["Annual melt index","Linear trend (if significant)","95% confidence interval"],
-              frameon=True,
-              framealpha=1,
-              borderpad=0.25)
+    ax = axes[0, 0]
+    ax.legend(
+        bbox_to_anchor=(0.034, 1),
+        loc="upper left",
+        ncol=3,
+        bbox_transform=fig.transFigure,
+        labels=[
+            "Annual melt index",
+            "Linear trend (if significant)",
+            "95% confidence interval",
+        ],
+        frameon=True,
+        framealpha=1,
+        borderpad=0.25,
+    )
 
     for fmt in (".png", ".svg"):
         figname = os.path.splitext(figname)[0] + fmt
@@ -430,23 +578,40 @@ def special_plot_antarctica_and_all_regions(figname = os.path.join(model_results
     return
 
 
-def compare_ind_year_to_baseline_averages(year, baseline_start=1990, baseline_end=2019, gap_filled=True, omit_1987=True,
-                                          verbose=True):
+def compare_ind_year_to_baseline_averages(
+    year,
+    baseline_start=1990,
+    baseline_end=2019,
+    gap_filled=True,
+    omit_1987=True,
+    verbose=True,
+):
     """Print a chart that compares the baseline annual sum melt indices
     (mean, std, min_base, max_base, min_all, max_all, mi_this_year) for each region.
     """
     print("All values in km2*days, x 1e3.")
-    print("R# | {0:>8s} | {1:>8s} | {2:>8s} | {3:>8s} | {4:>8s} | {5:>8s} | {6:>8s} | {7:>8d}".format("BL-med", "BL-mean", "BL-std", "BL-min",
-                                                                                          "BL-max", "all-min",
-                                                                                          "all-max", year))
+    print(
+        "R# | {0:>8s} | {1:>8s} | {2:>8s} | {3:>8s} | {4:>8s} | {5:>8s} | {6:>8s} | {7:>8d}".format(
+            "BL-med",
+            "BL-mean",
+            "BL-std",
+            "BL-min",
+            "BL-max",
+            "all-min",
+            "all-max",
+            year,
+        )
+    )
     for region in range(0, 8):
-        years, melt_index = get_time_series_data(region_number=region,
-                                                 melt_index_or_extent="index",
-                                                 start_year=1979,
-                                                 end_year=year,
-                                                 omit_1987=omit_1987,
-                                                 gap_filled=gap_filled,
-                                                 return_in_km2=True)
+        years, melt_index = get_time_series_data(
+            region_number=region,
+            melt_index_or_extent="index",
+            start_year=1979,
+            end_year=year,
+            omit_1987=omit_1987,
+            gap_filled=gap_filled,
+            return_in_km2=True,
+        )
 
         baseline_mask = (years >= baseline_start) & (years <= baseline_end)
         baseline_melt_i = melt_index[baseline_mask]
@@ -461,16 +626,19 @@ def compare_ind_year_to_baseline_averages(year, baseline_start=1990, baseline_en
         assert len(melt_i_this_year) == 1
         melt_i_this_year = melt_i_this_year[0]
 
-        print("{0:>2d} | {1:>8.1f} | {2:>8.1f} | {3:>8.1f} | {4:>8.1f} | {5:>8.1f} | {6:>8.1f} | {7:>8.1f} | {8:>8.1f}".format(
-            region,
-            baseline_med * 1e-3,
-            baseline_mean * 1e-3,
-            baseline_std * 1e-3,
-            baseline_min * 1e-3,
-            baseline_max * 1e-3,
-            min_all * 1e-3,
-            max_all * 1e-3,
-            melt_i_this_year * 1e-3))
+        print(
+            "{0:>2d} | {1:>8.1f} | {2:>8.1f} | {3:>8.1f} | {4:>8.1f} | {5:>8.1f} | {6:>8.1f} | {7:>8.1f} | {8:>8.1f}".format(
+                region,
+                baseline_med * 1e-3,
+                baseline_mean * 1e-3,
+                baseline_std * 1e-3,
+                baseline_min * 1e-3,
+                baseline_max * 1e-3,
+                min_all * 1e-3,
+                max_all * 1e-3,
+                melt_i_this_year * 1e-3,
+            )
+        )
 
     return
 
