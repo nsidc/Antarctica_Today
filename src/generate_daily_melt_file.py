@@ -211,9 +211,9 @@ def create_daily_melt_array(Tb_array_37h, Tb_array_37v, Tb_array_19v, threshold_
 
     Parameters
     ----------
-    - Tb_array: Numpy array of Tb values
-    - threshold_array: Numpy array of annual Tb threshold values
-    - ice_mask_array: Numpy ice mask array
+    - Tb_array: NumPy array of Tb values
+    - threshold_array: NumPy array of annual Tb threshold values
+    - ice_mask_array: NumPy ice mask array
     - Tb_nodata_value: Nodata value in the Tb array (default 0)
 
     Return value
