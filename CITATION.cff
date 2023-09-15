@@ -3,29 +3,36 @@ message: |
   Please cite this software using these metadata.
 
 title: "Antarctica Today"
-doi: "<TODO>"
-abstract: "This software creates the Antarctica Today database, updates it, and generates plots and maps of results."
-contact:
-  - name: "<TODO>"
-    email: "<TODO>"
 type: "software"
 license: ["MIT"]
+# doi: "<TODO>"
+abstract: "This software creates the Antarctica Today database, updates it, and generates plots and maps of results."
 keywords:
   - "Antarctica"
 
-url: "<TODO>"
-repository-code: "https://github.com/<TODO>/Antarctica_Today"
+contact:
+  - name: "Mike MacFerrin"
+    email: "michael.macferrin@colorado.edu"
+  - name: "National Snow and Ice Data Center"
+    email: "nsidc@nsidc.org"
+
+
+# The NSIDC Antarctic Today webpage, when it's live.
+# url: "<TODO>"
+repository-code: "https://github.com/nsidc/Antarctica_Today"
 
 version: "1.0.0"
-date-released: "<TODO>"
+date-released: "2023-09-15"
 
 authors:
 - family-names: "MacFerrin"
   given-names: "Michael"
   orcid: "https://orcid.org/0000-0001-8157-7159"
-  website: "<TODO>"
+  website: "https://orcid.org/0000-0001-8157-7159"
+
 
 # TODO: Funding. This is what QGreenland's references section looked like. Are there other references?
+#       See https://github.com/nsidc/Antarctica_Today/issues/4
 # references:
 # - type: "grant"
 #   intitution:
