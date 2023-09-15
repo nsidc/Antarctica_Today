@@ -5,7 +5,7 @@ message: |
 title: "Antarctica Today"
 type: "software"
 license: "MIT"
-# doi: "<TODO>"
+doi: "10.5281/zenodo.8349799"
 abstract: "This software creates the Antarctica Today database, updates it, and generates plots and maps of results."
 keywords:
   - "Antarctic"
