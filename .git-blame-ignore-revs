@@ -5,3 +5,7 @@
 #
 # Learn more:
 #     https://docs.github.com/en/repositories/working-with-files/using-files/viewing-a-file#ignore-commits-in-the-blame-view
+
+# Comment out line with unexplained SyntaxError:
+#     https://github.com/nsidc/Antarctica_Today/issues/9
+64d71835a5be8629b1641ed9cdaf6dfbe168c7e4
