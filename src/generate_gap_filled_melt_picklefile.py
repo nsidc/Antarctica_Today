@@ -30,7 +30,7 @@ def fill_melt_array_with_interpolations(array=None,
                                         verbose=True):
     """Take the mean melt array, fill it with interpolations from the mean climatology.
 
-    The array and datetimes_dict can be sent as paramaters if they've already been read.
+    The array and datetimes_dict can be sent as parameters if they've already been read.
     This avoids unnecessary file redundancy.
 
     NOTE: This returns an array with different codes, due to the floating-point values used.

@@ -1,4 +1,3 @@
-STATISTICS
-==========
+# STATISTICS
 
 Code for performing statistics

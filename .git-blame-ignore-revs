@@ -1,0 +1,20 @@
+# This file enables certain commits to be ignored when using GitHub's "blame"
+# view. This is useful for ignoring changes made by automations, e.g. Ruff.
+# Please isolate those changes to a single commit and add a line here (with a
+# comment) for each.
+#
+# Learn more:
+#     https://docs.github.com/en/repositories/working-with-files/using-files/viewing-a-file#ignore-commits-in-the-blame-view
+
+# Comment out line with unexplained SyntaxError:
+#     https://github.com/nsidc/Antarctica_Today/issues/9
+64d71835a5be8629b1641ed9cdaf6dfbe168c7e4
+
+# Run `prettier` on Markdown, YAML
+abc0a815b774c051b4ce4e5769f4bc2f38ca0a3b
+
+# Fix spelling of "NumPy"
+e320428813b994474d40fc4407164fbe2bf2b262
+
+# Fix spelling errors found by codespell
+722c5f437f54c438da58b3f1da9c39aec3e462e1

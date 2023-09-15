@@ -12,7 +12,7 @@ map_picklefile_directory = "../qgis/basemap_picklefiles"
 
 ice_mask_tif = "../baseline_datasets/ice_mask.tif"
 
-# Dictionary to retreive basemaps for each region.
+# Dictionary to retrieve basemaps for each region.
 # Keys: (map_type, region_number):
 # Values: file path for the basemap picklefile.
 map_picklefile_dictionary = {}
@@ -25,7 +25,7 @@ annual_maps_directory = outputs_annual_plots_directory
 daily_maps_directory = os.path.join(os.path.split(annual_maps_directory)[0], "daily_maps")
 anomaly_maps_directory = os.path.join(os.path.split(annual_maps_directory)[0], "annual_maps_anomaly")
 
-# A shapefile containing a vector outline for each region, seperately. The {0} region just contains them all.
+# A shapefile containing a vector outline for each region, separately. The {0} region just contains them all.
 region_outline_shapefiles_dict = {0:"../qgis/basins/Antarctic_Regions_v2.shp",
                                   1:"../qgis/basins/Antarctic_Regions_v2_R1.shp",
                                   2:"../qgis/basins/Antarctic_Regions_v2_R2.shp",

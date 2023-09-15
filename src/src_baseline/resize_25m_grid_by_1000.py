@@ -32,7 +32,7 @@ ds_out = driver.Create(outfile, array_in.shape[1],
                                 1,
                                 datatype_in)
 
-# Multiply scale by 1000, both for corners ane pixel sizes
+# Multiply scale by 1000, both for corners and pixel sizes
 gt_out = [value*1000.0 for value in gt_in]
 ds_out.SetGeoTransform(gt_out)
 

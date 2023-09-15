@@ -36,11 +36,11 @@ def read_NSIDC_bin_file(fname,
 
     signed - Whether the data values are signed (True) or unsigned (False) data
 
-    multiplier -- A value to multiply the dataset by after it's read. Ingored for integer arrays,
+    multiplier -- A value to multiply the dataset by after it's read. Ignored for integer arrays,
         useful in some cases for floating point values that are saved as integers but then
         multiplied by 0.1 to get floating-point values.
         (Example: value "2731" with a multiplier of 0.1 will return 273.1)
-        This is ingored if the return type is "int" or a numpy integer type.
+        This is ignored if the return type is "int" or a numpy integer type.
     """
     # Data is in two-byte, little-endian integers, array of size GRID_SHAPE
     with open(fname, 'rb') as fin:
@@ -53,7 +53,7 @@ def read_NSIDC_bin_file(fname,
 
     # Check to make sure the data is the right size, raise ValueError if not.
     # TODO: The NSIDC-0051 data has the rows,cols in the header. We could read it from there,
-    # although right now we just get the grid size from the paramter.
+    # although right now we just get the grid size from the parameter.
     if int(len(raw_data) / element_size) != int(numpy.product(grid_shape)):
         raise ValueError("File {0} has {1} elements, does not match grid size {2}.".format(
                          fname, int(len(raw_data)/element_size), str(grid_shape)))
@@ -76,7 +76,7 @@ def read_NSIDC_bin_file(fname,
         return_array = numpy.array(int_array, dtype=return_type)
     # Else, if it's meant to be a floating-point array, scale by the multiplier
     # and return the floating-point array. If the mutiplier is a float (i.e. 0.1),
-    # numpy will conver and return an array of floats
+    # numpy will convert and return an array of floats
     else:
         return_array = numpy.array( int_array * multiplier, dtype=return_type)
 

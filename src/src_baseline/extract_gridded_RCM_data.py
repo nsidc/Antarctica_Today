@@ -15,7 +15,8 @@ import resample_grid
 gdal.UseExceptions()
 osr.UseExceptions()
 
-netCDF4.
+# TODO: The below line was as-is, which is a syntax error. What should it look like?
+# netCDF4.
 
 source_file = r"F:/Research/DATA/RACMO 2.3p2/Antarctica/RACMO2.3_p2_ANT27_Tskin_avg_1979-2016.nc"
 dest_file = os.path.splitext(source_file)[0] + "_tskin.tif"

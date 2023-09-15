@@ -104,14 +104,14 @@ def create_daily_melt_file(tb_file_37h,
                                                       Tb_nodata_value=Tb_nodata_value)
 
 
-    # Write the ouptut .bin file
+    # Write the output .bin file
     write_flat_binary.write_array_to_binary(output_array,
                                             output_bin_filename,
                                             numbytes=2,
                                             signed=True,
                                             verbose=verbose)
 
-    # Writ ethe output.tif file, if called for
+    # Write the output.tif file, if called for
     if output_gtif_filename != None:
         write_NSIDC_bin_to_gtif.output_gtif(output_array,
                                             output_gtif_filename,
@@ -211,9 +211,9 @@ def create_daily_melt_array(Tb_array_37h, Tb_array_37v, Tb_array_19v, threshold_
 
     Parameters
     ----------
-    - Tb_array: Numpy array of Tb values
-    - threshold_array: Numpy array of annual Tb threshold values
-    - ice_mask_array: Numpy ice mask array
+    - Tb_array: NumPy array of Tb values
+    - threshold_array: NumPy array of annual Tb threshold values
+    - ice_mask_array: NumPy ice mask array
     - Tb_nodata_value: Nodata value in the Tb array (default 0)
 
     Return value
@@ -258,7 +258,8 @@ def read_and_parse_args():
     parser.add_argument("Tb_file_19v", type=str, help="A daily NSIDC Polar-stereo Tb files (.bin)")
     parser.add_argument("threshold_file", type=str, help="A file of Tb threshold values (.bin)")
     parser.add_argument("output_file", type=str, help="Integer output file (.bin)")
-    parser.add_argument("--ouput_gtif",  action="store_true", default=False, help="Output a GeoTiff (.tif) in addtion to the flat binary.")
+    parser.add_argument("--ouput_gtif",  action="store_true", default=False,
+                        help="Output a GeoTiff (.tif) in addition to the flat binary.")
     parser.add_argument("--verbose", "-v", action="store_true", default=False, help="Increase output verbosity.")
 
     return parser.parse_args()

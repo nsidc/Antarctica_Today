@@ -120,7 +120,7 @@ def compute_daily_climatology_pixel_averages(baseline_start_year = 1990,
     # matplotlib.pyplot.ylim([0,1e4])
     # matplotlib.pyplot.show()
 
-    # Create a dictionary with (mm,dd) keys and i-values to indext into the average_melt_array
+    # Create a dictionary with (mm,dd) keys and i-values to index into the average_melt_array
     baseline_dates_mmdd_dict = dict([((dt.month, dt.day),i) for i,dt in enumerate(baseline_filler_dt_list)])
 
     # Save out to a picklefile array.
@@ -390,7 +390,7 @@ def read_annual_melt_anomaly_tif(year,
 
 
 def get_baseline_climatology_array(fname=None,gap_filled=True):
-    """Retreive the melt year array from the tif.
+    """Retrieve the melt year array from the tif.
 
     If it's not available, create it and write the file, then return it.
     """
@@ -411,7 +411,7 @@ def get_baseline_climatology_array(fname=None,gap_filled=True):
     return create_baseline_climatology_tif(gap_filled=gap_filled)
 
 def get_annual_melt_sum_array(year, fname=None, gap_filled=True):
-    """Retreive the melt year array from the tif.
+    """Retrieve the melt year array from the tif.
 
     If it's not available, create it and write the file, then return it.
     """
@@ -783,7 +783,7 @@ def _compute_baseline_climatology_lists(melt_array,
         then it will wrap around December but not include mid-year (austral winter) months in between.
 
     NOTE: Not all days-of-year will have the same length list. For instance,
-    Feb 29 will only happen 1-in-4 yeras, and some years are missing occasional days
+    Feb 29 will only happen 1-in-4 years, and some years are missing occasional days
     in the climatology (especially in the 1980s)
 
     """
@@ -841,7 +841,7 @@ def read_daily_melt_numbers_as_dataframe(csv_file=daily_melt_csv,
     if verbose:
         print("Reading", csv_file)
 
-    # Read the dataframe. Conver the "date" field to a date object.
+    # Read the dataframe. Convert the "date" field to a date object.
     df = pandas.read_csv(csv_file, header=18, converters={"date":pandas.to_datetime})
 
     return df

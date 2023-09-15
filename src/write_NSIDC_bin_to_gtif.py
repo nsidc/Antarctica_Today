@@ -17,7 +17,7 @@ from read_NSIDC_bin_file import read_NSIDC_bin_file
 # Upper-left corners of the grids, in km, in x,y
 NSIDC_S_GRID_UPPER_LEFT_KM = numpy.array((-3950,4350), dtype=numpy.int)
 NSIDC_N_GRID_UPPER_LEFT_KM = numpy.array((-3850,5850), dtype=numpy.int)
-# Pixel dimentions of the respective grids, in (y,x) --> (rows, cols)
+# Pixel dimensions of the respective grids, in (y,x) --> (rows, cols)
 GRIDSIZE_25_N = numpy.array(((5850+5350)/25, (3750+3850)/25), dtype=numpy.long) # (448, 304)
 GRIDSIZE_25_S = numpy.array(((4350+3950)/25, (3950+3950)/25), dtype=numpy.long) # (332, 316)
 GRIDSIZE_12_5_N = GRIDSIZE_25_N * 2 # (896, 608)
@@ -34,7 +34,7 @@ SPATIAL_REFERENCE_S = osr.SpatialReference()
 SPATIAL_REFERENCE_S.ImportFromEPSG(EPSG_S)
 
 def retrieve_ssmi_grid_coords(N_or_S="S", gridsize_km=25):
-    """Return two arrays, for "grid_x" and "grid_y" corrdinates of the array."""
+    """Return two arrays, for "grid_x" and "grid_y" coordinates of the array."""
     if N_or_S.strip().upper() == "S":
         hemisphere="S"
         UL_corner=NSIDC_S_GRID_UPPER_LEFT_KM
@@ -42,7 +42,7 @@ def retrieve_ssmi_grid_coords(N_or_S="S", gridsize_km=25):
         hemisphere="N"
         UL_corner=NSIDC_N_GRID_UPPER_LEFT_KM
     else:
-        raise ValueError("Uknown hemisphere " + str(N_or_S))
+        raise ValueError("Unknown hemisphere " + str(N_or_S))
 
     assert gridsize_km in (25,12.5,6.25)
     if hemisphere=="N":
@@ -84,7 +84,7 @@ def get_hemisphere_and_resolution_from_ssmi_filename(fname):
     frequency = int(match[1:2])
 
     # The resolutions for each frequency in the NSIDC data products.
-    # Dictionary is "frequency:resolutin" key:value pair.
+    # Dictionary is "frequency:resolution" key:value pair.
     resolution = {19:25.0,
                   22:25.0,
                   37:25.0,
@@ -113,7 +113,7 @@ def output_bin_to_gtif(bin_file,
     bin_file = Name of the flat-binary data file to read.
 
     gtif_file = Name of the geotiff to produce.
-                If None, it uses the same filname as "bin_file" with the
+                If None, it uses the same filename as "bin_file" with the
                 file extension swapped with ".tif". NOTE: If a .tif file is given
                 for "bin_file", this will overwrite the file. (And probably break
                 anyway since a .tif is not a flat-binary file.)
@@ -327,7 +327,7 @@ if __name__ == "__main__":
     elif args.output_type.lower() in ("int", "i", "d"):
         out_type = int
     else:
-        raise ValueError("Uknown output_type (can be: 'int','i','d','float', or 'f'):", str(args.output_type))
+        raise ValueError("Unknown output_type (can be: 'int','i','d','float', or 'f'):", str(args.output_type))
 
     if args.multiplier.lower().strip() != "auto":
         multiplier = float(args.multiplier)
