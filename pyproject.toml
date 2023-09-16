@@ -6,7 +6,6 @@ target-version = "py38"
 #   * RUF: Ruff-specific rules not from other linters
 #   * UP: mostly migrates `str.format` -> f-strings
 #   * C4: Removes unnecessary comprehenions, other comprehension best practices
-#   * I: isort, just sorts imports
 #   * A: Prevents shadowing of python built-ins like "all"
 select = [
   # "F",  # pyflakes
@@ -14,7 +13,7 @@ select = [
   # "W",  # pycodestyle warnings
   # "C4",  # flake8-comprehensions
   "C90",  # mccabe
-  # "I",  # isort
+  "I",  # isort
   # "N",  # pep8-naming
   # "D",  # pydocstyle
   # "UP",  # pyupgrade
