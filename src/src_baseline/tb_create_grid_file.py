@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 
-from ssmi_bin_to_gtif import output_gtif, GRIDSIZE_25_S
 import numpy
+from ssmi_bin_to_gtif import GRIDSIZE_25_S, output_gtif
 
 grid_filename = "../baseline_datasets/pixel_100_grid_file.tif"
 

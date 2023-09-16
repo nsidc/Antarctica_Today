@@ -11,17 +11,17 @@ Run with no parameters, or with the -h parameter, to see command-line options.
 """
 
 import argparse
-import numpy
 import datetime
 import os
 import re
 import warnings
 
+import melt_array_picklefile
+import numpy
 import read_NSIDC_bin_file
+import tb_file_data
 import write_flat_binary
 import write_NSIDC_bin_to_gtif
-import melt_array_picklefile
-import tb_file_data
 
 
 def generate_new_daily_melt_files(

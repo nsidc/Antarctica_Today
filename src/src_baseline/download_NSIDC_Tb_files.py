@@ -24,32 +24,31 @@
 
 from __future__ import print_function
 
+import argparse
 import base64
+import datetime
 import itertools
 import json
 import netrc
+import os
 import ssl
 import sys
 from getpass import getpass
 
-import argparse
-import datetime
-import os
-
 try:
-    from urllib.parse import urlparse
-    from urllib.request import urlopen, Request, build_opener, HTTPCookieProcessor
     from urllib.error import HTTPError, URLError
+    from urllib.parse import urlparse
+    from urllib.request import HTTPCookieProcessor, Request, build_opener, urlopen
 except ImportError:
-    from urlparse import urlparse
     from urllib2 import (
-        urlopen,
-        Request,
+        HTTPCookieProcessor,
         HTTPError,
+        Request,
         URLError,
         build_opener,
-        HTTPCookieProcessor,
+        urlopen,
     )
+    from urlparse import urlparse
 
 short_name = "NSIDC-0001"
 version = "5"

@@ -30,6 +30,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 import argparse
 import subprocess
+
 import cairo
 import gi
 

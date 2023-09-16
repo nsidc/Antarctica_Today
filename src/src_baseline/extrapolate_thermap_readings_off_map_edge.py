@@ -13,8 +13,9 @@ Also, reset the NoDataValue from whatever odd floating-point value it is, to 0.0
 """
 
 import os
-from osgeo import gdal
+
 import numpy
+from osgeo import gdal
 
 ice_mask_tif = "F:/Research/DATA/Antarctica_Today/baseline_datasets/ice_mask.tif"
 thermap_tif = "C:/Users/mmacferrin/Dropbox/Research/Antarctica_Today/Dan Dixon/derived/polar_grid_10m_temps_K_25km_EPSG3412.tif"

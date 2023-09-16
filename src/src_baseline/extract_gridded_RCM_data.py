@@ -5,12 +5,12 @@ Created on Mon Apr  6 15:21:04 2020
 @author: mmacferrin
 """
 
-import netCDF4
-from osgeo import osr, gdal
 import os
-import numpy
 
+import netCDF4
+import numpy
 import resample_grid
+from osgeo import gdal, osr
 
 gdal.UseExceptions()
 osr.UseExceptions()

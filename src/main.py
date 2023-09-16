@@ -5,16 +5,16 @@ Created on Sun Feb  7 08:51:25 2021
 
 @author: mmacferrin
 """
+import argparse
 import datetime
 import os
-import argparse
 
-import melt_array_picklefile
 import compute_mean_climatology
-import tb_file_data
 import generate_antarctica_today_map
-import plot_daily_melt_and_climatology
 import generate_gap_filled_melt_picklefile
+import melt_array_picklefile
+import plot_daily_melt_and_climatology
+import tb_file_data
 
 
 def preprocessing_main():

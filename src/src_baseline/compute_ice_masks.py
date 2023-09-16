@@ -9,9 +9,10 @@ default_input_coastline_tif = r"F:/Research/DATA/Antarctica_Today/baseline_datas
 default_input_rock_outcrop_tif = r"F:/Research/DATA/Antarctica_Today/baseline_datasets/ice mask/Rock_outcrop_LandSat8_1km.tif"
 default_output_dir = r"F:/Research/DATA/Antarctica_Today/baseline_datasets/"
 
-from osgeo import gdal, osr
 import os
+
 import numpy
+from osgeo import gdal, osr
 from write_flat_binary import write_array_to_binary
 
 

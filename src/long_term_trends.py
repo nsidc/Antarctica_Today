@@ -3,24 +3,25 @@
 long_term_trends.py -- a script for analyzing long-term melt data from Antarctica Today data.
 """
 import os
-from osgeo import gdal
-import matplotlib.pyplot as plt
+
 import matplotlib
+import matplotlib.pyplot as plt
 
 # from matplotlib import rc
 import numpy
 import statsmodels
 import statsmodels.api
+from osgeo import gdal
 from statsmodels.stats.outliers_influence import summary_table
 
 matplotlib.style.use("default")
 
 from melt_array_picklefile import get_ice_mask_array
 from tb_file_data import (
-    outputs_annual_tifs_directory,
-    antarctic_regions_tif,
     antarctic_regions_dict,
+    antarctic_regions_tif,
     model_results_plot_directory,
+    outputs_annual_tifs_directory,
 )
 
 

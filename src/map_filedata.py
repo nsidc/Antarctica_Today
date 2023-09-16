@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import cartopy
 import os
+
+import cartopy
 
 boundary_shapefile_name = "../qgis/Antarctic_Coastline_low_res_polygon_simplified.shp"
 boundary_shapefile_reader = cartopy.io.shapereader.Reader(boundary_shapefile_name)

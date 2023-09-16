@@ -5,23 +5,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import matplotlib.pyplot as plt
-import matplotlib as mpl
 import datetime
-import numpy
 import os
-import pandas
 
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy
+import pandas
+from compute_mean_climatology import (
+    _get_region_area_km2,
+    open_baseline_climatology_csv_as_dataframe,
+    read_daily_melt_numbers_as_dataframe,
+)
+from melt_array_picklefile import read_model_array_picklefile
 from tb_file_data import (
     antarctic_regions_dict,
     climatology_plots_directory,
     model_results_plot_directory,
-)
-from melt_array_picklefile import read_model_array_picklefile
-from compute_mean_climatology import (
-    _get_region_area_km2,
-    read_daily_melt_numbers_as_dataframe,
-    open_baseline_climatology_csv_as_dataframe,
 )
 
 # Plot at a default 300 dpi
