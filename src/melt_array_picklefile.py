@@ -11,25 +11,22 @@ for quick and easy reading.
 
 @author: mmacferrin
 """
-from osgeo import gdal
-import numpy
 import datetime
-import pickle
 import os
+import pickle
 import re
 
+import numpy
 from map_filedata import ice_mask_tif
-
+from osgeo import gdal
+from progress_bar import ProgressBar
+from read_NSIDC_bin_file import read_NSIDC_bin_file
 from tb_file_data import (
+    gap_filled_melt_picklefile,
     model_results_dir,
     model_results_picklefile,
     recurse_directory,
-    gap_filled_melt_picklefile,
 )
-
-
-from read_NSIDC_bin_file import read_NSIDC_bin_file
-from progress_bar import ProgressBar
 
 # from ssmi_bin_to_gtif import output_gtif
 

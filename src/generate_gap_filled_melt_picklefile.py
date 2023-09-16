@@ -5,12 +5,12 @@ a function from compute_mean_climatology, which uses functions from melt_array_p
 we put this here instead."""
 
 
-import pickle
-import numpy
 import datetime
+import pickle
 
-from melt_array_picklefile import read_model_array_picklefile
+import numpy
 from compute_mean_climatology import read_daily_melt_averages_picklefile
+from melt_array_picklefile import read_model_array_picklefile
 from tb_file_data import gap_filled_melt_picklefile
 
 

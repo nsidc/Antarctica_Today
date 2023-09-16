@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from matplotlib import pyplot as plt
+import numpy
 import pandas as pd
 import statsmodels.api as sm
-import numpy
+from matplotlib import pyplot as plt
 
 thermap_csv_file = r"C:/Users/mmacferrin/Dropbox/Research/Antarctica_Today/Dan Dixon/10m_temps_ALL_Dixon_REMA_EGM96.csv"
 

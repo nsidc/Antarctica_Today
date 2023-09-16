@@ -4,10 +4,11 @@ Created on Fri Apr 17 16:13:01 2020
 
 @author: mmacferrin
 """
+import argparse
+import os
+
 import gdal
 import numpy
-import os
-import argparse
 
 
 def resize_tif_to_reference_grid(gtif_in, gtif_reference, gtif_out, verbose=False):

@@ -4,12 +4,12 @@ Created on Mon Apr  6 15:21:04 2020
 
 @author: mmacferrin
 """
-import numpy
 import argparse
-import re
 import os
-from osgeo import osr, gdal
+import re
 
+import numpy
+from osgeo import gdal, osr
 from read_NSIDC_bin_file import read_NSIDC_bin_file
 
 # See https://nsidc.org/data/polar-stereo/ps_grids.html for documentation on

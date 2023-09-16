@@ -23,8 +23,8 @@ By Kirstie Whitaker, on 27th September 2013
 """
 
 # ====== IMPORTS =============================================================
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy.stats import t
 
 # ============================================================================

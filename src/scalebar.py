@@ -4,9 +4,9 @@
 # https://stackoverflow.com/questions/32333870/how-can-i-show-a-km-ruler-on-a-cartopy-matplotlib-plot
 # ...on Jan 15, 2021.
 
-import numpy as np
 import cartopy.crs as ccrs
 import cartopy.geodesic as cgeo
+import numpy as np
 
 
 def _axes_to_lonlat(ax, coords):

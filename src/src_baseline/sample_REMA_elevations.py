@@ -3,8 +3,9 @@
 # Quick utility to read (and plot) elevations of Thermap sample points from the REMA DEM.
 
 import os
-import pandas as pd
+
 import numpy
+import pandas as pd
 from matplotlib import pyplot as plt
 
 EGM96 = True

@@ -9,6 +9,7 @@ of Dan Dixon's 10m temp plot to be km instead of mis-scaled as m.
 """
 
 import os
+
 from osgeo import gdal
 
 infile = "C:/Users/mmacferrin/Dropbox/Research/Antarctica_Today/Dan Dixon/derived/polar_grid_10m_temps_25m_OFF_BY_1000.tif"

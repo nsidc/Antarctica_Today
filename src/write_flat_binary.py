@@ -8,10 +8,11 @@ write_flat_binary.py -- code to output a .tif or numpy array to a flat-binary fi
 
 """
 
-import numpy
 import argparse
-from osgeo import gdal
 import os
+
+import numpy
+from osgeo import gdal
 
 
 def write_array_to_binary(

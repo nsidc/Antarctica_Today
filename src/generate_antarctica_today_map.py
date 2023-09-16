@@ -7,45 +7,42 @@ run "python generate_antarctica_today_map.py --help" to see command-line options
 
 @author: mmacferrin
 """
-import cartopy
-import geopandas
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
-import matplotlib
-from osgeo import gdal
 import argparse
-import os
-import numpy
-import PIL
 import datetime
+import os
+import pickle
 import re
 import tempfile
-import pickle
 
+import cartopy
+import geopandas
+import matplotlib
+import matplotlib.colors as mcolors
+import matplotlib.pyplot as plt
+import numpy
+import PIL
 import read_NSIDC_bin_file
 import write_NSIDC_bin_to_gtif
-
-# import svgclip
-from map_filedata import (
-    boundary_shapefile_reader,
-    mountains_shapefile_name,
-    map_picklefile_dictionary,
-    annual_maps_directory,
-    anomaly_maps_directory,
-    region_outline_shapefiles_dict,
-)
-
-from tb_file_data import (
-    model_results_picklefile,
-    model_results_dir,
-    daily_melt_plots_dir,
-)
-
-from melt_array_picklefile import read_model_array_picklefile, get_ice_mask_array
-
 from compute_mean_climatology import (
     create_partial_year_melt_anomaly_tif,
     read_annual_melt_anomaly_tif,
+)
+
+# import svgclip
+from map_filedata import (
+    annual_maps_directory,
+    anomaly_maps_directory,
+    boundary_shapefile_reader,
+    map_picklefile_dictionary,
+    mountains_shapefile_name,
+    region_outline_shapefiles_dict,
+)
+from melt_array_picklefile import get_ice_mask_array, read_model_array_picklefile
+from osgeo import gdal
+from tb_file_data import (
+    daily_melt_plots_dir,
+    model_results_dir,
+    model_results_picklefile,
 )
 
 

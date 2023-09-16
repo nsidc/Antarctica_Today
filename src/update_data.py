@@ -6,24 +6,24 @@ Created by: mmacferrin
 2021.04.08
 """
 # from read_NSIDC_bin_file import read_NSIDC_bin_file
-import os
-import re
-import numpy
 import datetime
-import dateutil
+import os
 import pickle
+import re
 import shutil
 
-import tb_file_data
+import compute_mean_climatology
+import dateutil
+import generate_antarctica_today_map
+import generate_daily_melt_file
+import generate_gap_filled_melt_picklefile
 import map_filedata
 import melt_array_picklefile
 import nsidc_download_Tb_data
-import generate_daily_melt_file
-import compute_mean_climatology
-import generate_gap_filled_melt_picklefile
-import generate_antarctica_today_map
-import read_NSIDC_bin_file
+import numpy
 import plot_daily_melt_and_climatology
+import read_NSIDC_bin_file
+import tb_file_data
 
 
 def get_list_of_NSIDC_bin_files_to_import(

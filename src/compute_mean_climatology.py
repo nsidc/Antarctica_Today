@@ -1,30 +1,28 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-import numpy
 import os
-from osgeo import gdal
-import pandas
 import pickle
 
+import numpy
+import pandas
 from melt_array_picklefile import (
-    read_model_array_picklefile,
     get_ice_mask_array,
     read_gap_filled_melt_picklefile,
+    read_model_array_picklefile,
 )
-
+from osgeo import gdal
 from tb_file_data import (
-    mean_climatology_geotiff,
-    std_climatology_geotiff,
-    outputs_annual_tifs_directory,
-    baseline_percentiles_csv,
-    daily_melt_csv,
-    antarctic_regions_tif,
     antarctic_regions_dict,
-    daily_melt_averages_picklefile,
+    antarctic_regions_tif,
+    baseline_percentiles_csv,
     daily_cumulative_melt_averages_picklefile,
+    daily_melt_averages_picklefile,
+    daily_melt_csv,
+    mean_climatology_geotiff,
+    outputs_annual_tifs_directory,
+    std_climatology_geotiff,
 )
-
 from write_NSIDC_bin_to_gtif import output_gtif
 
 
