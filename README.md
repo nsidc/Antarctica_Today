@@ -12,11 +12,13 @@ This code is maintained by:
 * Mike MacFerrin, original author
 * National Snow and Ice Data Center
 
+
 ## Documentation
 
 * [Operation](doc/operation.md)
 * [About the structure of this repo](doc/repo_structure.md)
 * [Contributing](doc/CONTRIBUTING.md)
+
 
 ## Acknowledgements
 

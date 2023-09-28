@@ -38,6 +38,7 @@
   - `update_data.py` will update the pickle file every day with new data.
   - Other intermediate CSVs are generated.
 
+
 ## Liz experiences
 
 - Liz never created the figures I'll need to create. The code I need to run
@@ -45,6 +46,7 @@
 - Liz created a document for me, will send. See e-mail! They may be cryptic, ask
   her if I need more info. This document is about the plots _she_ created, which
   will be different than the ones I create.
+
 
 ## Mike background
 
@@ -55,6 +57,7 @@
 - Mostly IDL, Fortran, shell scripts. Built in 90s, has undergone many changes
   over decades.
 - Tom may apply some personal expertise to subjectively adjust values.
+
 
 ## Scope of the work
 
@@ -68,17 +71,20 @@ Create daily images akin to Greenland Today. Runnable by ops.
     Greenland Today uses `% of total ice sheet`, but this may not be suitable
     for Antarctica [Walt]. Maybe make it easy to do both.
 
+
 ## Questions
 
 - Where to write the images?
 -
 
+
 ## Repo plan
 
 - [x] Migrate to NSIDC
-- Notify Mike for PRs (set up in GitHub)
+- [x] Notify Mike for PRs (set up in GitHub)
 - [x] Document Mike as co-maintainer with NSIDC
-- Loop Mike in for questions, could help with unit test cases
+- [x] Loop Mike in for questions, could help with unit test cases
+
 
 ## TODO
 
@@ -87,4 +93,4 @@ Create daily images akin to Greenland Today. Runnable by ops.
   - Mike will be admin, maintainer
   - Instructions for transferring repo
   - Instructions for GitHub notifications
-- Mike uses Slack, consider invitation: `Michael.MacFerrin@colorado.edu`
+- [x] Mike uses Slack, consider invitation: `Michael.MacFerrin@colorado.edu`
