@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Code for generating the gap-filled melt array picklefile.
 Putting this inside of melt_array_picklefile.py caused circular-dependency issues since it uses
 a function from compute_mean_climatology, which uses functions from melt_array_picklefile. So,

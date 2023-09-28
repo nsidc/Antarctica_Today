@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Scripts for importing new NSIDC brightness-temperature data into the Antarctic melt database.
 
 Created by: mmacferrin

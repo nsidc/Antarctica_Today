@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import numpy
 import pandas as pd
 import statsmodels.api as sm
