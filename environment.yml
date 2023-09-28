@@ -9,7 +9,9 @@ dependencies:
   # Runtime dependencies
   # --------------------
   - click ~=8.1
+  - gdal ~=3.5.2
   - pandas ~=1.4.4
+  - geopandas ~=0.14.0
   - cartopy ~=0.21.0
 
   ## Need a numpy version before np.int was deprecated:
