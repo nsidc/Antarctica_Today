@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # The majority of this code was copy/pasted and then slightly adjusted from:
 # https://stackoverflow.com/questions/32333870/how-can-i-show-a-km-ruler-on-a-cartopy-matplotlib-plot
 # ...on Jan 15, 2021.

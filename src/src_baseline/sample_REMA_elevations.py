@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Quick utility to read (and plot) elevations of Thermap sample points from the REMA DEM.
 
 import os

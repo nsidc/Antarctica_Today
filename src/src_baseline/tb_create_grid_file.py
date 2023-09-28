@@ -1,5 +1,4 @@
 """Create a simple gridded file (every 10,50,100 pixels) to overlay in QGIS and easily visualize grid coordinates."""
-# -*- coding: utf-8 -*-
 
 
 import numpy
