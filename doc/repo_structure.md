@@ -1,5 +1,12 @@
 # Repository structure
 
+## Documentation
+
+* `/doc/` -- Documentation.
+
+* `/doc/_notes/` -- Meeting or other notes.
+
+
 ## Source code
 
 * `/src/` -- Source code.
@@ -11,11 +18,13 @@
   needed for the Antarctica Today dataset (namely, the gridded elevation, ice
   mask, and average annual temperature datasets).
 
+
 ### Source modules
 
 All files outlined here are contained in the `/src/` directory:
 
 * _TODO_
+
 
 ## Data
 
@@ -40,6 +49,7 @@ All files outlined here are contained in the `/src/` directory:
 
 * `/Tb/` -- Raw NSIDC Tb datasets (nsidc-0080, etc)
 
+
 ## Plots
 
 * `/plots/` -- Directories for placing output line plots and maps.
@@ -55,6 +65,7 @@ All files outlined here are contained in the `/src/` directory:
 
 * `/plots/daily_maps/` -- A place to put the daily-generated melt maps (empty
   for now).
+
 
 ## QGIS
 
