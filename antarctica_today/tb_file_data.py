@@ -13,6 +13,7 @@ from antarctica_today.constants.paths import (
     DATA_DIR,
     DATA_PLOTS_DIR,
     DATA_TB_DIR,
+    DATA_DATABASE_DIR,
 )
 
 
@@ -59,20 +60,28 @@ antarctic_regions_dict = {
     7: "Amundsen Bellinghausen",
 }
 
-# Save to a more-generic version of the array and picklefile lists, to use below
-
 NSIDC_0080_file_dir = DATA_TB_DIR / "nsidc-0080"
 
-model_results_v3_dir = DATA_DIR
-model_results_v3_picklefile = os.path.join(
-    model_results_v3_dir, "v3_1979-present_raw.pickle"
-)
-model_results_v3_picklefile_gap_filled = os.path.join(
-    model_results_v3_dir, "v3_1979-present_gap_filled.pickle"
-)
-
-model_results_dir = os.path.join(model_results_v3_dir, "daily_melt_bin_files")
+# TODO: More consistent names; "model_results" doesn't tell us much about where these
+# files live. These live in external storage, but others live in repo (for now). Pick
+# either "dir" or "folder". Do we need "v3" in the filenames? The code only supports one
+# version.
+model_results_v3_picklefile = DATA_DATABASE_DIR / "v3_1979-present_raw.pickle"
+model_results_v3_picklefile_gap_filled = DATA_DATABASE_DIR / "v3_1979-present_gap_filled.pickle"
 model_results_picklefile = model_results_v3_picklefile
+gap_filled_melt_picklefile = model_results_v3_picklefile_gap_filled
+
+gap_fill_data_folder = DATA_DATABASE_DIR / "gap_fill_data"
+daily_melt_averages_picklefile = gap_fill_data_folder / "daily_melt_pixel_averages.pickle"
+daily_cumulative_melt_averages_picklefile = gap_fill_data_folder / "daily_cumulative_melt_averages.pickle"
+
+# The percentiles (10,25,50,75,90) saved in a pandas dataframe.
+baseline_percentiles_csv = DATA_DATABASE_DIR / "baseline_percentiles_1990-2020.csv"
+daily_melt_csv = DATA_DATABASE_DIR / "daily_melt_totals.csv"
+
+
+model_results_v3_dir = DATA_DIR
+model_results_dir = os.path.join(model_results_v3_dir, "daily_melt_bin_files")
 model_results_plot_directory = DATA_PLOTS_DIR
 # output_tifs_directory = os.path.join(model_results_v3_dir, "sample_results")
 outputs_annual_tifs_directory = os.path.join(model_results_v3_dir, "annual_sum_geotifs")
@@ -85,22 +94,9 @@ mean_climatology_geotiff = os.path.join(
 std_climatology_geotiff = os.path.join(
     model_results_v3_dir, "mean_climatology", "1990_2020_std_climatology.tif"
 )
-gap_fill_data_folder = os.path.join(model_results_v3_dir, "gap_fill_data")
-daily_melt_averages_picklefile = os.path.join(
-    gap_fill_data_folder, "daily_melt_pixel_averages.pickle"
-)
-daily_cumulative_melt_averages_picklefile = os.path.join(
-    gap_fill_data_folder, "daily_cumulative_melt_averages.pickle"
-)
 aws_validation_plots_directory = os.path.join(
     model_results_plot_directory, "aws_validation"
 )
-# The percentiles (10,25,50,75,90) saved in a pandas dataframe.
-baseline_percentiles_csv = os.path.join(
-    model_results_v3_dir, "baseline_percentiles_1990-2020.csv"
-)
-daily_melt_csv = os.path.join(model_results_v3_dir, "daily_melt_totals.csv")
-gap_filled_melt_picklefile = model_results_v3_picklefile_gap_filled
 climatology_plots_directory = os.path.join(
     model_results_plot_directory, "annual_line_plots"
 )

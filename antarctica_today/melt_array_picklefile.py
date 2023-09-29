@@ -117,7 +117,8 @@ def get_array_from_model_files(file_dir=model_results_dir, verbose=True):
 
 
 def save_model_array_picklefile(
-    file_dir=model_results_dir, picklefile=model_results_picklefile
+    file_dir=model_results_dir,
+    picklefile=model_results_picklefile,
 ):
     """Save the data array *and* the dictionary of datetimes in a picklefile, as a tuple.
 
