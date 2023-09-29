@@ -1,5 +1,18 @@
 # Operation
 
+> :warning: Warning
+>
+> This software requires a large amount of memory (min. 8GB), increasingly more as time
+> goes on, because the entire climatology is sometimes read in to memory. An error may
+> look like:
+>
+>     numpy.core._exceptions._ArrayMemoryError: Unable to allocate 6.32 GiB for an array
+>     with shape (332, 316, 8089) and data type int64
+>
+> We should move to a tool like SQLite or XArray for managing this data without needing
+> so much memory.
+
+
 ## Generating the database
 
 > ‼️ Important
@@ -12,12 +25,18 @@ file.
 
 ### Initializing
 
-> _TODO_
+> 🛠️ _TODO_
+>
+> - [ ] Simpler command, shouldn't have to know to set PYTHONPATH.
+
+```
+PYTHONPATH=. python antarctica_today/melt_array_picklefile.py
+```
 
 
 ### Updating
 
-> _TODO_
+> 🛠️ _TODO_
 >
 > - [ ] Simpler command, shouldn't have to know to set PYTHONPATH.
 
