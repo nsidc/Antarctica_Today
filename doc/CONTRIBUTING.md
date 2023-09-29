@@ -2,7 +2,7 @@
 
 ## Code quality checks
 
-### `pre-commit`
+### pre-commit
 
 [pre-commit](https://pre-commit.com/) is a tool for automating code quality
 checks at commit-time, preventing problems from ever being introduced to the
@@ -15,3 +15,8 @@ To setup `pre-commit`, run:
 ```
 pre-commit install
 ```
+
+
+### Mypy
+
+There's a basic config for Mypy, but it doesn't pass yet.
