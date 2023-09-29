@@ -127,6 +127,7 @@ def save_model_array_picklefile(
     data_array = get_array_from_model_files(file_dir=file_dir)
     datetime_dict = get_datetimes_from_file_list(return_as_dict=True)
 
+    picklefile.parent.mkdir(parents=True, exist_ok=True)
     f = open(picklefile, "wb")
     pickle.dump((data_array, datetime_dict), f)
     f.close()
