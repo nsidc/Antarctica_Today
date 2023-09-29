@@ -6,6 +6,8 @@ platforms:
   - linux-64
 dependencies:
   # Runtime dependencies
+  - click ~=8.1
+
   ## Need a numpy version before np.int was deprecated:
   - numpy ~=1.19.4
 
