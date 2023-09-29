@@ -29,8 +29,16 @@ file.
 >
 > - [ ] Simpler command, shouldn't have to know to set PYTHONPATH.
 
+Create the melt array picklefile, a file containing a 2d grid for each day:
+
 ```
 PYTHONPATH=. python antarctica_today/melt_array_picklefile.py
+```
+
+Create a gap filled melt picklefile, (TODO: What is it?):
+
+```
+PYTHONPATH=. python antarctica_today/generate_gap_filled_melt_picklefile.py
 ```
 
 
@@ -39,6 +47,10 @@ PYTHONPATH=. python antarctica_today/melt_array_picklefile.py
 > 🛠️ _TODO_
 >
 > - [ ] Simpler command, shouldn't have to know to set PYTHONPATH.
+
+> :warning: Warning
+>
+> All initialization steps above must be completed first.
 
 ```
 PYTHONPATH=. python antarctica_today/update_data.py
