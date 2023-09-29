@@ -1,12 +1,18 @@
+# TODO: Move constants into the `constants` subpackage
 import os
 
 import cartopy
 
-boundary_shapefile_name = "../qgis/Antarctic_Coastline_low_res_polygon_simplified.shp"
-boundary_shapefile_reader = cartopy.io.shapereader.Reader(boundary_shapefile_name)
+from antarctica_today.constants.paths import DATA_QGIS_DIR
 
-mountains_shapefile_name = "../qgis/LandSat8_Rock_outcrops_simplified.shp"
-mountains_shapefile_reader = cartopy.io.shapereader.Reader(mountains_shapefile_name)
+# TODO: *_name -> *_path
+boundary_shapefile_fn = "Antarctic_Coastline_low_res_polygon_simplified.shp"
+boundary_shapefile_path = DATA_QGIS_DIR / boundary_shapefile_fn
+boundary_shapefile_reader = cartopy.io.shapereader.Reader(boundary_shapefile_path)
+
+mountains_shapefile_fn = "LandSat8_Rock_outcrops_simplified.shp"
+mountains_shapefile_path = DATA_QGIS_DIR / mountains_shapefile_fn
+mountains_shapefile_reader = cartopy.io.shapereader.Reader(mountains_shapefile_path)
 
 map_picklefile_directory = "../qgis/basemap_picklefiles"
 

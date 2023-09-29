@@ -33,7 +33,7 @@ from map_filedata import (
     anomaly_maps_directory,
     boundary_shapefile_reader,
     map_picklefile_dictionary,
-    mountains_shapefile_name,
+    mountains_shapefile_path,
     region_outline_shapefiles_dict,
 )
 from melt_array_picklefile import get_ice_mask_array, read_model_array_picklefile
@@ -447,9 +447,9 @@ class AT_map_generator:
         """
         if self.mountains_df is None:
             if self.OPT_verbose:
-                print("Reading", mountains_shapefile_name)
+                print("Reading", mountains_shapefile_path)
             self.mountains_df = geopandas.read_file(
-                mountains_shapefile_name, crs=self.SPS_projection.proj4_init
+                mountains_shapefile_path, crs=self.SPS_projection.proj4_init
             )
 
         return self.mountains_df

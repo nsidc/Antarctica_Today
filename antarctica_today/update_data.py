@@ -10,18 +10,22 @@ import pickle
 import re
 import shutil
 
-import compute_mean_climatology
 import dateutil
-import generate_antarctica_today_map
-import generate_daily_melt_file
-import generate_gap_filled_melt_picklefile
-import map_filedata
-import melt_array_picklefile
-import nsidc_download_Tb_data
 import numpy
-import plot_daily_melt_and_climatology
-import read_NSIDC_bin_file
-import tb_file_data
+
+from antarctica_today import (
+    compute_mean_climatology,
+    generate_antarctica_today_map,
+    generate_daily_melt_file,
+    generate_gap_filled_melt_picklefile,
+    map_filedata,
+    melt_array_picklefile,
+    nsidc_download_Tb_data,
+    plot_daily_melt_and_climatology,
+    read_NSIDC_bin_file,
+    tb_file_data,
+)
+from antarctica_today.constants.paths import DATA_TB_DIR
 
 
 def get_list_of_NSIDC_bin_files_to_import(
@@ -98,14 +102,12 @@ def update_everything_to_latest_date(
 
     # Download all Tb files (19 & 37 GHz vertical), starting with the day
     # after the last date in the present array.
+    # TODO: We're overwriting this variable a couple lines below; do we need it?
     tb_file_list = nsidc_download_Tb_data.download_new_files(time_start=start_time_str)
     # # Ignore the .xml files, only get a list of the .bin files we downloaded.
     # tb_file_list = [fname for fname in tb_file_list if os.path.splitext(fname)[-1].lower() == ".bin"]
-    tb_file_list = [
-        os.path.join("../Tb/nsidc-0080", fname)
-        for fname in os.listdir("../Tb/nsidc-0080")
-        if os.path.splitext(fname)[-1] == ".bin"
-    ]
+    tb_0080_dir = DATA_TB_DIR / "nsidc-0080"
+    tb_file_list = [fp for fp in tb_0080_dir.iterdir() if fp.suffix == ".bin"]
 
     # Define "today" as today at midnight.
     if date_today is None:

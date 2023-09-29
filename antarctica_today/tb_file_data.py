@@ -8,6 +8,13 @@ Code for keeping track of Tb-based model result data, and other products
 
 import os
 
+from antarctica_today.constants.paths import (
+    DATA_BASELINE_DATASETS_DIR,
+    DATA_DIR,
+    DATA_PLOTS_DIR,
+    DATA_TB_DIR,
+)
+
 
 # Get the list of .bin files in the v1 data
 def recurse_directory(directory, ignore="thresholds", target=".bin", sorted=True):
@@ -32,11 +39,15 @@ def recurse_directory(directory, ignore="thresholds", target=".bin", sorted=True
     return file_list
 
 
-gridded_elevation_bin_file = "../baseline_datasets/REMA_25km_resampled_TbGrid.bin"
+gridded_elevation_bin_file = (
+    DATA_BASELINE_DATASETS_DIR / "REMA_26km_resampled_TbGrid.bin"
+)
 
 # Tif file containing a gridded version assigning each pixel in the ice mask to a specific region.
 # The dictionary gives the names of each region based on the value in the tif file.
-antarctic_regions_tif = "../baseline_datasets/Antarctica_Regions_Combined_v2.tif"
+antarctic_regions_tif = (
+    DATA_BASELINE_DATASETS_DIR / "Antarctica_Regions_Combined_v2.tif"
+)
 antarctic_regions_dict = {
     0: "Antarctica",
     1: "Antarctic Peninsula",
@@ -50,9 +61,9 @@ antarctic_regions_dict = {
 
 # Save to a more-generic version of the array and picklefile lists, to use below
 
-NSIDC_0080_file_dir = "../Tb/nsidc-0080"
+NSIDC_0080_file_dir = DATA_TB_DIR / "nsidc-0080"
 
-model_results_v3_dir = "../data/"
+model_results_v3_dir = DATA_DIR
 model_results_v3_picklefile = os.path.join(
     model_results_v3_dir, "v3_1979-present_raw.pickle"
 )
@@ -62,11 +73,9 @@ model_results_v3_picklefile_gap_filled = os.path.join(
 
 model_results_dir = os.path.join(model_results_v3_dir, "daily_melt_bin_files")
 model_results_picklefile = model_results_v3_picklefile
-model_results_plot_directory = "../plots/"
+model_results_plot_directory = DATA_PLOTS_DIR
 # output_tifs_directory = os.path.join(model_results_v3_dir, "sample_results")
-outputs_annual_tifs_directory = os.path.join(
-    model_results_v3_dir, "annual_sum_geotifs"
-)
+outputs_annual_tifs_directory = os.path.join(model_results_v3_dir, "annual_sum_geotifs")
 outputs_annual_plots_directory = os.path.join(
     model_results_plot_directory, "annual_maps_sum"
 )
