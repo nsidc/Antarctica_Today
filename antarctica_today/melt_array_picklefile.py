@@ -14,6 +14,7 @@ import datetime
 import os
 import pickle
 import re
+from pathlib import Path
 
 import numpy
 from map_filedata import ice_mask_tif
@@ -30,9 +31,9 @@ from tb_file_data import (
 # from ssmi_bin_to_gtif import output_gtif
 
 
-def get_ice_mask_array(ice_tif=ice_mask_tif):
+def get_ice_mask_array(ice_tif: Path = ice_mask_tif) -> numpy.array:
     """Read the ice mask tif, return the array."""
-    ice_mask_ds = gdal.Open(ice_tif, gdal.GA_ReadOnly)
+    ice_mask_ds = gdal.Open(str(ice_tif), gdal.GA_ReadOnly)
     ice_mask_array = ice_mask_ds.GetRasterBand(1).ReadAsArray()
     return numpy.array(ice_mask_array, dtype=bool)
 

@@ -1,9 +1,10 @@
 # TODO: Move constants into the `constants` subpackage
 import os
+from pathlib import Path
 
 import cartopy
 
-from antarctica_today.constants.paths import DATA_QGIS_DIR
+from antarctica_today.constants.paths import DATA_BASELINE_DATASETS_DIR, DATA_QGIS_DIR
 
 # TODO: *_name -> *_path
 boundary_shapefile_fn = "Antarctic_Coastline_low_res_polygon_simplified.shp"
@@ -14,9 +15,9 @@ mountains_shapefile_fn = "LandSat8_Rock_outcrops_simplified.shp"
 mountains_shapefile_path = DATA_QGIS_DIR / mountains_shapefile_fn
 mountains_shapefile_reader = cartopy.io.shapereader.Reader(mountains_shapefile_path)
 
-map_picklefile_directory = "../qgis/basemap_picklefiles"
+map_picklefile_directory = DATA_QGIS_DIR / "basemap_picklefiles"
 
-ice_mask_tif = "../baseline_datasets/ice_mask.tif"
+ice_mask_tif = DATA_BASELINE_DATASETS_DIR / "ice_mask.tif"
 
 # Dictionary to retrieve basemaps for each region.
 # Keys: (map_type, region_number):
@@ -40,13 +41,13 @@ anomaly_maps_directory = os.path.join(
 )
 
 # A shapefile containing a vector outline for each region, separately. The {0} region just contains them all.
-region_outline_shapefiles_dict = {
-    0: "../qgis/basins/Antarctic_Regions_v2.shp",
-    1: "../qgis/basins/Antarctic_Regions_v2_R1.shp",
-    2: "../qgis/basins/Antarctic_Regions_v2_R2.shp",
-    3: "../qgis/basins/Antarctic_Regions_v2_R3.shp",
-    4: "../qgis/basins/Antarctic_Regions_v2_R4.shp",
-    5: "../qgis/basins/Antarctic_Regions_v2_R5.shp",
-    6: "../qgis/basins/Antarctic_Regions_v2_R6.shp",
-    7: "../qgis/basins/Antarctic_Regions_v2_R7.shp",
+region_outline_shapefiles_dict: dict[int, Path] = {
+    0: DATA_QGIS_DIR / "Antarctic_Regions_v2.shp",
+    1: DATA_QGIS_DIR / "Antarctic_Regions_v2_R1.shp",
+    2: DATA_QGIS_DIR / "Antarctic_Regions_v2_R2.shp",
+    3: DATA_QGIS_DIR / "Antarctic_Regions_v2_R3.shp",
+    4: DATA_QGIS_DIR / "Antarctic_Regions_v2_R4.shp",
+    5: DATA_QGIS_DIR / "Antarctic_Regions_v2_R5.shp",
+    6: DATA_QGIS_DIR / "Antarctic_Regions_v2_R6.shp",
+    7: DATA_QGIS_DIR / "Antarctic_Regions_v2_R7.shp",
 }
