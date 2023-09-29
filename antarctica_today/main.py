@@ -8,12 +8,16 @@ import argparse
 import datetime
 import os
 
-import compute_mean_climatology
-import generate_antarctica_today_map
-import generate_gap_filled_melt_picklefile
-import melt_array_picklefile
-import plot_daily_melt_and_climatology
-import tb_file_data
+import click
+
+from antarctica_today import (
+    compute_mean_climatology,
+    generate_antarctica_today_map,
+    generate_gap_filled_melt_picklefile,
+    melt_array_picklefile,
+    plot_daily_melt_and_climatology,
+    tb_file_data,
+)
 
 
 def preprocessing_main():
@@ -107,25 +111,33 @@ def generate_all_plots_and_maps_main():
 #     # TODO: Finish if you want.
 
 
-def read_and_parse_args():
-    """Define and parse command-line arguments."""
-    parser = argparse.ArgumentParser(
-        description="Generate preprocessing or processing steps for Antarctica Today data."
-    )
-    parser.add_argument(
-        "--preprocess",
-        help="Generate all pre-processed data.",
-        default=False,
-        action="store_true",
-    )
+@click.group()
+def cli():
+    """Antarctica Today."""
+    pass
 
-    return parser.parse_args()
+
+@cli.command()
+def preprocess():
+    """Perform pre-processing steps for Antarctica Today data.
+
+    This includes:
+        - ...
+        - ...
+    """
+    preprocessing_main()
+
+
+@cli.command()
+def process():
+    """Perform processing steps for Antarctica Today data.
+
+    This includes:
+        - ...
+        - ...
+    """
+    generate_all_plots_and_maps_main()
 
 
 if __name__ == "__main__":
-    args = read_and_parse_args()
-
-    if args.preprocess:
-        preprocessing_main()
-    else:
-        generate_all_plots_and_maps_main()
+    cli()
