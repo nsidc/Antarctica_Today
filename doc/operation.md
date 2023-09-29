@@ -18,8 +18,12 @@ file.
 ### Updating
 
 > _TODO_
+>
+> - [ ] Simpler command, shouldn't have to know to set PYTHONPATH.
 
-Run `update_data.py` to update the database.
+```
+PYTHONPATH=. python antarctica_today/update_data.py
+```
 
 
 ## Generating Antarctica Today maps
