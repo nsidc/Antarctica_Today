@@ -31,8 +31,11 @@ PYTHONPATH=. python antarctica_today/nsidc_download_Tb_data.py
 > :memo: Note
 >
 > For data before 2016, `NSIDC-0001` and `NSIDC-0007` are used.
-> 
-> TODO: Does this mean we need to download those too to initialize the db?
+>
+> 🛠️ _TODO_
+>
+> - [ ] Does this mean we need to download 0001 and 0007 too to initialize the db?
+> - [ ] Add functionality to CLI if needed.
 
 
 ## 2. Generate all the daily melt binary files
@@ -42,9 +45,13 @@ PYTHONPATH=. python antarctica_today/generate_daily_melt_file.py
 ```
 
 > :memo: Note
-> 
-> Binaries provided in `data/daily_melt_bin_files` already calibrated by 
+>
+> Binaries provided in `data/daily_melt_bin_files` already calibrated by
 > Tom Mote for pre 2016 dates.
+>
+> 🛠️ _TODO_
+>
+> - [ ] Add functionality to CLI if needed.
 
 
 ## 3. Generate the database
@@ -52,7 +59,12 @@ PYTHONPATH=. python antarctica_today/generate_daily_melt_file.py
 This software manages a database covering the full climatology in the form of a pickle
 file.
 
-TODO: is this as simple as "Run the main script with `--preprocess` flag"?
+
+> TODO: ?is this as simple as:
+>
+> ```
+> PYTHONPATH=. python antarctica_today/main.py preprocess
+> ```
 
 
 ### Initializing
@@ -60,6 +72,7 @@ TODO: is this as simple as "Run the main script with `--preprocess` flag"?
 > 🛠️ _TODO_
 >
 > - [ ] Simpler command, shouldn't have to know to set PYTHONPATH.
+> - [ ] Add functionality to CLI if needed.
 
 Create the melt array picklefile, a file containing a 2d grid for each day:
 
@@ -79,6 +92,7 @@ PYTHONPATH=. python antarctica_today/generate_gap_filled_melt_picklefile.py
 > 🛠️ _TODO_
 >
 > - [ ] Simpler command, shouldn't have to know to set PYTHONPATH.
+> - [ ] Add functionality to CLI if needed.
 
 > :warning: Warning
 >
@@ -91,4 +105,8 @@ PYTHONPATH=. python antarctica_today/update_data.py
 
 ## 4. Generate outputs
 
-Run the main script.
+Run the main CLI's `process` command.
+
+```
+PYTHONPATH=. python antarctica_today/main.py process
+```
