@@ -20,6 +20,10 @@ dependencies:
   ## Need a numpy version before np.int was deprecated:
   - numpy ~=1.19.4
 
+  ## Currently, numpy's pin keeps Xarray back at v2022.09
+  - xarray
+  - netcdf4
+
 
   # Development dependencies
   # ------------------------
