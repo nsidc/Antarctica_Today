@@ -1,4 +1,5 @@
 ci:
+  autoupdate_schedule: "quarterly"
   # Don't push commits on to PRs. If you want this, it can be triggered with a
   # comment in a PR with text "pre-commit.ci autofix"
   autofix_prs: false
