@@ -3,8 +3,11 @@ from pathlib import Path
 import numpy as np
 import xarray as xra
 
-from antarctica_today.constants.grid import DEFAULT_GRID_SHAPE
-from antarctica_today.constants.paths import DATA_TB_DIR
+#from antarctica_today.constants.grid import DEFAULT_GRID_SHAPE
+#from antarctica_today.constants.paths import DATA_TB_DIR
+
+from constants.grid import DEFAULT_GRID_SHAPE
+from constants.paths import DATA_TB_DIR
 
 
 def read_NSIDC_nc_file(fname: Path) -> dict[str, np.ndarray]:

@@ -10,14 +10,12 @@ import os
 
 import click
 
-from antarctica_today import (
-    compute_mean_climatology,
-    generate_antarctica_today_map,
-    generate_gap_filled_melt_picklefile,
-    melt_array_picklefile,
-    plot_daily_melt_and_climatology,
-    tb_file_data,
-)
+import compute_mean_climatology
+import generate_antarctica_today_map
+import generate_gap_filled_melt_picklefile
+import melt_array_picklefile
+import plot_daily_melt_and_climatology
+import tb_file_data
 
 
 def preprocessing_main():
@@ -81,7 +79,8 @@ def generate_all_plots_and_maps_main():
     plot_daily_melt_and_climatology.simple_plot_date_check()
 
     # 6) Generate new annual maps.
-    mapper = generate_antarctica_today_map.AT_map_generator(gap_filled=True)
+    mapper = generate_antarctica_today_map.AT_map_generator()
+    #mapper = generate_antarctica_today_map.AT_map_generator(gap_filled=True)
     mapper.generate_annual_melt_map(dpi=300, year="all", reset_picklefile=True)
 
     mapper.generate_anomaly_melt_map(dpi=300, year="all", reset_picklefile=True)

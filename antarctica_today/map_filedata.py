@@ -4,7 +4,7 @@ from pathlib import Path
 
 import cartopy
 
-from antarctica_today.constants.paths import DATA_BASELINE_DATASETS_DIR, DATA_QGIS_DIR
+from constants.paths import DATA_BASELINE_DATASETS_DIR, DATA_QGIS_DIR
 
 # TODO: *_name -> *_path
 boundary_shapefile_fn = "Antarctic_Coastline_low_res_polygon_simplified.shp"
