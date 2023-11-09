@@ -21,17 +21,11 @@ import numpy
 import xarray
 import math
 
-#from antarctica_today import tb_file_data
-#from antarctica_today.melt_array_picklefile import get_ice_mask_array
-#from antarctica_today.read_NSIDC_bin_file import read_NSIDC_bin_file
-#from antarctica_today.read_NSIDC_nc_file import read_NSIDC_nc_file
-#from antarctica_today.write_flat_binary import write_array_to_binary
-
-import tb_file_data
-from melt_array_picklefile import get_ice_mask_array
-from read_NSIDC_bin_file import read_NSIDC_bin_file
-from read_NSIDC_nc_file import read_NSIDC_nc_file
-from write_flat_binary import write_array_to_binary
+from antarctica_today import tb_file_data
+from antarctica_today.melt_array_picklefile import get_ice_mask_array
+from antarctica_today.read_NSIDC_bin_file import read_NSIDC_bin_file
+from antarctica_today.read_NSIDC_nc_file import read_NSIDC_nc_file
+from antarctica_today.write_flat_binary import write_array_to_binary
 
 def generate_new_daily_melt_files(
     start_date="2021-10-01",

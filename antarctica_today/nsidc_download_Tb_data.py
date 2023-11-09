@@ -46,8 +46,7 @@ from getpass import getpass
 
 import earthaccess
 
-#from antarctica_today.constants.paths import DATA_TB_DIR
-from constants.paths import DATA_TB_DIR
+from antarctica_today.constants.paths import DATA_TB_DIR
 
 try:
     from urllib.error import HTTPError, URLError

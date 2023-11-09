@@ -8,8 +8,8 @@ from typing import Union
 
 import numpy
 
-from constants.grid import DEFAULT_GRID_SHAPE
-from constants.paths import DATA_TB_DIR
+from antarctica_today.constants.grid import DEFAULT_GRID_SHAPE
+from antarctica_today.constants.paths import DATA_TB_DIR
 
 
 def read_NSIDC_bin_file(

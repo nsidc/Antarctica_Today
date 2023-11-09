@@ -10,13 +10,14 @@ import os
 
 import click
 
-import compute_mean_climatology
-import generate_antarctica_today_map
-import generate_gap_filled_melt_picklefile
-import melt_array_picklefile
-import plot_daily_melt_and_climatology
-import tb_file_data
-
+from antarctica_today import (
+    compute_mean_climatology,
+    generate_antarctica_today_map,
+    generate_gap_filled_melt_picklefile,
+    melt_array_picklefile,
+    plot_daily_melt_and_climatology,
+    tb_file_data,
+)
 
 def preprocessing_main():
     """When we get new data (or new versions of the data), do all the things to get it ingested.

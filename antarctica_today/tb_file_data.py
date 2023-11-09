@@ -8,7 +8,7 @@ Code for keeping track of Tb-based model result data, and other products
 
 import os
 
-from constants.paths import (
+from antarctica_today.constants.paths import (
     DATA_BASELINE_DATASETS_DIR,
     DATA_DATABASE_DIR,
     DATA_DIR,
