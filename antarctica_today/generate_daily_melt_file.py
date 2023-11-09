@@ -12,6 +12,7 @@ Run with no parameters, or with the -h parameter, to see command-line options.
 
 import argparse
 import datetime
+import math
 import os
 import re
 import warnings
@@ -116,7 +117,7 @@ def create_daily_melt_file(
     threshold_file,
     output_bin_filename,
     output_gtif_filename=None,
-    Tb_nodata_value=0,
+    Tb_nodata_value=-999,
     verbose=True,
 ):
     """Read input files and generate a daily melt file. Primary function."""
@@ -127,7 +128,8 @@ def create_daily_melt_file(
     )
 
     # Write the output .bin file
-    write_flat_binary.write_array_to_binary(
+    # write_flat_binary.write_array_to_binary(
+    write_array_to_binary(
         output_array, output_bin_filename, numbytes=2, signed=True, verbose=verbose
     )
 
@@ -211,7 +213,7 @@ def get_correct_threshold_file(
 
 
 def read_files_and_generate_melt_array(
-    nsidc_0080_fp: Path, threshold_file, Tb_nodata_value=0.0
+    nsidc_0080_fp: Path, threshold_file, Tb_nodata_value=-999
 ):
     """Generate a daily melt value array from the three flat-binary files."""
     # TODO: F18 correct?
@@ -236,7 +238,7 @@ def create_daily_melt_array(
     Tb_array_19v,
     threshold_array,
     ice_mask_array,
-    Tb_nodata_value=0,
+    Tb_nodata_value=-999
 ):
     """Create an NxM array of daily melt values.
 
@@ -290,7 +292,13 @@ def create_daily_melt_array(
     output_array[
         ((Tb_array_19v - Tb_array_37v) < 0) & (Tb_array_37h < (threshold_array + 10))
     ] = 1
+
     # Mark all "nodata" as no data.
+
+    Tb_array_37h[numpy.isnan(Tb_array_37h)] = -999
+    Tb_array_37v[numpy.isnan(Tb_array_37v)] = -999
+    Tb_array_19v[numpy.isnan(Tb_array_19v)] = -999
+
     output_array[
         (Tb_array_37h == Tb_nodata_value)
         | (Tb_array_37v == Tb_nodata_value)
