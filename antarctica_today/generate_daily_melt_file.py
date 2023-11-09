@@ -12,6 +12,7 @@ Run with no parameters, or with the -h parameter, to see command-line options.
 
 import argparse
 import datetime
+import math
 import os
 import re
 import warnings
@@ -19,13 +20,13 @@ from pathlib import Path
 
 import numpy
 import xarray
-import math
 
 from antarctica_today import tb_file_data
 from antarctica_today.melt_array_picklefile import get_ice_mask_array
 from antarctica_today.read_NSIDC_bin_file import read_NSIDC_bin_file
 from antarctica_today.read_NSIDC_nc_file import read_NSIDC_nc_file
 from antarctica_today.write_flat_binary import write_array_to_binary
+
 
 def generate_new_daily_melt_files(
     start_date="2021-10-01",
@@ -127,7 +128,7 @@ def create_daily_melt_file(
     )
 
     # Write the output .bin file
-    #write_flat_binary.write_array_to_binary(
+    # write_flat_binary.write_array_to_binary(
     write_array_to_binary(
         output_array, output_bin_filename, numbytes=2, signed=True, verbose=verbose
     )
@@ -277,7 +278,6 @@ def create_daily_melt_array(
     # Create empty output array. Use -999 as a temporary empty_value to ensure all cells get assigned something.
     output_array = numpy.zeros(Tb_array_37h.shape, dtype=numpy.int16) - 999
 
-
     # No melt if it doesn't exceed the threshold at all.
     output_array[Tb_array_37h < threshold_array] = 1
     # Melt if the (Tb_19v - Tb_37v) >= 0 and (Tb_37h > threshold)
@@ -295,9 +295,9 @@ def create_daily_melt_array(
 
     # Mark all "nodata" as no data.
 
-    Tb_array_37h[numpy.isnan(Tb_array_37h)]=-999
-    Tb_array_37v[numpy.isnan(Tb_array_37v)]=-999
-    Tb_array_19v[numpy.isnan(Tb_array_19v)]=-999
+    Tb_array_37h[numpy.isnan(Tb_array_37h)] = -999
+    Tb_array_37v[numpy.isnan(Tb_array_37v)] = -999
+    Tb_array_19v[numpy.isnan(Tb_array_19v)] = -999
 
     output_array[
         (Tb_array_37h == Tb_nodata_value)

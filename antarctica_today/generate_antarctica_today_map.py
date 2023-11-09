@@ -26,6 +26,7 @@ from compute_mean_climatology import (
     create_partial_year_melt_anomaly_tif,
     read_annual_melt_anomaly_tif,
 )
+from constants.paths import DATA_DIR, DATA_PLOTS_DIR
 
 # import svgclip
 from map_filedata import (
@@ -43,8 +44,6 @@ from tb_file_data import (
     model_results_dir,
     model_results_picklefile,
 )
-
-from constants.paths import DATA_DIR, DATA_PLOTS_DIR
 
 
 def main():
@@ -1909,14 +1908,14 @@ class AT_map_generator:
                     message_below_year is None
                     or message_below_year.find("through") == -1
                 ):
-                    #if len(message_below_year) > 0:
+                    # if len(message_below_year) > 0:
                     if message_below_year is not None:
                         message_below_year = (
                             "" if (message_below_year is None) else message_below_year
                         ) + "\n"
                         message_below_year = message_below_year + "through {}".format(
-                           datetime_this_year.strftime("%d %B %Y").lstrip("0")
-                    )
+                            datetime_this_year.strftime("%d %B %Y").lstrip("0")
+                        )
 
                 self._add_year_to_axes(
                     ax,

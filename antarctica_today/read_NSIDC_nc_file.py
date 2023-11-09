@@ -6,6 +6,7 @@ import xarray as xra
 from antarctica_today.constants.grid import DEFAULT_GRID_SHAPE
 from antarctica_today.constants.paths import DATA_TB_DIR
 
+
 def read_NSIDC_nc_file(fname: Path) -> dict[str, np.ndarray]:
     """Read an NSIDC-0080v2 file and return a 2D data array for each desired channel.
 
