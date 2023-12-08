@@ -33,7 +33,7 @@ from map_filedata import (
     anomaly_maps_directory,
     boundary_shapefile_reader,
     map_picklefile_dictionary,
-    mountains_shapefile_name,
+    mountains_shapefile_path,
     region_outline_shapefiles_dict,
 )
 from melt_array_picklefile import get_ice_mask_array, read_model_array_picklefile
@@ -43,6 +43,8 @@ from tb_file_data import (
     model_results_dir,
     model_results_picklefile,
 )
+
+from antarctica_today.constants.paths import DATA_DIR, DATA_PLOTS_DIR
 
 
 def main():
@@ -60,8 +62,10 @@ def main():
             year = 2022
             #        for fmt in ("png", "pdf", "svg"):
             fig, ax = m.generate_annual_melt_map(
-                outfile_template="../plots/annual_maps_sum/R{0}_{1}-{2}_sum.{3}".format(
-                    region, year, year + 1, fmt
+                outfile_template=(
+                    DATA_PLOTS_DIR
+                    / "annual_maps_sum"
+                    / f"R{region}_{year}-{year+1}_sum.{fmt}"
                 ),
                 fmt=fmt,
                 mmdd_of_year=[3, 22],
@@ -74,8 +78,10 @@ def main():
             plt.close(fig)
 
             fig, ax = m.generate_anomaly_melt_map(
-                outfile_template="../plots/annual_maps_anomaly/R{0}_{1}-{2}_anomaly.{3}".format(
-                    region, year, year + 1, fmt
+                outfile_template=(
+                    DATA_PLOTS_DIR
+                    / "annual_maps_anomaly"
+                    / f"R{region}_{year}-{year+1}_anomaly.{fmt}"
                 ),
                 fmt=fmt,
                 mmdd_of_year=[3, 22],
@@ -87,7 +93,7 @@ def main():
 
             plt.close(fig)
 
-    # fig, ax = m.generate_anomaly_melt_map("../plots/annual_maps_anomaly/R0_2021-2022.04.30_text.png",
+    # fig, ax = m.generate_anomaly_melt_map(DATA_PLOTS_DIR / "annual_maps_anomaly/R0_2021-2022.04.30_text.png",
     #                                       year=2021+1,
     #                                       dpi=300,
     #                                       include_scalebar=True,
@@ -95,13 +101,13 @@ def main():
     #                                       include_legend=True,
     #                                       reset_picklefile=False)
 
-    # fig, ax = m.generate_daily_melt_map("../data/v2.5/antarctica_melt_S3B_2010-2020_20200129/antarctica_melt_20100101_S3B_20210129.bin",
-    #                           outfile = "../plots/v2.5/daily_maps/20100101_daily.jpg", dpi=150)
+    # fig, ax = m.generate_daily_melt_map(DATA_DIR / "v2.5/antarctica_melt_S3B_2010-2020_20200129/antarctica_melt_20100101_S3B_20210129.bin",
+    #                           outfile = DATA_PLOTS_DIR / "v2.5/daily_maps/20100101_daily.jpg", dpi=150)
 
     # print (m._get_current_axes_position(ax))
 
     # for fmt in ("png", "svg"):
-    #     m.generate_annual_melt_map(outfile_template="../plots/v2.5/annual_maps/R{1}_{0}-{3}." + fmt,
+    #     m.generate_annual_melt_map(outfile_template=DATA_PLOTS_DIR / "v2.5/annual_maps/R{1}_{0}-{3}." + fmt,
     #                                 region_number=0,
     #                                 year=2020,
     #                                 dpi=600,
@@ -111,7 +117,7 @@ def main():
     #                                 # include_current_date_label=True)
 
     #     # m.generate_anomaly_melt_map(year="all", reset_picklefile=True)
-    #     m.generate_anomaly_melt_map(outfile_template="../plots/v2.5/anomaly_maps/R{1}_{0}-{3}." + fmt,
+    #     m.generate_anomaly_melt_map(outfile_template=DATA_PLOTS_DIR / "v2.5/anomaly_maps/R{1}_{0}-{3}." + fmt,
     #                                 year=2020,
     #                                 region_number=0,
     #                                 message_below_year="through 16 February,\n relative to 1990-2020",
@@ -120,7 +126,7 @@ def main():
     #                                 # reset_picklefile=True)
 
     # for melt_code in range(2,8+1):
-    #     m.generate_cumulative_melt_map(outfile_template = "../plots/v2.5/annual_maps/{0}_region{1}_level{2}.jpg",
+    #     m.generate_cumulative_melt_map(outfile_template = DATA_PLOTS_DIR / "v2.5/annual_maps/{0}_region{1}_level{2}.jpg",
     #                                    melt_code_threshold=melt_code,
     #                                    year="all")
     #                                    # year=2015)
@@ -435,9 +441,7 @@ class AT_map_generator:
 
         else:
             raise NotImplementedError(
-                "Region {0} doesn't exist or is not implemented yet.".format(
-                    region_number
-                )
+                f"Region {region_number} doesn't exist or is not implemented yet."
             )
 
     def _get_mountains_geodataframe(self):
@@ -447,9 +451,9 @@ class AT_map_generator:
         """
         if self.mountains_df is None:
             if self.OPT_verbose:
-                print("Reading", mountains_shapefile_name)
+                print("Reading", mountains_shapefile_path)
             self.mountains_df = geopandas.read_file(
-                mountains_shapefile_name, crs=self.SPS_projection.proj4_init
+                mountains_shapefile_path, crs=self.SPS_projection.proj4_init
             )
 
         return self.mountains_df
@@ -480,7 +484,7 @@ class AT_map_generator:
         """
         map_type_lower = map_type.strip().lower()
         if map_type_lower not in ("daily", "annual", "anomaly"):
-            raise ValueError("Unknown map type '{0}'.".format(map_type))
+            raise ValueError(f"Unknown map type '{map_type}'.")
 
         fig = plt.figure(frameon=False)
         ax = fig.add_subplot(1, 1, 1, projection=self.SPS_projection)
@@ -537,7 +541,7 @@ class AT_map_generator:
                 self._draw_legend_for_melt_anomaly(fig, ax)
 
             else:
-                raise ValueError("Unknown map type '{0}'.".format(map_type))
+                raise ValueError(f"Unknown map type '{map_type}'.")
 
         if include_region_name_if_not_0 and region_number != 0:
             # TODO: implement this for different sub-regions
@@ -654,9 +658,7 @@ class AT_map_generator:
         map_type_lower = map_type.lower().strip()
         if map_type_lower not in ("daily", "annual", "anomaly"):
             raise ValueError(
-                "Map Type '{0}' not recognized. Use 'daily', 'annual', or 'anomaly'.".format(
-                    map_type
-                )
+                f"Map Type '{map_type}' not recognized. Use 'daily', 'annual', or 'anomaly'."
             )
 
         if map_type_lower == "daily":
@@ -795,9 +797,7 @@ class AT_map_generator:
         map_type_lower = map_type.lower().strip()
         if map_type_lower not in ("daily", "annual", "anomaly"):
             raise ValueError(
-                "Map Type '{0}' not recognized. Use 'daily', 'annual', or 'anomaly'.".format(
-                    map_type
-                )
+                f"Map Type '{map_type}' not recognized. Use 'daily', 'annual', or 'anomaly'."
             )
 
         (
@@ -831,9 +831,7 @@ class AT_map_generator:
         map_type_lower = map_type.lower().strip()
         if map_type_lower not in ("daily", "annual", "anomaly"):
             raise ValueError(
-                "Map Type '{0}' not recognized. Use 'daily', 'annual', or 'anomaly'.".format(
-                    map_type
-                )
+                f"Map Type '{map_type}' not recognized. Use 'daily', 'annual', or 'anomaly'."
             )
 
         if (
@@ -973,7 +971,7 @@ class AT_map_generator:
         )
 
         # Put the label above it, center-justified horizontally, bottom-justified vertically
-        label_txt = "{0} km".format(length_km)
+        label_txt = f"{length_km} km"
         label_location_x = location[0] + scalebar_fraction * 0.5
         label_location_y = location[1]
 
@@ -1126,7 +1124,7 @@ class AT_map_generator:
         ax.text(
             location[0],
             location[1],
-            "Level {0}".format(level_number),
+            f"Level {level_number}",
             fontsize="large",
             transform=ax.transAxes,
             zorder=z,
@@ -1375,7 +1373,7 @@ class AT_map_generator:
         if infile_ext == ".tif":
             ds = gdal.Open(infile, gdal.GA_ReadOnly)
             if ds is None:
-                raise Exception("{0} not read correctly by GDAL.".format(infile))
+                raise Exception(f"{infile} not read correctly by GDAL.")
 
             data_array = ds.GetRasterBand(1).ReadAsArray()
 
@@ -1525,7 +1523,7 @@ class AT_map_generator:
         if infile_ext == ".tif":
             ds = gdal.Open(infile, gdal.GA_ReadOnly)
             if ds is None:
-                raise Exception("{0} not read correctly by GDAL.".format(infile))
+                raise Exception(f"{infile} not read correctly by GDAL.")
 
             data_array = ds.GetRasterBand(1).ReadAsArray()
 
@@ -2019,14 +2017,16 @@ def SPECIAL_make_map_with_borders(year=2020):
 
     This takes a bit of tweaked-coding in the function.
     """
-    region_shapefile = "../qgis/basins/Antarctic_Regions_v2_interior_borders.shp"
+    region_shapefile = (
+        DATA_QGIS_DIR / "basins " / "Antarctic_Regions_v2_interior_borders.shp"
+    )
 
     at = AT_map_generator(fill_pole_hole=False, verbose=True)
     for fmt in ("png", "svg"):
         # for fmt in ("png",):
         fname = os.path.join(
             annual_maps_directory,
-            "R0_{0}-{1}_region_borders_2021.02.16.".format(year, year + 1) + fmt,
+            f"R0_{year}-{year+1}_region_borders_2021.02.16.{fmt}",
         )
         fig, ax = at.generate_annual_melt_map(
             outfile_template=fname,

@@ -17,6 +17,7 @@ def save_gap_filled_picklefile(picklefile=gap_filled_melt_picklefile, verbose=Tr
     """Write the picklefile."""
     array, datetimes_dict = fill_melt_array_with_interpolations(verbose=verbose)
 
+    picklefile.parent.mkdir(parents=True, exist_ok=True)
     f = open(picklefile, "wb")
     pickle.dump((array, datetimes_dict), f)
     f.close()
@@ -103,3 +104,7 @@ def fill_melt_array_with_interpolations(array=None, datetimes_dict=None, verbose
             # print("\t", "Day missing, fill with mean. Average:", numpy.sum(day_slice[day_slice!=-1]))
 
     return gap_filled_array, gap_filled_dt_dict
+
+
+if __name__ == "__main__":
+    save_gap_filled_picklefile()
