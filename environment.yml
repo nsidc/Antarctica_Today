@@ -9,6 +9,7 @@ dependencies:
   # Runtime dependencies
   # --------------------
   - click ~=8.1
+  - earthaccess ~=0.6.1
   - gdal ~=3.5
   - pandas ~=1.4
   - geopandas ~=0.14.0
@@ -18,6 +19,10 @@ dependencies:
 
   ## Need a numpy version before np.int was deprecated:
   - numpy ~=1.19.4
+
+  ## Currently, numpy's pin keeps Xarray back at v2022.09
+  - xarray
+  - netcdf4
 
 
   # Development dependencies

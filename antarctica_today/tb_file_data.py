@@ -10,10 +10,10 @@ import os
 
 from antarctica_today.constants.paths import (
     DATA_BASELINE_DATASETS_DIR,
+    DATA_DATABASE_DIR,
     DATA_DIR,
     DATA_PLOTS_DIR,
     DATA_TB_DIR,
-    DATA_DATABASE_DIR,
 )
 
 
@@ -67,13 +67,19 @@ NSIDC_0080_file_dir = DATA_TB_DIR / "nsidc-0080"
 # either "dir" or "folder". Do we need "v3" in the filenames? The code only supports one
 # version.
 model_results_v3_picklefile = DATA_DATABASE_DIR / "v3_1979-present_raw.pickle"
-model_results_v3_picklefile_gap_filled = DATA_DATABASE_DIR / "v3_1979-present_gap_filled.pickle"
+model_results_v3_picklefile_gap_filled = (
+    DATA_DATABASE_DIR / "v3_1979-present_gap_filled.pickle"
+)
 model_results_picklefile = model_results_v3_picklefile
 gap_filled_melt_picklefile = model_results_v3_picklefile_gap_filled
 
 gap_fill_data_folder = DATA_DATABASE_DIR / "gap_fill_data"
-daily_melt_averages_picklefile = gap_fill_data_folder / "daily_melt_pixel_averages.pickle"
-daily_cumulative_melt_averages_picklefile = gap_fill_data_folder / "daily_cumulative_melt_averages.pickle"
+daily_melt_averages_picklefile = (
+    gap_fill_data_folder / "daily_melt_pixel_averages.pickle"
+)
+daily_cumulative_melt_averages_picklefile = (
+    gap_fill_data_folder / "daily_cumulative_melt_averages.pickle"
+)
 
 # The percentiles (10,25,50,75,90) saved in a pandas dataframe.
 baseline_percentiles_csv = DATA_DATABASE_DIR / "baseline_percentiles_1990-2020.csv"
@@ -81,7 +87,7 @@ daily_melt_csv = DATA_DATABASE_DIR / "daily_melt_totals.csv"
 
 
 model_results_v3_dir = DATA_DIR
-model_results_dir = os.path.join(model_results_v3_dir, "daily_melt_bin_files")
+model_results_dir = model_results_v3_dir / "daily_melt_bin_files"
 model_results_plot_directory = DATA_PLOTS_DIR
 # output_tifs_directory = os.path.join(model_results_v3_dir, "sample_results")
 outputs_annual_tifs_directory = os.path.join(model_results_v3_dir, "annual_sum_geotifs")

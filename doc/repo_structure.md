@@ -32,7 +32,7 @@ All files outlined here are contained in the `/src/` directory:
   ice mask and region-area masks.
 
 * `/data/` -- Storing all derived data products. (Source data from NSIDC is
-  stored in the /Tb/ directory.)
+  stored in the `/Tb/` directory.)
 
 * `/data/annual_sum_geotiffs/` -- GeoTiff files of the annual sum of melt days
   over the continent.
@@ -47,7 +47,8 @@ All files outlined here are contained in the `/src/` directory:
   delineating the threshold above which melt is nominally detected in the 37H
   microwave brightness temperatures.
 
-* `/Tb/` -- Raw NSIDC Tb datasets (nsidc-0080, etc)
+* `/Tb/` -- Raw NSIDC Tb datasets (nsidc-0080, etc). NOTE: 0080 is no longer available
+  as `.bin`, and are now NetCDFs.
 
 
 ## Plots
