@@ -113,7 +113,7 @@ def compute_daily_climatology_pixel_averages(
     # Generate an empty MxNxT array with
     average_melt_array = numpy.zeros(
         (melt_array.shape[0], melt_array.shape[1], len(baseline_filler_dt_list)),
-        dtype=numpy.float,
+        dtype=float,
     )
 
     # Now, compute the average odds (0-1) of melt on any given day for any given pixel, over the baseline period.
@@ -123,7 +123,7 @@ def compute_daily_climatology_pixel_averages(
                 ((dt.month == bdt.month) and (dt.day == bdt.day))
                 for dt in dt_list_melt_season
             ],
-            dtype=numpy.bool,
+            dtype=bool,
         )
         # # print ("\t", [dt for i,dt in enumerate(dt_list_melt_season) if bdt_day_mask[i]])
         # if numpy.count_nonzero(bdt_day_mask) == 0:
@@ -286,9 +286,7 @@ def create_baseline_climatology_tif(
     num_years = int((end_date - start_date).days / 365.25)
     # print(num_years)
 
-    annual_sum_grids = numpy.empty(
-        model_array.shape[0:2] + (num_years,), dtype=numpy.int
-    )
+    annual_sum_grids = numpy.empty(model_array.shape[0:2] + (num_years,), dtype=int)
 
     if gap_filled:
         model_melt_days = model_array
@@ -308,7 +306,7 @@ def create_baseline_climatology_tif(
         # print(i, dt1, dt2)
 
         dates_mask = numpy.array(
-            [(dt >= dt1) & (dt <= dt2) for dt in datetimes], dtype=numpy.bool
+            [(dt >= dt1) & (dt <= dt2) for dt in datetimes], dtype=bool
         )
 
         # dt1_i = datetimes.index(dt1)
@@ -320,8 +318,8 @@ def create_baseline_climatology_tif(
     annual_std_array = numpy.std(annual_sum_grids, axis=2, dtype=numpy.float32)
 
     if round_to_integers:
-        annual_mean_array = numpy.array(numpy.round(annual_mean_array), dtype=numpy.int)
-        annual_std_array = numpy.array(numpy.round(annual_std_array), dtype=numpy.int)
+        annual_mean_array = numpy.array(numpy.round(annual_mean_array), dtype=int)
+        annual_std_array = numpy.array(numpy.round(annual_std_array), dtype=int)
 
     annual_mean_array[(ice_mask == 0)] = -1
     annual_std_array[(ice_mask == 0)] = -1
@@ -382,7 +380,7 @@ def create_partial_year_melt_anomaly_tif(
             ((dt >= first_dt_of_present_melt_season) and (dt <= current_datetime))
             for dt in dt_list
         ],
-        dtype=numpy.bool,
+        dtype=bool,
     )
     dts_masked = [dt for dt, mask_val in zip(dt_list, dt_mask) if mask_val]
 
@@ -592,7 +590,7 @@ def create_annual_melt_sum_tif(
 
         dates_mask = numpy.array(
             [((dt >= start_date) and (dt <= end_date)) for dt in dt_list],
-            dtype=numpy.bool,
+            dtype=bool,
         )
 
         # Skip any years for which there is no data.
@@ -602,13 +600,13 @@ def create_annual_melt_sum_tif(
         if gap_filled:
             # First add the floating-point values
             melt_array_year = numpy.sum(
-                melt_array[:, :, dates_mask], axis=2, dtype=numpy.float
+                melt_array[:, :, dates_mask], axis=2, dtype=float
             )
             # Round to integers
-            melt_array_year = numpy.array(melt_array_year.round(), dtype=numpy.int)
+            melt_array_year = numpy.array(melt_array_year.round(), dtype=int)
         else:
             melt_array_year = numpy.sum(
-                (melt_array[:, :, dates_mask] == 2), axis=2, dtype=numpy.int
+                (melt_array[:, :, dates_mask] == 2), axis=2, dtype=int
             )
 
         melt_array_year[ice_mask == 0] = -1

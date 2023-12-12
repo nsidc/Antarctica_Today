@@ -37,7 +37,7 @@ def line_smooth(y, window_size, method="linear"):
     elif method == "gaussian":
         # Make mu (mean) the middle of the window, and sigma one half of one-half
         # the length (giving it a distrigbution of 2 sigmas on either side of mu).
-        x = numpy.arange(ws, dtype=numpy.float)
+        x = numpy.arange(ws, dtype=float)
         mu = float(int(ws / 2))
         sig = int(ws / 2) / 2.0  # The two divisions are purposeful.
         # If for some stupid reasion they pick a window-size of one, make sure the function doesn't break.

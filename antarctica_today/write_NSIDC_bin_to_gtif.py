@@ -14,14 +14,14 @@ from read_NSIDC_bin_file import read_NSIDC_bin_file
 # See https://nsidc.org/data/polar-stereo/ps_grids.html for documentation on
 # these polar stereo grids
 # Upper-left corners of the grids, in km, in x,y
-NSIDC_S_GRID_UPPER_LEFT_KM = numpy.array((-3950, 4350), dtype=numpy.int)
-NSIDC_N_GRID_UPPER_LEFT_KM = numpy.array((-3850, 5850), dtype=numpy.int)
+NSIDC_S_GRID_UPPER_LEFT_KM = numpy.array((-3950, 4350), dtype=int)
+NSIDC_N_GRID_UPPER_LEFT_KM = numpy.array((-3850, 5850), dtype=int)
 # Pixel dimensions of the respective grids, in (y,x) --> (rows, cols)
 GRIDSIZE_25_N = numpy.array(
-    ((5850 + 5350) / 25, (3750 + 3850) / 25), dtype=numpy.long
+    ((5850 + 5350) / 25, (3750 + 3850) / 25), dtype=int
 )  # (448, 304)
 GRIDSIZE_25_S = numpy.array(
-    ((4350 + 3950) / 25, (3950 + 3950) / 25), dtype=numpy.long
+    ((4350 + 3950) / 25, (3950 + 3950) / 25), dtype=int
 )  # (332, 316)
 GRIDSIZE_12_5_N = GRIDSIZE_25_N * 2  # (896, 608)
 GRIDSIZE_12_5_S = GRIDSIZE_25_S * 2  # (664, 632)
