@@ -20,7 +20,9 @@ REPO_DIR: Final = PACKAGE_DIR.parent
 #   envvars are not populated, system pollution doesn't occur.
 # - Migrate more things iteratively :)
 _default_storage_dir = REPO_DIR
-STORAGE_DIR: Final = Path(os.environ.get("ANTARCTICA_TODAY_STORAGE_DIR", _default_storage_dir))
+STORAGE_DIR: Final = Path(
+    os.environ.get("ANTARCTICA_TODAY_STORAGE_DIR", _default_storage_dir)
+)
 DATA_DATABASE_DIR: Final = STORAGE_DIR / "database"
 # DATA_OUTPUT_DIR: Final = STORAGE_DIR / "output"
 

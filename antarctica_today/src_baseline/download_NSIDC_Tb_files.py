@@ -20,7 +20,7 @@
 # where 'myusername' and 'mypassword' are your Earthdata credentials.
 #
 # Update: 2020.06.02: Mike MacFerrin
-# Create a command-line version of this for flexible re-use
+# Create a command-line version of this for flexible reuse
 
 from __future__ import print_function
 
