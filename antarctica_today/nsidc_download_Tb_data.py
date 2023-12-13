@@ -32,17 +32,11 @@
 #
 from __future__ import print_function
 
-import base64
 import datetime
-import getopt
-import itertools
-import json
 import math
 import os.path
-import ssl
 import sys
 import time
-from getpass import getpass
 
 import earthaccess
 
@@ -256,6 +250,13 @@ def download_new_files(
     try:
         earthaccess.login()
 
+        # Due to a known issue in earthdata, "Z" (Zulu-time) appended at the end of our string is breaking the search.
+        # Issue is documented here: https://github.com/nsidc/earthaccess/issues/330
+        # We don't need time-zone information in this search, so remove it here, which seems to fix things.
+        # It's a hack but it works for now. These two lines may be removed when that earthdata issue is fixed.
+        time_start = time_start.rstrip("Z")
+        time_end = time_end.rstrip("Z")
+
         results = earthaccess.search_data(
             short_name=short_name,
             version=version,
@@ -267,7 +268,13 @@ def download_new_files(
         results = _results_with_links(results)
         print(f"Found {len(results)} downloadable granules.")
 
-        files_saved = earthaccess.download(results, output_directory)
+        # If there are no granules to download, return an empty list of files without bothering to call "download()."
+        if len(results) == 0:
+            files_saved = []
+        # Otherwise download the files and return the list of files we downloaded.
+        else:
+            files_saved = earthaccess.download(results, str(output_directory))
+
     except KeyboardInterrupt:
         quit()
 

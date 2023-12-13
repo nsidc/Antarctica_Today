@@ -11,6 +11,9 @@ import numpy
 from osgeo import gdal, osr
 from read_NSIDC_bin_file import read_NSIDC_bin_file
 
+# To be forward-compatible with future GDAL versions, and to stop it from tossing a User Warning every time this runs.
+osr.UseExceptions()
+
 # See https://nsidc.org/data/polar-stereo/ps_grids.html for documentation on
 # these polar stereo grids
 # Upper-left corners of the grids, in km, in x,y

@@ -42,12 +42,12 @@ anomaly_maps_directory = os.path.join(
 
 # A shapefile containing a vector outline for each region, separately. The {0} region just contains them all.
 region_outline_shapefiles_dict: dict[int, Path] = {
-    0: DATA_QGIS_DIR / "Antarctic_Regions_v2.shp",
-    1: DATA_QGIS_DIR / "Antarctic_Regions_v2_R1.shp",
-    2: DATA_QGIS_DIR / "Antarctic_Regions_v2_R2.shp",
-    3: DATA_QGIS_DIR / "Antarctic_Regions_v2_R3.shp",
-    4: DATA_QGIS_DIR / "Antarctic_Regions_v2_R4.shp",
-    5: DATA_QGIS_DIR / "Antarctic_Regions_v2_R5.shp",
-    6: DATA_QGIS_DIR / "Antarctic_Regions_v2_R6.shp",
-    7: DATA_QGIS_DIR / "Antarctic_Regions_v2_R7.shp",
+    0: DATA_QGIS_DIR / "basins" / "Antarctic_Regions_v2.shp",
+    1: DATA_QGIS_DIR / "basins" / "Antarctic_Regions_v2_R1.shp",
+    2: DATA_QGIS_DIR / "basins" / "Antarctic_Regions_v2_R2.shp",
+    3: DATA_QGIS_DIR / "basins" / "Antarctic_Regions_v2_R3.shp",
+    4: DATA_QGIS_DIR / "basins" / "Antarctic_Regions_v2_R4.shp",
+    5: DATA_QGIS_DIR / "basins" / "Antarctic_Regions_v2_R5.shp",
+    6: DATA_QGIS_DIR / "basins" / "Antarctic_Regions_v2_R6.shp",
+    7: DATA_QGIS_DIR / "basins" / "Antarctic_Regions_v2_R7.shp",
 }
