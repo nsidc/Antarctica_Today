@@ -9,7 +9,7 @@ import pickle
 import re
 import shutil
 
-import dateutil
+import dateutil.parser
 import numpy
 
 from antarctica_today import (
@@ -34,7 +34,7 @@ from antarctica_today.read_NSIDC_bin_file import read_NSIDC_bin_file
 def get_list_of_NSIDC_bin_files_to_import(
     datadir=tb_file_data.NSIDC_0080_file_dir,
     hemisphere="S",
-    frequencies=[19, 37],
+    frequencies=(19, 37),
     polarization="v",
     target_extension=".bin",
 ):
@@ -92,25 +92,17 @@ def update_everything_to_latest_date(
     existing_bin_files_list = os.listdir(tb_file_data.model_results_dir)
     latest_dt = datetime.datetime(year=1900, month=1, day=1)
     for fname in existing_bin_files_list:
-        datestr = re.search("(?<=antarctica_melt_)\d{8}(?=_S3B)", fname).group()
+        datestr = re.search(r"(?<=antarctica_melt_)\d{8}(?=_S3B)", fname).group()
         dt = datetime.datetime(
             year=int(datestr[0:4]), month=int(datestr[4:6]), day=int(datestr[6:8])
         )
         if dt > latest_dt:
             latest_dt = dt
 
-    start_time_str = (latest_dt + datetime.timedelta(days=1)).strftime(
+    start_time = latest_dt + datetime.timedelta(days=1)
+    start_time_str = start_time.strftime(
         "%Y-%m-%dT00:00:00Z"
     )
-
-    # Download all Tb files (19 & 37 GHz vertical), starting with the day
-    # after the last date in the present array.
-    # TODO: We're overwriting this variable a couple lines below; do we need it?
-    tb_file_list = download_new_files(time_start=start_time_str)
-    # # Ignore the .xml files, only get a list of the .bin files we downloaded.
-    # tb_file_list = [fname for fname in tb_file_list if os.path.splitext(fname)[-1].lower() == ".bin"]
-    tb_0080_dir = DATA_TB_DIR / "nsidc-0080"
-    tb_file_list = [fp for fp in tb_0080_dir.iterdir() if fp.suffix == ".bin"]
 
     # Define "today" as today at midnight.
     if date_today is None:
@@ -123,6 +115,18 @@ def update_everything_to_latest_date(
             dt_today = date_today
         else:
             dt_today = dateutil.parser.parse(date_today)
+
+    # Only attempt to download new data if there's actually a potential gap of missing data, i.e. if the start_time
+    # (measured as the next day from the last day we have data) is equal to or less than the date today.
+    if start_time <= dt_today:
+        # Download all Tb files, starting with the day
+        # after the last date in the present array.
+        download_new_files(time_start=start_time_str, time_end=dt_today.strftime("%Y-%m-%d"))
+
+    # # Ignore the .xml files, only get a list of the .bin files we downloaded.
+    # tb_file_list = [fname for fname in tb_file_list if os.path.splitext(fname)[-1].lower() == ".bin"]
+    tb_0080_dir = DATA_TB_DIR / "nsidc-0080"
+    tb_file_list = [fp for fp in tb_0080_dir.iterdir() if fp.suffix.lower() in (".bin", ".nc")]
 
     # Collect all the new Tb .bin files and create a daily melt .bin file from each.
     for day_delta in range(1, ((dt_today - latest_dt).days + 1)):
@@ -142,45 +146,26 @@ def update_everything_to_latest_date(
             ):
                 continue
 
-        fnames_37h = [
+        fnames_this_date = [
             fname
             for fname in tb_file_list
             if (
-                fname.find(dt.strftime("%Y%m%d")) > -1
-                and (fname.find("s37h.bin") > -1)
-                and (fname.find(".xml") == -1)
+                re.search(r"(?<=antarctica_melt_)" + dt.strftime("%Y%m%d") + r"(?=_S3B)",
+                          os.path.basename(fname)) is not None
+                and fname.suffix.lower in (".bin", ".nc")
             )
         ]
-        fnames_19v = [
-            fname
-            for fname in tb_file_list
-            if (
-                fname.find(dt.strftime("%Y%m%d")) > -1
-                and (fname.find("s19v.bin") > -1)
-                and (fname.find(".xml") == -1)
-            )
-        ]
-        fnames_37v = [
-            fname
-            for fname in tb_file_list
-            if (
-                fname.find(dt.strftime("%Y%m%d")) > -1
-                and (fname.find("s37v.bin") > -1)
-                and (fname.find(".xml") == -1)
-            )
-        ]
-        # Make sure there's just one of each file. If not, figure out what's going on here.
-        try:
-            assert len(fnames_37h) == 1
-            assert len(fnames_37v) == 1
-            assert len(fnames_19v) == 1
-        except AssertionError as e:
-            if len(fnames_19v) == 0 or len(fnames_37h) == 0 or len(fnames_37v) == 0:
-                continue
-            else:
-                raise e
 
-        # Generate the name of the output .bin file.
+        # If there are no files found on this date, move along. This guarantees at least one .bin or .nc file was found.
+        if len(fnames_this_date) == 0:
+            continue
+
+        # Retrieve the correct threshold file for this melt date.
+        threshold_file = generate_daily_melt_file.get_correct_threshold_file(dt)
+        if threshold_file is None:
+            continue
+
+        # Generate the name of the output daily melt .bin file.
         melt_bin_fname = os.path.join(
             melt_bin_dir,
             dt.strftime(
@@ -188,14 +173,67 @@ def update_everything_to_latest_date(
             ),
         )
 
-        threshold_file = generate_daily_melt_file.get_correct_threshold_file(dt)
-        if threshold_file is None:
+        # If only one file was found on this date and it's a netCDF, we'll read it with the netCDF functionality.
+        if len(fnames_this_date) == 1 and fnames_this_date[0].suffix.lower() == ".nc":
+            # Read in netCDF file here.
+            melt_array = generate_daily_melt_file.create_daily_melt_file(fnames_this_date[0],
+                                                                         threshold_file,
+                                                                         melt_bin_filename)
+
+        # If three files are found and they're all .bin file (old v1 code), handle that here.
+        # THIS CODE MAY NO LONGER WORK. HAS NOT BEEN TESTED WITH NEW DATA.
+        # TODO: Remove this code block. I'm keeping it here for now to preserve documentation of the legacy processing.
+        elif len(fnames_this_date) == 3 and numpy.all([(fn.suffix.lower() == ".bin") for fn in fnames_this_date]):
+
+            fnames_37h = [
+                fname
+                for fname in tb_file_list
+                if (
+                    fname.find(dt.strftime("%Y%m%d")) > -1
+                    and (fname.find("s37h.bin") > -1)
+                    and (fname.find(".xml") == -1)
+                )
+            ]
+            fnames_19v = [
+                fname
+                for fname in tb_file_list
+                if (
+                    fname.find(dt.strftime("%Y%m%d")) > -1
+                    and (fname.find("s19v.bin") > -1)
+                    and (fname.find(".xml") == -1)
+                )
+            ]
+            fnames_37v = [
+                fname
+                for fname in tb_file_list
+                if (
+                    fname.find(dt.strftime("%Y%m%d")) > -1
+                    and (fname.find("s37v.bin") > -1)
+                    and (fname.find(".xml") == -1)
+                )
+            ]
+            # Make sure there's just one of each file. If not, figure out what's going on here.
+            try:
+                assert len(fnames_37h) == 1
+                assert len(fnames_37v) == 1
+                assert len(fnames_19v) == 1
+            except AssertionError as e:
+                if len(fnames_19v) == 0 or len(fnames_37h) == 0 or len(fnames_37v) == 0:
+                    continue
+                else:
+                    raise e
+
+            # Create new .bin files for each new melt day.
+            melt_array = generate_daily_melt_file.create_daily_melt_file(
+                fnames_37h[0], fnames_37v[0], fnames_19v[0], threshold_file, melt_bin_fname
+            )
+        else:
+            raise UserWarning("Downloads of NSIDC-0080 data should supply 3x .bin files (v1) or 1x .nc file (v2). " +
+                              "Instead, the following files were retrieved:\n\t" +
+                              "\n\t".join([str(fn) for fn in fnames_this_date]) +
+                              "\nSkipping this date and moving along.")
             continue
 
-        # Create new .bin files for each new melt day.
-        melt_array = generate_daily_melt_file.create_daily_melt_file(
-            fnames_37h[0], fnames_37v[0], fnames_19v[0], threshold_file, melt_bin_fname
-        )
 
         # Add a third dimension to aid in concatenating with the larger melt array.
         melt_array.shape = (melt_array.shape[0], melt_array.shape[1], 1)
@@ -332,7 +370,7 @@ def copy_latest_date_plots_to_date_directory(
     # Get latest file from melt anomaly directory. Also, get the date we're computing up to.
     date_string = date.strftime("%Y.%m.%d")
     search_str = (
-        "R[0-7]_{0}-{1}_{2}".format(year, year + 1, date_string) + "(\w)*\.png\Z"
+        "R[0-7]_{0}-{1}_{2}".format(year, year + 1, date_string) + r"(\w)*\.png\Z"
     )
     # Get all the files that match our search string. May be different dates and possibly different regions.
 
@@ -386,9 +424,9 @@ def copy_latest_date_plots_to_date_directory(
 
 
 if __name__ == "__main__":
-    update_everything_to_latest_date(
-        date_today=datetime.datetime.today().strftime("%Y.%m.%d"),
-        copy_to_gathered_dir=True,
-    )
-    # update_everything_to_latest_date(date_today="2022.04.30")
+    # update_everything_to_latest_date(
+    #     date_today=datetime.datetime.today().strftime("%Y.%m.%d"),
+    #     copy_to_gathered_dir=True,
+    # )
+    update_everything_to_latest_date(date_today="2022.04.30", overwrite=False)
     # copy_latest_date_plots_to_date_directory()
