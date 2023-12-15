@@ -57,7 +57,7 @@ antarctic_regions_dict = {
     4: "Amery and Shackleton",
     5: "Wilkes and Adelie",
     6: "Ross Embayment",
-    7: "Amundsen Bellinghausen",
+    7: "Amundsen Bellingshausen",
 }
 
 NSIDC_0080_file_dir = DATA_TB_DIR / "nsidc-0080"
