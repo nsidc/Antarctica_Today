@@ -4,6 +4,7 @@ Created by: mmacferrin
 2021.04.08
 """
 import datetime
+import matplotlib.pyplot
 import os
 import pickle
 import re
@@ -319,7 +320,7 @@ def update_everything_to_latest_date(
         save_daily_melt_numbers_to_csv(gap_filled=True)
 
         # Also snag what the current melt-year value is, for the maps below.
-        year = generate_daily_melt_file.get_melt_year_of_current_date(daily_dts[-1])
+        year = generate_daily_melt_file.get_melt_year_of_current_date(new_daily_dts[-1])
 
     else:
         year = generate_daily_melt_file.get_melt_year_of_current_date(
@@ -367,6 +368,9 @@ def update_everything_to_latest_date(
             outfile=line_plot_outfile,
             verbose=True,
         )
+
+        # Clear the figures just made above in order to not get too many open at once.
+        matplotlib.pyplot.close('all')
 
     # Then, if specified, make copies of all the files in the "daily_plots_gathered" directory for easy reference.
     if copy_to_gathered_dir:
