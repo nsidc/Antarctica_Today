@@ -118,13 +118,11 @@ def update_everything_to_latest_date(
     if start_time <= dt_today:
         # Download all Tb files, starting with the day
         # after the last date in the present array.
-    # TODO: RE-activate this line after fixing bugs below.
-        pass
-        # download_new_files(
-        #     time_start=start_time_str,
-        #     time_end=dt_today.strftime("%Y-%m-%d"),
-        #     only_in_melt_season=melt_season_only,
-        # )
+        download_new_files(
+            time_start=start_time_str,
+            time_end=dt_today.strftime("%Y-%m-%d"),
+            only_in_melt_season=melt_season_only,
+        )
 
     # # Ignore the .xml files, only get a list of the .bin files we downloaded.
     # tb_file_list = [fname for fname in tb_file_list if os.path.splitext(fname)[-1].lower() == ".bin"]
