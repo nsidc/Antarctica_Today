@@ -53,7 +53,7 @@ def read_NSIDC_bin_file(
     # Check to make sure the data is the right size, raise ValueError if not.
     # TODO: The NSIDC-0051 data has the rows,cols in the header. We could read it from there,
     # although right now we just get the grid size from the parameter.
-    if int(len(raw_data) / element_size) != int(numpy.product(grid_shape)):
+    if int(len(raw_data) / element_size) != int(numpy.prod(grid_shape)):
         raise ValueError(
             "File {0} has {1} elements, does not match grid size {2}.".format(
                 fname, int(len(raw_data) / element_size), str(grid_shape)
