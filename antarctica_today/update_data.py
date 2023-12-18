@@ -373,10 +373,13 @@ def update_everything_to_latest_date(
         matplotlib.pyplot.close('all')
 
     # Then, if specified, make copies of all the files in the "daily_plots_gathered" directory for easy reference.
+    # It turns out we don't want to use Symlinks here. Posting these files online can get squirreley when we're using
+    # simlinks rather than actual files.
     if copy_to_gathered_dir:
         copy_latest_date_plots_to_date_directory(
             year=generate_daily_melt_file.get_melt_year_of_current_date(dt_today),
             date=latest_date,
+            use_symlinks=False
         )
 
     # Return the updated arrays, if wanted.
@@ -395,7 +398,7 @@ def copy_latest_date_plots_to_date_directory(
     line_plots_dir=tb_file_data.climatology_plots_directory,
     use_symlinks=True,
     verbose=True,
-):
+    ):
     """After running the 'update_everything_to_latest_date()' function, use this to gather all the
     latest-date plots into one location. Put it in a sub-directory of the daily_plots_gathered_dir
     with all the latest plots just made."""
