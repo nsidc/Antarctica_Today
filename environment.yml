@@ -30,5 +30,5 @@ dependencies:
   - conda-lock
   # - pytest
 
-  # - mypy
-  # - types-pillow ~=9.2
+  - mypy
+  - types-pillow ~=9.2
