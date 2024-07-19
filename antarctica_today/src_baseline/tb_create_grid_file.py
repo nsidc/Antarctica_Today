@@ -4,7 +4,9 @@
 import numpy
 from ssmi_bin_to_gtif import GRIDSIZE_25_S, output_gtif
 
-grid_filename = "../baseline_datasets/pixel_100_grid_file.tif"
+from antarctica_today.constants.path import DATA_BASELINE_DATASETS_DIR
+
+grid_filename = DATA_BASELINE_DATASETS_DIR / "pixel_100_grid_file.tif"
 
 
 def create_grid_file(fname=grid_filename):

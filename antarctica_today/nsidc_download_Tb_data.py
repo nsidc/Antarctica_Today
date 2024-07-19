@@ -45,6 +45,8 @@ import sys
 import time
 from getpass import getpass
 
+from antarctica_today.constants.paths import DATA_TB_DIR
+
 try:
     from urllib.error import HTTPError, URLError
     from urllib.parse import urlparse
@@ -231,7 +233,7 @@ def cmr_download(urls, force=False, quiet=False, output_directory=None):
 
     url_count = len(urls)
     if not quiet:
-        print("Downloading {0} files...".format(url_count))
+        print(f"Downloading {url_count} files...")
     credentials = None
 
     files_saved = []
@@ -255,7 +257,7 @@ def cmr_download(urls, force=False, quiet=False, output_directory=None):
         try:
             req = Request(url)
             if credentials:
-                req.add_header("Authorization", "Basic {0}".format(credentials))
+                req.add_header(f"Authorization", "Basic {credentials}")
             opener = build_opener(HTTPCookieProcessor())
             response = opener.open(req)
             length = int(response.headers["content-length"])
@@ -401,7 +403,7 @@ def download_new_files(
     polygon=[],
     filename_filters=["*s19v*", "*s37v*", "*s37h*"],
     url_list=[],
-    output_directory="../Tb/nsidc-0080",
+    output_directory=DATA_TB_DIR / "nsidc-0080",
     argv=None,
 ):
     """Download new files into the directory of your choice."""

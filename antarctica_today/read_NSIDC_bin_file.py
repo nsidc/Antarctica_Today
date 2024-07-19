@@ -5,6 +5,8 @@ Created on Fri Feb 21 15:03:50 2020
 """
 import numpy
 
+from antarctica_today.constants.paths import DATA_TB_DIR
+
 # 332 rows x 316 cols for Antarctic Polar Stereo data,
 # per https://nsidc.org/data/polar-stereo/ps_grids.html
 #
@@ -107,7 +109,7 @@ if __name__ == "__main__":
     # An NSIDC-0001 brightness-temperature file, in 2-byte little-endian integers
     # converted to floating point. No header.
     array1 = read_NSIDC_bin_file(
-        "../Tb/nsidc-0001/tb_f08_19870709_v5_s19h.bin",
+        DATA_TB_DIR / "nsidc-0001" / "tb_f08_19870709_v5_s19h.bin",
         grid_shape=(332, 316),
         header_size=0,
         element_size=2,
@@ -124,7 +126,7 @@ if __name__ == "__main__":
 
     # For an Arctic file
     array2 = read_NSIDC_bin_file(
-        "../Tb/nsidc-0051/nt_20201231_f17_v1.1_n.bin",
+        DATA_TB_DIR / "nsidc-0051" / "nt_20201231_f17_v1.1_n.bin",
         grid_shape=(448, 304),
         header_size=300,
         element_size=1,
@@ -137,7 +139,7 @@ if __name__ == "__main__":
 
     # For an Antarctic file
     array3 = read_NSIDC_bin_file(
-        "../Tb/nsidc-0051/nt_20201231_f17_v1.1_s.bin",
+        DATA_TB_DIR / "nsidc-0051" / "nt_20201231_f17_v1.1_s.bin",
         grid_shape=(332, 316),
         header_size=300,
         element_size=1,
@@ -153,7 +155,7 @@ if __name__ == "__main__":
 
     # For an Arctic file, returning the array in integer values.
     array4 = read_NSIDC_bin_file(
-        "../Tb/nsidc-0079/bt_20201231_f17_v3.1_n.bin",
+        DATA_TB_DIR / "nsidc-0079" / "bt_20201231_f17_v3.1_n.bin",
         grid_shape=(448, 304),
         header_size=0,
         element_size=2,
@@ -166,7 +168,7 @@ if __name__ == "__main__":
 
     # For an Antarctic file, alternately returning the array in floating-point values (your choice, just pick the parameter you want.)
     array5 = read_NSIDC_bin_file(
-        "../Tb/nsidc-0079/bt_20201231_f17_v3.1_s.bin",
+        DATA_TB_DIR / "nsidc-0079" / "bt_20201231_f17_v3.1_s.bin",
         grid_shape=(332, 316),
         header_size=0,
         element_size=2,

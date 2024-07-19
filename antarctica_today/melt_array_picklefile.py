@@ -14,6 +14,7 @@ import datetime
 import os
 import pickle
 import re
+from pathlib import Path
 
 import numpy
 from map_filedata import ice_mask_tif
@@ -30,9 +31,9 @@ from tb_file_data import (
 # from ssmi_bin_to_gtif import output_gtif
 
 
-def get_ice_mask_array(ice_tif=ice_mask_tif):
+def get_ice_mask_array(ice_tif: Path = ice_mask_tif) -> numpy.array:
     """Read the ice mask tif, return the array."""
-    ice_mask_ds = gdal.Open(ice_tif, gdal.GA_ReadOnly)
+    ice_mask_ds = gdal.Open(str(ice_tif), gdal.GA_ReadOnly)
     ice_mask_array = ice_mask_ds.GetRasterBand(1).ReadAsArray()
     return numpy.array(ice_mask_array, dtype=bool)
 
@@ -116,7 +117,8 @@ def get_array_from_model_files(file_dir=model_results_dir, verbose=True):
 
 
 def save_model_array_picklefile(
-    file_dir=model_results_dir, picklefile=model_results_picklefile
+    file_dir=model_results_dir,
+    picklefile=model_results_picklefile,
 ):
     """Save the data array *and* the dictionary of datetimes in a picklefile, as a tuple.
 
@@ -125,6 +127,7 @@ def save_model_array_picklefile(
     data_array = get_array_from_model_files(file_dir=file_dir)
     datetime_dict = get_datetimes_from_file_list(return_as_dict=True)
 
+    picklefile.parent.mkdir(parents=True, exist_ok=True)
     f = open(picklefile, "wb")
     pickle.dump((data_array, datetime_dict), f)
     f.close()

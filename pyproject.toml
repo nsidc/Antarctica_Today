@@ -42,3 +42,28 @@ max-complexity = 23
 
 [tool.ruff.flake8-quotes]
 inline-quotes = "double"
+
+
+[tool.mypy]
+files = ["antarctica_today"]
+python_version = "3.8"
+warn_unused_configs = true
+warn_unreachable = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+# strict = true
+
+[[tool.mypy.overrides]]
+module = [
+  "cartopy.*",
+  "geopandas.*",
+  "matplotlib.*",
+  "numpy.*",
+  "osgeo.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "antarctica_today.*"
+# disallow_untyped_defs = true
+# disallow_incomplete_defs = true

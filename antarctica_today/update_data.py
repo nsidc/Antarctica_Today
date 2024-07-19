@@ -3,25 +3,32 @@
 Created by: mmacferrin
 2021.04.08
 """
-# from read_NSIDC_bin_file import read_NSIDC_bin_file
 import datetime
 import os
 import pickle
 import re
 import shutil
 
-import compute_mean_climatology
 import dateutil
-import generate_antarctica_today_map
-import generate_daily_melt_file
-import generate_gap_filled_melt_picklefile
-import map_filedata
-import melt_array_picklefile
-import nsidc_download_Tb_data
 import numpy
-import plot_daily_melt_and_climatology
-import read_NSIDC_bin_file
-import tb_file_data
+
+from antarctica_today import (
+    generate_daily_melt_file,
+    map_filedata,
+    tb_file_data,
+)
+from antarctica_today.compute_mean_climatology import save_daily_melt_numbers_to_csv
+from antarctica_today.constants.paths import DATA_TB_DIR
+from antarctica_today.generate_antarctica_today_map import AT_map_generator
+from antarctica_today.generate_gap_filled_melt_picklefile import (
+    save_gap_filled_picklefile,
+)
+from antarctica_today.melt_array_picklefile import read_model_array_picklefile
+from antarctica_today.nsidc_download_Tb_data import download_new_files
+from antarctica_today.plot_daily_melt_and_climatology import (
+    plot_current_year_melt_over_baseline_stats,
+)
+from antarctica_today.read_NSIDC_bin_file import read_NSIDC_bin_file
 
 
 def get_list_of_NSIDC_bin_files_to_import(
@@ -98,14 +105,12 @@ def update_everything_to_latest_date(
 
     # Download all Tb files (19 & 37 GHz vertical), starting with the day
     # after the last date in the present array.
-    tb_file_list = nsidc_download_Tb_data.download_new_files(time_start=start_time_str)
+    # TODO: We're overwriting this variable a couple lines below; do we need it?
+    tb_file_list = download_new_files(time_start=start_time_str)
     # # Ignore the .xml files, only get a list of the .bin files we downloaded.
     # tb_file_list = [fname for fname in tb_file_list if os.path.splitext(fname)[-1].lower() == ".bin"]
-    tb_file_list = [
-        os.path.join("../Tb/nsidc-0080", fname)
-        for fname in os.listdir("../Tb/nsidc-0080")
-        if os.path.splitext(fname)[-1] == ".bin"
-    ]
+    tb_0080_dir = DATA_TB_DIR / "nsidc-0080"
+    tb_file_list = [fp for fp in tb_0080_dir.iterdir() if fp.suffix == ".bin"]
 
     # Define "today" as today at midnight.
     if date_today is None:
@@ -198,7 +203,7 @@ def update_everything_to_latest_date(
     # Now, get a list of all melt arrays that aren't yet in the melt array picklefile.
     melt_bin_files = sorted(os.listdir(melt_bin_dir))
     melt_bin_paths = [os.path.join(melt_bin_dir, fn) for fn in melt_bin_files]
-    melt_array, dt_dict = melt_array_picklefile.read_model_array_picklefile()
+    melt_array, dt_dict = read_model_array_picklefile()
     latest_dt_in_array = max(dt_dict.keys())
 
     daily_melt_arrays = []
@@ -219,7 +224,7 @@ def update_everything_to_latest_date(
             continue
 
         print(melt_filename, "read.")
-        daily_melt_array = read_NSIDC_bin_file.read_NSIDC_bin_file(
+        daily_melt_array = read_NSIDC_bin_file(
             melt_filepath, element_size=2, return_type=int, signed=True, multiplier=1
         )
         # Add a 3rd (time) dimension to each array to allow concatenating.
@@ -249,14 +254,14 @@ def update_everything_to_latest_date(
 
     if len(daily_melt_arrays) > 0:
         # Interpolate the gaps.
-        generate_gap_filled_melt_picklefile.save_gap_filled_picklefile()
+        save_gap_filled_picklefile()
 
         # Now that we have the arrays updated, let's re-compute the daily melt sums.
-        compute_mean_climatology.save_daily_melt_numbers_to_csv(gap_filled=False)
-        compute_mean_climatology.save_daily_melt_numbers_to_csv(gap_filled=True)
+        save_daily_melt_numbers_to_csv(gap_filled=False)
+        save_daily_melt_numbers_to_csv(gap_filled=True)
 
     # Generate the latest current-day maps.
-    mapper = generate_antarctica_today_map.AT_map_generator()
+    mapper = AT_map_generator()
     if len(daily_dts) > 0:
         year = generate_daily_melt_file.get_melt_year_of_current_date(daily_dts[-1])
     else:
@@ -291,7 +296,7 @@ def update_everything_to_latest_date(
                 region_num, year, year + 1, latest_date.strftime("%Y.%m.%d")
             ),
         )
-        plot_daily_melt_and_climatology.plot_current_year_melt_over_baseline_stats(
+        plot_current_year_melt_over_baseline_stats(
             current_date=latest_date,
             region_num=region_num,
             gap_filled=True,

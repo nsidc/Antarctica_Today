@@ -492,7 +492,7 @@ def read_annual_melt_anomaly_tif(
     if verbose:
         print("Reading", anomaly_tif)
 
-    ds = gdal.Open(anomaly_tif, gdal.GA_ReadOnly)
+    ds = gdal.Open(str(anomaly_tif), gdal.GA_ReadOnly)
     if ds is None:
         return None
 
@@ -514,7 +514,7 @@ def get_baseline_climatology_array(fname=None, gap_filled=True):
         fname = base + "_gap_filled" + ext
 
     if os.path.exists(fname):
-        ds = gdal.Open(fname, gdal.GA_ReadOnly)
+        ds = gdal.Open(str(fname), gdal.GA_ReadOnly)
         if ds is None:
             raise FileNotFoundError("Could not open {0}".format(fname))
         array = ds.GetRasterBand(1).ReadAsArray()
@@ -838,7 +838,7 @@ def _get_regional_tif_masks(tifname=antarctic_regions_tif):
     Regions will be 1..7. masks will each be an MxN array of (0,1) values.
     """
     # Read the ice mask tif, return the array.
-    regions_ds = gdal.Open(tifname, gdal.GA_ReadOnly)
+    regions_ds = gdal.Open(str(tifname), gdal.GA_ReadOnly)
     region_array = regions_ds.GetRasterBand(1).ReadAsArray()
     ndv = regions_ds.GetRasterBand(1).GetNoDataValue()
     unique_vals = [val for val in numpy.unique(region_array) if val != ndv]
