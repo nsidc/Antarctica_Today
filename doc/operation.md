@@ -41,7 +41,7 @@ Download all NSIDC-0080 granules:
 
 ```bash
 PYTHONPATH=.
-python antarctica_today/nsidc_download_Tb_data.py
+python antarctica_today download-tb
 ```
 
 > [!NOTE]
@@ -71,7 +71,7 @@ This software manages a database covering the full climatology in the form of a 
 
 ```bash
 PYTHONPATH=.
-python antarctica_today/main.py preprocess
+python antarctica_today preprocess
 ```
 
 
@@ -121,5 +121,5 @@ Run the main CLI's `process` command.
 
 ```bash
 PYTHONPATH=.
-python antarctica_today/main.py process
+python antarctica_today process
 ```

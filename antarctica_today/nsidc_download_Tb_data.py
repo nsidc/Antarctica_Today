@@ -318,8 +318,3 @@ def download_new_files(
         quit()
 
     return files_saved
-
-
-if __name__ == "__main__":
-    # By default, start the following day after the .bin files end in the /data/daily_melt_bin_files/ directory.
-    download_new_files(time_start="2022-01-10")
