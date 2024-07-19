@@ -3,6 +3,7 @@ Created on Fri Feb 21 15:03:50 2020
 
 @author: mmacferrin
 """
+
 from pathlib import Path
 from typing import Tuple, Union
 

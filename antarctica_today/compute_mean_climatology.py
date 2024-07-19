@@ -873,9 +873,7 @@ def _get_region_area_km2(region_number, resolution_km=25):
             ]
         )
     else:
-        return numpy.count_nonzero(region_mask_dict[region_number]) * (
-            resolution_km**2
-        )
+        return numpy.count_nonzero(region_mask_dict[region_number]) * (resolution_km**2)
 
 
 def _compute_baseline_melt_percentiles(

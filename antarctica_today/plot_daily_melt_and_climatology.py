@@ -2,6 +2,7 @@
 
 @author: mmacferrin
 """
+
 #!/usr/bin/env python3
 
 import datetime
@@ -255,9 +256,11 @@ def plot_current_year_melt_over_baseline_stats(
         and ((current_doy < doy_start) or (current_doy > doy_end))
     ):
         current_date = datetime.datetime(
-            year=(current_date.year - 1)
-            if ((current_doy < doy_start) and (doy_start < doy_end))
-            else current_date.year,
+            year=(
+                (current_date.year - 1)
+                if ((current_doy < doy_start) and (doy_start < doy_end))
+                else current_date.year
+            ),
             month=doy_end[0],
             day=doy_end[1],
         )
@@ -265,9 +268,9 @@ def plot_current_year_melt_over_baseline_stats(
 
     # Convert the start date to a datetime object
     datetime_start = datetime.datetime(
-        year=current_date.year
-        if (current_doy > doy_start)
-        else (current_date.year - 1),
+        year=(
+            current_date.year if (current_doy > doy_start) else (current_date.year - 1)
+        ),
         month=doy_start[0],
         day=doy_start[1],
     )
@@ -479,13 +482,15 @@ def _get_previous_max_melt_values(
     for i, current_dt in enumerate(current_datetimes):
         # For each datetime of the current year, subset the previous days that have the same datetime and happen *before* the current date.
         dt_mask = [
-            True
-            if (
-                (current_dt.month == dt.month)
-                and (current_dt.day == dt.day)
-                and (dt.date() < current_dt)
+            (
+                True
+                if (
+                    (current_dt.month == dt.month)
+                    and (current_dt.day == dt.day)
+                    and (dt.date() < current_dt)
+                )
+                else False
             )
-            else False
             for dt in melt_dates_all
         ]
 
@@ -827,9 +832,11 @@ def special_figure_REG5_FEB_APR_2022(outfile):
         and ((current_doy < doy_start) or (current_doy > doy_end))
     ):
         current_date = datetime.datetime(
-            year=(current_date.year - 1)
-            if ((current_doy < doy_start) and (doy_start < doy_end))
-            else current_date.year,
+            year=(
+                (current_date.year - 1)
+                if ((current_doy < doy_start) and (doy_start < doy_end))
+                else current_date.year
+            ),
             month=doy_end[0],
             day=doy_end[1],
         )
@@ -837,9 +844,9 @@ def special_figure_REG5_FEB_APR_2022(outfile):
 
     # Convert the start date to a datetime object
     datetime_start = datetime.datetime(
-        year=current_date.year
-        if (current_doy > doy_start)
-        else (current_date.year - 1),
+        year=(
+            current_date.year if (current_doy > doy_start) else (current_date.year - 1)
+        ),
         month=doy_start[0],
         day=doy_start[1],
     )

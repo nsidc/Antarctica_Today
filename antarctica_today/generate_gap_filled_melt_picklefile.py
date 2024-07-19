@@ -3,7 +3,6 @@ Putting this inside of melt_array_picklefile.py caused circular-dependency issue
 a function from compute_mean_climatology, which uses functions from melt_array_picklefile. So,
 we put this here instead."""
 
-
 import datetime
 import pickle
 
