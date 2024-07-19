@@ -1908,7 +1908,6 @@ class AT_map_generator:
                     message_below_year is None
                     or message_below_year.find("through") == -1
                 ):
-                    # if len(message_below_year) > 0:
                     if message_below_year is not None:
                         message_below_year = (
                             "" if (message_below_year is None) else message_below_year
