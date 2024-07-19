@@ -211,7 +211,7 @@ def get_datetimes_from_file_list(file_dir=model_results_dir, return_as_dict=Fals
 
     dt_list = [None] * len(file_list)
     for i, fpath in enumerate(file_list):
-        search_result = re.search("(?<=_)\d{8}(?=_)", os.path.split(fpath)[-1])
+        search_result = re.search(r"(?<=_)\d{8}(?=_)", os.path.split(fpath)[-1])
         if search_result is None:
             raise ValueError(
                 "Unrecognized file", fpath + ", cannot extract date from file name."
@@ -232,7 +232,15 @@ def get_datetimes_from_file_list(file_dir=model_results_dir, return_as_dict=Fals
 
 
 def _filter_out_erroneous_swaths(model_array, datetimes_dict):
-    """Nullify particular false-positive satellite swaths in the data."""
+    """Nullify particular false-positive satellite swaths in the data.
+
+    These are hand-outlined to nullify data (primarily from the 1980s) in which the satellite was
+    giving false-positive readings and producing melt extents that were unreasonable and ficticious.
+
+    We outline those regions and set false "melt" (2) values to "no data" (0).
+
+    Later, the gap-filling routine will fill these in with probable values for those days.
+    """
     try:
         # 1985-02-19
         array_slice = model_array[

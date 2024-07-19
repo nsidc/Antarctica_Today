@@ -78,7 +78,6 @@ def read_NSIDC_bin_file(
     # If the file is meant to be an integer array, just return it.
     if return_type in (
         int,
-        numpy.int,
         numpy.uint8,
         numpy.int8,
         numpy.uint16,

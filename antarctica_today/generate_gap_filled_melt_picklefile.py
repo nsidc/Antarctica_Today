@@ -73,7 +73,7 @@ def fill_melt_array_with_interpolations(array=None, datetimes_dict=None, verbose
     # print("\t",gap_filled_dt_list[0], gap_filled_dt_list[-1], len(gap_filled_dt_list))
 
     gap_filled_array = numpy.empty(
-        (array.shape[0], array.shape[1], len(gap_filled_dt_list)), dtype=numpy.float
+        (array.shape[0], array.shape[1], len(gap_filled_dt_list)), dtype=float
     )
 
     for gap_i, dt in enumerate(gap_filled_dt_list):

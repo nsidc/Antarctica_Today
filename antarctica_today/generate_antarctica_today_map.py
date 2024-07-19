@@ -916,7 +916,7 @@ class AT_map_generator:
 
         Return None if no date found.
         """
-        match = re.search("\d{8}", filename)
+        match = re.search(r"\d{8}", os.path.basename(filename))
         if match is None:
             return None
 
@@ -1724,7 +1724,7 @@ class AT_map_generator:
 
             if mmdd_of_year is not None:
                 datetime_of_year = datetime.datetime(
-                    year=(y + 1) if (tuple(mmdd_of_year) < tuple(melt_end_mmdd)) else y,
+                    year=(y + 1) if (tuple(mmdd_of_year) <= tuple(melt_end_mmdd)) else y,
                     month=mmdd_of_year[0],
                     day=mmdd_of_year[1],
                 )

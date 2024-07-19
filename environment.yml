@@ -12,13 +12,11 @@ dependencies:
   - earthaccess ~=0.6.1
   - gdal ~=3.5
   - pandas ~=1.4
+  - numpy ~=1.26.2
   - geopandas ~=0.14.0
   - cartopy ~=0.21.0
   - python-dateutil ~=2.8
   - pillow ~=9.2
-
-  ## Need a numpy version before np.int was deprecated:
-  - numpy ~=1.19.4
 
   ## Currently, numpy's pin keeps Xarray back at v2022.09
   - xarray
