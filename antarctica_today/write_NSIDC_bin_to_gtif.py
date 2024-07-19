@@ -3,13 +3,16 @@ Created on Mon Apr  6 15:21:04 2020
 
 @author: mmacferrin
 """
+
 import argparse
 import os
 import re
+from typing import Type
 
 import numpy
 from osgeo import gdal, osr
-from read_NSIDC_bin_file import read_NSIDC_bin_file
+
+from antarctica_today.read_NSIDC_bin_file import read_NSIDC_bin_file
 
 # To be forward-compatible with future GDAL versions, and to stop it from tossing a User Warning every time this runs.
 osr.UseExceptions()
@@ -17,13 +20,13 @@ osr.UseExceptions()
 # See https://nsidc.org/data/polar-stereo/ps_grids.html for documentation on
 # these polar stereo grids
 # Upper-left corners of the grids, in km, in x,y
-NSIDC_S_GRID_UPPER_LEFT_KM = numpy.array((-3950, 4350), dtype=int)
-NSIDC_N_GRID_UPPER_LEFT_KM = numpy.array((-3850, 5850), dtype=int)
+NSIDC_S_GRID_UPPER_LEFT_KM: numpy.ndarray = numpy.array((-3950, 4350), dtype=int)
+NSIDC_N_GRID_UPPER_LEFT_KM: numpy.ndarray = numpy.array((-3850, 5850), dtype=int)
 # Pixel dimensions of the respective grids, in (y,x) --> (rows, cols)
-GRIDSIZE_25_N = numpy.array(
+GRIDSIZE_25_N: numpy.ndarray = numpy.array(
     ((5850 + 5350) / 25, (3750 + 3850) / 25), dtype=int
 )  # (448, 304)
-GRIDSIZE_25_S = numpy.array(
+GRIDSIZE_25_S: numpy.ndarray = numpy.array(
     ((4350 + 3950) / 25, (3950 + 3950) / 25), dtype=int
 )  # (332, 316)
 GRIDSIZE_12_5_N = GRIDSIZE_25_N * 2  # (896, 608)
@@ -404,6 +407,7 @@ if __name__ == "__main__":
 
     assert hemisphere in (None, "N", "S")
 
+    out_type: Type
     if args.output_type.lower() in ("float", "f"):
         out_type = float
     elif args.output_type.lower() in ("int", "i", "d"):

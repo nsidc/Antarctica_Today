@@ -20,16 +20,17 @@ import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy
 import PIL
-import read_NSIDC_bin_file
-import write_NSIDC_bin_to_gtif
-from compute_mean_climatology import (
+from osgeo import gdal
+
+from antarctica_today import read_NSIDC_bin_file, write_NSIDC_bin_to_gtif
+from antarctica_today.compute_mean_climatology import (
     create_partial_year_melt_anomaly_tif,
     read_annual_melt_anomaly_tif,
 )
-from constants.paths import DATA_DIR, DATA_PLOTS_DIR
+from antarctica_today.constants.paths import DATA_DIR, DATA_PLOTS_DIR
 
 # import svgclip
-from map_filedata import (
+from antarctica_today.map_filedata import (
     annual_maps_directory,
     anomaly_maps_directory,
     boundary_shapefile_reader,
@@ -37,9 +38,11 @@ from map_filedata import (
     mountains_shapefile_path,
     region_outline_shapefiles_dict,
 )
-from melt_array_picklefile import get_ice_mask_array, read_model_array_picklefile
-from osgeo import gdal
-from tb_file_data import (
+from antarctica_today.melt_array_picklefile import (
+    get_ice_mask_array,
+    read_model_array_picklefile,
+)
+from antarctica_today.tb_file_data import (
     daily_melt_plots_dir,
     model_results_dir,
     model_results_picklefile,
@@ -219,7 +222,7 @@ class AT_map_generator:
     """A class for generating both daily, annual, and annual-anomaly melt maps.
 
     Stores internal information for creating the maps in order to help facilitate
-    ease and re-use of matplotlib base figures, and speed up execution.
+    ease and reuse of matplotlib base figures, and speed up execution.
     """
 
     def __init__(
@@ -1724,7 +1727,9 @@ class AT_map_generator:
 
             if mmdd_of_year is not None:
                 datetime_of_year = datetime.datetime(
-                    year=(y + 1) if (tuple(mmdd_of_year) <= tuple(melt_end_mmdd)) else y,
+                    year=(
+                        (y + 1) if (tuple(mmdd_of_year) <= tuple(melt_end_mmdd)) else y
+                    ),
                     month=mmdd_of_year[0],
                     day=mmdd_of_year[1],
                 )

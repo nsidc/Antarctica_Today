@@ -105,7 +105,10 @@ ds_out.SetProjection(tm_prj)
 band_out = ds_out.GetRasterBand(1)
 band_out.WriteArray(out_array)
 band_out.SetNoDataValue(out_ndv)
-out_array_data = numpy.array(out_array[out_array != out_ndv], dtype=numpy.float64)
+out_array_data: numpy.ndarray = numpy.array(
+    out_array[out_array != out_ndv],
+    dtype=numpy.float64,
+)
 band_out.SetStatistics(
     numpy.min(out_array_data),
     numpy.max(out_array_data),

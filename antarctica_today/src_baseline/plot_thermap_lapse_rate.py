@@ -1,7 +1,11 @@
+from typing import Any, List, Tuple, cast
+
 import numpy
 import pandas as pd
 import statsmodels.api as sm
 from matplotlib import pyplot as plt
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 
 thermap_csv_file = r"C:/Users/mmacferrin/Dropbox/Research/Antarctica_Today/Dan Dixon/10m_temps_ALL_Dixon_REMA_EGM96.csv"
 
@@ -11,7 +15,13 @@ temps = thermap_df["Temp"]
 elevs = thermap_df["REMA_or_Thermap_Elev"]
 lats = thermap_df["Lat(S)"]
 
-fig, axes = plt.subplots(1, 3, figsize=(12.5, 4), sharey=True)
+# HACK: Tell the typechecker what we know about the axes object. This isn't the actual
+# type of the object, we're lying to the type checker, but the only interface we're
+# using is list subscripting, so that's probably OK.
+fig, axes = cast(
+    Tuple[Figure, List[Axes]],
+    plt.subplots(1, 3, figsize=(12.5, 4), sharey=True),
+)
 
 axes[0].scatter(elevs, temps, color="blue")
 axes[0].set_title("Temp vs Elevation")

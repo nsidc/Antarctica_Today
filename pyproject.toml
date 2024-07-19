@@ -55,11 +55,20 @@ disallow_incomplete_defs = false
 
 [[tool.mypy.overrides]]
 module = [
+  "cairo.*",
   "cartopy.*",
+  "earthaccess.*",  # TODO: Remove after upgrading earthaccess >=0.10
+  "gdal.*",
   "geopandas.*",
-  "matplotlib.*",
+  "gi.*",
+  "netCDF4.*",
   "numpy.*",
   "osgeo.*",
+  "scipy.stats",
+  "statsmodels.*",
+  # TODO: Remove when Python2 compat is dropped: https://github.com/nsidc/Antarctica_Today/issues/37
+  "urllib2.*",
+  "urlparse.*",
 ]
 ignore_missing_imports = true
 

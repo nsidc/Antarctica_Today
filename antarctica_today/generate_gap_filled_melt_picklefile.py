@@ -3,14 +3,16 @@ Putting this inside of melt_array_picklefile.py caused circular-dependency issue
 a function from compute_mean_climatology, which uses functions from melt_array_picklefile. So,
 we put this here instead."""
 
-
 import datetime
 import pickle
 
 import numpy
-from compute_mean_climatology import read_daily_melt_averages_picklefile
-from melt_array_picklefile import read_model_array_picklefile
-from tb_file_data import gap_filled_melt_picklefile
+
+from antarctica_today.compute_mean_climatology import (
+    read_daily_melt_averages_picklefile,
+)
+from antarctica_today.melt_array_picklefile import read_model_array_picklefile
+from antarctica_today.tb_file_data import gap_filled_melt_picklefile
 
 
 def save_gap_filled_picklefile(picklefile=gap_filled_melt_picklefile, verbose=True):

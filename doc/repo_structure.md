@@ -41,7 +41,7 @@ All files outlined here are contained in the `/src/` directory:
   missing gaps early in the datasets (especially in the 1980s), as well as
   occasional missing days/values in recent datasets.
 
-* `/data/mean_climatology/` -- Data for comuting the mean climatologies.
+* `/data/mean_climatology/` -- Data for computing the mean climatologies.
 
 * `/data/thresholds/` -- The annual Tb-threshold files (from Mote, et al.),
   delineating the threshold above which melt is nominally detected in the 37H

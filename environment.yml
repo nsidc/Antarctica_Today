@@ -13,10 +13,12 @@ dependencies:
   - gdal ~=3.5
   - pandas ~=1.4
   - numpy ~=1.26.2
+  - statsmodels
   - geopandas ~=0.14.0
   - cartopy ~=0.21.0
   - python-dateutil ~=2.8
   - pillow ~=9.2
+  - cairo  # NOTE: includes `gi`
 
   ## Currently, numpy's pin keeps Xarray back at v2022.09
   - xarray
@@ -30,5 +32,7 @@ dependencies:
   - conda-lock
   # - pytest
 
-  # - mypy
-  # - types-pillow ~=9.2
+  - mypy
+  - types-pillow ~=9.2
+  - types-python-dateutil
+  - pandas-stubs

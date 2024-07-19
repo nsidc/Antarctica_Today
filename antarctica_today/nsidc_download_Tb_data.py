@@ -33,12 +33,13 @@
 from __future__ import print_function
 
 import datetime
-import dateutil.parser
 import math
 import os.path
 import sys
 import time
+from typing import List
 
+import dateutil.parser
 import earthaccess
 
 from antarctica_today.constants.paths import DATA_TB_DIR
@@ -48,7 +49,7 @@ try:
     from urllib.parse import urlparse
     from urllib.request import HTTPCookieProcessor, Request, build_opener, urlopen
 except ImportError:
-    from urllib2 import (
+    from urllib2 import (  # type: ignore [no-redef]
         HTTPCookieProcessor,
         HTTPError,
         Request,
@@ -56,7 +57,7 @@ except ImportError:
         build_opener,
         urlopen,
     )
-    from urlparse import urlparse
+    from urlparse import urlparse  # type: ignore [no-redef]
 
 CMR_URL = "https://cmr.earthdata.nasa.gov"
 URS_URL = "https://urs.earthdata.nasa.gov"
@@ -232,16 +233,16 @@ def _results_with_links(results: list) -> list:
 
 
 def _get_mmdd_from_earthdata_granule(granule):
-    date_str = granule['umm']['TemporalExtent']['RangeDateTime']['BeginningDateTime']
+    date_str = granule["umm"]["TemporalExtent"]["RangeDateTime"]["BeginningDateTime"]
     dt = dateutil.parser.parse(date_str)
     return dt.month, dt.day
 
 
-def filter_data_only_in_melt_season(results: list,
-                                    mmdd_start: tuple = (10, 1),
-                                    mmdd_end: tuple = (4, 30)) -> list:
+def filter_data_only_in_melt_season(
+    results: list, mmdd_start: tuple = (10, 1), mmdd_end: tuple = (4, 30)
+) -> list:
     """For Antarctica Today, we're interested only in dates that correspond with the melt season, defined here from
-    1st of October thru 30th of April of the following year (the Antartic melt season).
+    1st of October thru 30th of April of the following year (the Antarctic melt season).
     Results outside of that date range will be omitted and not downloaded.
 
     Tb values in the cold frozen winter are used to calibrate the model and set thresholds before the beginning of
@@ -266,7 +267,7 @@ def download_new_files(
     time_start="2021-02-17",
     time_end=datetime.datetime.now().strftime("%Y-%m-%d"),
     only_in_melt_season=True,
-) -> list[str]:
+) -> List[str]:
     """Download new NSIDC-0080 files into the directory of your choice.
 
     Will download 25km resolution data files from the southern hemisphere.
@@ -300,7 +301,9 @@ def download_new_files(
 
         if only_in_melt_season:
             results = filter_data_only_in_melt_season(results)
-            print(f"Found {len(results)} downloadable granules within the Antarctic melt season.")
+            print(
+                f"Found {len(results)} downloadable granules within the Antarctic melt season."
+            )
         else:
             print(f"Found {len(results)} downloadable granules.")
 

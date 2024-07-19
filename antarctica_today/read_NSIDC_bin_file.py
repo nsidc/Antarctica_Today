@@ -3,8 +3,9 @@ Created on Fri Feb 21 15:03:50 2020
 
 @author: mmacferrin
 """
+
 from pathlib import Path
-from typing import Union
+from typing import Tuple, Union
 
 import numpy
 
@@ -14,7 +15,7 @@ from antarctica_today.constants.paths import DATA_TB_DIR
 
 def read_NSIDC_bin_file(
     fname: Union[Path, str],
-    grid_shape: tuple[int, int] = DEFAULT_GRID_SHAPE,
+    grid_shape: Tuple[int, int] = DEFAULT_GRID_SHAPE,
     header_size: int = 0,
     element_size: int = 2,
     return_type: type = float,
@@ -61,7 +62,7 @@ def read_NSIDC_bin_file(
         )
 
     # Creating a uint16 array to read the data in
-    int_array = numpy.empty(grid_shape, dtype=return_type)
+    int_array: numpy.ndarray = numpy.empty(grid_shape, dtype=return_type)
     int_array = int_array.flatten()
 
     # Read the data. The built_int "from_bytes" function does the work here.
@@ -76,6 +77,7 @@ def read_NSIDC_bin_file(
     int_array.shape = grid_shape
 
     # If the file is meant to be an integer array, just return it.
+    return_array: numpy.ndarray
     if return_type in (
         int,
         numpy.uint8,
@@ -89,7 +91,7 @@ def read_NSIDC_bin_file(
     ):
         return_array = numpy.array(int_array, dtype=return_type)
     # Else, if it's meant to be a floating-point array, scale by the multiplier
-    # and return the floating-point array. If the mutiplier is a float (i.e. 0.1),
+    # and return the floating-point array. If the multiplier is a float (i.e. 0.1),
     # numpy will convert and return an array of floats
     else:
         return_array = numpy.array(int_array * multiplier, dtype=return_type)
