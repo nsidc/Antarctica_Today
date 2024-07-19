@@ -37,6 +37,7 @@ import math
 import os.path
 import sys
 import time
+from typing import List
 
 import dateutil.parser
 import earthaccess
@@ -48,7 +49,7 @@ try:
     from urllib.parse import urlparse
     from urllib.request import HTTPCookieProcessor, Request, build_opener, urlopen
 except ImportError:
-    from urllib2 import (
+    from urllib2 import (  # type: ignore [no-redef]
         HTTPCookieProcessor,
         HTTPError,
         Request,
@@ -56,7 +57,7 @@ except ImportError:
         build_opener,
         urlopen,
     )
-    from urlparse import urlparse
+    from urlparse import urlparse  # type: ignore [no-redef]
 
 CMR_URL = "https://cmr.earthdata.nasa.gov"
 URS_URL = "https://urs.earthdata.nasa.gov"
@@ -266,7 +267,7 @@ def download_new_files(
     time_start="2021-02-17",
     time_end=datetime.datetime.now().strftime("%Y-%m-%d"),
     only_in_melt_season=True,
-) -> list[str]:
+) -> List[str]:
     """Download new NSIDC-0080 files into the directory of your choice.
 
     Will download 25km resolution data files from the southern hemisphere.

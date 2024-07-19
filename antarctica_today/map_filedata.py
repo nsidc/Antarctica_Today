@@ -1,10 +1,12 @@
 # TODO: Move constants into the `constants` subpackage
 import os
 from pathlib import Path
+from typing import Dict
 
 import cartopy
 
 from antarctica_today.constants.paths import DATA_BASELINE_DATASETS_DIR, DATA_QGIS_DIR
+from antarctica_today.tb_file_data import outputs_annual_plots_directory
 
 # TODO: *_name -> *_path
 boundary_shapefile_fn = "Antarctic_Coastline_low_res_polygon_simplified.shp"
@@ -30,8 +32,6 @@ for map_type in ("daily", "annual", "anomaly"):
             "basemap_region_{0}_{1}.pickle".format(region_num, map_type),
         )
 
-from tb_file_data import outputs_annual_plots_directory
-
 annual_maps_directory = outputs_annual_plots_directory
 daily_maps_directory = os.path.join(
     os.path.split(annual_maps_directory)[0], "daily_maps"
@@ -41,7 +41,7 @@ anomaly_maps_directory = os.path.join(
 )
 
 # A shapefile containing a vector outline for each region, separately. The {0} region just contains them all.
-region_outline_shapefiles_dict: dict[int, Path] = {
+region_outline_shapefiles_dict: Dict[int, Path] = {
     0: DATA_QGIS_DIR / "basins" / "Antarctic_Regions_v2.shp",
     1: DATA_QGIS_DIR / "basins" / "Antarctic_Regions_v2_R1.shp",
     2: DATA_QGIS_DIR / "basins" / "Antarctic_Regions_v2_R2.shp",

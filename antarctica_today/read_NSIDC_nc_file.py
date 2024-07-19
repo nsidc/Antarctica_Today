@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Dict
 
 import numpy as np
 import xarray as xra
@@ -7,7 +8,7 @@ from antarctica_today.constants.grid import DEFAULT_GRID_SHAPE
 from antarctica_today.constants.paths import DATA_TB_DIR
 
 
-def read_NSIDC_nc_file(fname: Path) -> dict[str, np.ndarray]:
+def read_NSIDC_nc_file(fname: Path) -> Dict[str, np.ndarray]:
     """Read an NSIDC-0080v2 file and return a 2D data array for each desired channel.
 
     NOTE: Unlike `read_NSIDC_bin_file`, we don't need to worry about the scaling
@@ -32,7 +33,7 @@ def read_NSIDC_nc_file(fname: Path) -> dict[str, np.ndarray]:
         shape = ndarray.shape
         if shape != DEFAULT_GRID_SHAPE:
             raise RuntimeError(
-                f"Unexpected grid shape {shape} in {str(fname)}:{arr_name[-3:]}."
+                f"Unexpected grid shape {shape} in {str(fname)}:{arrname[-3:]}."
                 f" Expected {DEFAULT_GRID_SHAPE}."
             )
 

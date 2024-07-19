@@ -14,15 +14,15 @@ import statsmodels.api
 from osgeo import gdal
 from statsmodels.stats.outliers_influence import summary_table
 
-matplotlib.style.use("default")
-
-from melt_array_picklefile import get_ice_mask_array
-from tb_file_data import (
+from antarctica_today.melt_array_picklefile import get_ice_mask_array
+from antarctica_today.tb_file_data import (
     antarctic_regions_dict,
     antarctic_regions_tif,
     model_results_plot_directory,
     outputs_annual_tifs_directory,
 )
+
+matplotlib.style.use("default")
 
 
 def read_annual_sum_tif(year, gap_filled=True):

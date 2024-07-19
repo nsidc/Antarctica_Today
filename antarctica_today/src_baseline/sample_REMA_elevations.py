@@ -59,8 +59,8 @@ for idx, row in thermap_df.iterrows():
         row["REMA_Elev"] = numpy.nan
         row["REMA_or_Thermap_Elev"] = row["Elev"]
 
-    rema_elevs[idx] = row["REMA_Elev"]
-    rema_or_thermap_elevs[idx] = row["REMA_or_Thermap_Elev"]
+    rema_elevs[idx] = row["REMA_Elev"]  # type: ignore [call-overload]
+    rema_or_thermap_elevs[idx] = row["REMA_or_Thermap_Elev"]  # type: ignore [call-overload]
     print("{0:0.1f}".format(row["REMA_Elev"]))
 
 thermap_df["REMA_Elev"] = rema_elevs

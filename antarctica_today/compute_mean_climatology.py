@@ -4,13 +4,14 @@ import pickle
 
 import numpy
 import pandas
-from melt_array_picklefile import (
+from osgeo import gdal
+
+from antarctica_today.melt_array_picklefile import (
     get_ice_mask_array,
     read_gap_filled_melt_picklefile,
     read_model_array_picklefile,
 )
-from osgeo import gdal
-from tb_file_data import (
+from antarctica_today.tb_file_data import (
     antarctic_regions_dict,
     antarctic_regions_tif,
     baseline_percentiles_csv,
@@ -21,7 +22,7 @@ from tb_file_data import (
     outputs_annual_tifs_directory,
     std_climatology_geotiff,
 )
-from write_NSIDC_bin_to_gtif import output_gtif
+from antarctica_today.write_NSIDC_bin_to_gtif import output_gtif
 
 
 def compute_daily_climatology_pixel_averages(

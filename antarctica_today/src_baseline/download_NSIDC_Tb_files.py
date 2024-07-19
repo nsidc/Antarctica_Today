@@ -34,13 +34,14 @@ import os
 import ssl
 import sys
 from getpass import getpass
+from typing import List
 
 try:
     from urllib.error import HTTPError, URLError
     from urllib.parse import urlparse
     from urllib.request import HTTPCookieProcessor, Request, build_opener, urlopen
 except ImportError:
-    from urllib2 import (
+    from urllib2 import (  # type: ignore [no-redef]
         HTTPCookieProcessor,
         HTTPError,
         Request,
@@ -48,7 +49,7 @@ except ImportError:
         build_opener,
         urlopen,
     )
-    from urlparse import urlparse
+    from urlparse import urlparse  # type: ignore [no-redef]
 
 short_name = "NSIDC-0001"
 version = "5"
@@ -57,7 +58,7 @@ time_end = "2020-04-30T23:59:59Z"
 bounding_box = ""
 polygon = ""
 filename_filter = ""
-url_list = []
+url_list: List[str] = []
 
 CMR_URL = "https://cmr.earthdata.nasa.gov"
 URS_URL = "https://urs.earthdata.nasa.gov"

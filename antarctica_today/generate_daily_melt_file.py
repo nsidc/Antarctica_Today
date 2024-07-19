@@ -17,11 +17,12 @@ import os
 import re
 import warnings
 from pathlib import Path
+from typing import List, Optional
 
 import numpy
 import xarray
 
-from antarctica_today import tb_file_data
+from antarctica_today import tb_file_data, write_NSIDC_bin_to_gtif
 from antarctica_today.melt_array_picklefile import get_ice_mask_array
 from antarctica_today.read_NSIDC_bin_file import read_NSIDC_bin_file
 from antarctica_today.read_NSIDC_nc_file import read_NSIDC_nc_file
@@ -29,10 +30,10 @@ from antarctica_today.write_flat_binary import write_array_to_binary
 
 
 def generate_new_daily_melt_files(
-    start_date="2021-10-01",
-    end_date=None,
-    overwrite=True,
-    warn_if_missing_files=True,
+    start_date: str = "2021-10-01",
+    end_date: Optional[str] = None,
+    overwrite: bool = True,
+    warn_if_missing_files: bool = True,
 ):
     """Look through the .bin melt files, and create new ones.
 
@@ -78,7 +79,7 @@ def generate_new_daily_melt_files(
         # Find files in the NSIDC-0080 directory that match this date.
         nsidc_dir = tb_file_data.NSIDC_0080_file_dir
         # First fine all the .bin files that match that date stamp in the string
-        nsidc_fps: list[Path] = [
+        nsidc_fps: List[Path] = [
             fp
             for fp in nsidc_dir.iterdir()
             if (fp.name.find(dt.strftime("%Y%m%d")) > -1 and fp.suffix.lower() == ".nc")
@@ -119,7 +120,7 @@ def create_daily_melt_file(
     output_gtif_filename=None,
     Tb_nodata_value=-999,
     verbose=True,
-):
+) -> numpy.ndarray:
     """Read input files and generate a daily melt file. Primary function."""
     output_array = read_files_and_generate_melt_array(
         nsidc_0080_fp,
@@ -213,8 +214,10 @@ def get_correct_threshold_file(
 
 
 def read_files_and_generate_melt_array(
-    nsidc_0080_fp: Path, threshold_file, Tb_nodata_value=-999
-):
+    nsidc_0080_fp: Path,
+    threshold_file,
+    Tb_nodata_value=-999,
+) -> numpy.ndarray:
     """Generate a daily melt value array from the three flat-binary files."""
     # TODO: F18 correct?
     nsidc_0080 = read_NSIDC_nc_file(nsidc_0080_fp)
@@ -239,7 +242,7 @@ def create_daily_melt_array(
     threshold_array,
     ice_mask_array,
     Tb_nodata_value=-999
-):
+) -> numpy.ndarray:
     """Create an NxM array of daily melt values.
 
     This function uses the parameters set out for Antarctica Today to derive melt

@@ -15,13 +15,15 @@ import os
 import pickle
 import re
 from pathlib import Path
+from typing import Any
 
 import numpy
-from map_filedata import ice_mask_tif
 from osgeo import gdal
-from progress_bar import ProgressBar
-from read_NSIDC_bin_file import read_NSIDC_bin_file
-from tb_file_data import (
+
+from antarctica_today.map_filedata import ice_mask_tif
+from antarctica_today.progress_bar import ProgressBar
+from antarctica_today.read_NSIDC_bin_file import read_NSIDC_bin_file
+from antarctica_today.tb_file_data import (
     gap_filled_melt_picklefile,
     model_results_dir,
     model_results_picklefile,
@@ -31,7 +33,7 @@ from tb_file_data import (
 # from ssmi_bin_to_gtif import output_gtif
 
 
-def get_ice_mask_array(ice_tif: Path = ice_mask_tif) -> numpy.array:
+def get_ice_mask_array(ice_tif: Path = ice_mask_tif) -> numpy.ndarray:
     """Read the ice mask tif, return the array."""
     ice_mask_ds = gdal.Open(str(ice_tif), gdal.GA_ReadOnly)
     ice_mask_array = ice_mask_ds.GetRasterBand(1).ReadAsArray()
