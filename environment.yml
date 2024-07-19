@@ -14,3 +14,6 @@ dependencies:
   # Development dependencies
   - matplotlib-base
   - pre-commit
+
+  - mypy
+  - types-pillow ~=9.2
