@@ -21,6 +21,7 @@ select = [
   # "B",  # flake8-bugbear
   # "A",  # flake8-builtins
   "T10",  # flake8-debugger
+  "T20",  # flake8-print
   # "RUF",  # ruff-specific rules
 ]
 
