@@ -81,7 +81,8 @@ def generate_all_plots_and_maps_main():
     plot_daily_melt_and_climatology.simple_plot_date_check()
 
     # 6) Generate new annual maps.
-    mapper = generate_antarctica_today_map.AT_map_generator(gap_filled=True)
+    mapper = generate_antarctica_today_map.AT_map_generator()
+    # mapper = generate_antarctica_today_map.AT_map_generator(gap_filled=True)
     mapper.generate_annual_melt_map(dpi=300, year="all", reset_picklefile=True)
 
     mapper.generate_anomaly_melt_map(dpi=300, year="all", reset_picklefile=True)

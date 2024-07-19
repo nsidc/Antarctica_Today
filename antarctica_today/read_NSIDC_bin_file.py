@@ -3,28 +3,23 @@ Created on Fri Feb 21 15:03:50 2020
 
 @author: mmacferrin
 """
+from pathlib import Path
+from typing import Union
+
 import numpy
 
+from antarctica_today.constants.grid import DEFAULT_GRID_SHAPE
 from antarctica_today.constants.paths import DATA_TB_DIR
-
-# 332 rows x 316 cols for Antarctic Polar Stereo data,
-# per https://nsidc.org/data/polar-stereo/ps_grids.html
-#
-# If you are using Arctic data or some other grid, change the DEFAULT_GRID_SHAPE below,
-# or just use the optional parameter when you call it.
-# For Antarctica, (rows, cols) = (332,316)
-# For Arctic, (rows, cols) = (448, 304)
-DEFAULT_GRID_SHAPE = (332, 316)
 
 
 def read_NSIDC_bin_file(
-    fname,
-    grid_shape=DEFAULT_GRID_SHAPE,
-    header_size=0,
-    element_size=2,
-    return_type=float,
-    signed=False,
-    multiplier=0.1,
+    fname: Union[Path, str],
+    grid_shape: tuple[int, int] = DEFAULT_GRID_SHAPE,
+    header_size: int = 0,
+    element_size: int = 2,
+    return_type: type = float,
+    signed: bool = False,
+    multiplier: float = 0.1,
 ):
     """Read an SSMI file, return a 2D grid of integer values.
 
