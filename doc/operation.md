@@ -31,29 +31,30 @@ threshold binaries provided by Tom Mote. These are checked in to this repository
 Download all NSIDC-0080 granules:
 
 ```
-PYTHONPATH=. python antarctica_today/nsidc_download_Tb_data.py
+PYTHONPATH=.
+python antarctica_today/nsidc_download_Tb_data.py
 ```
 
 > :memo: Note
 >
-> For data before 2016, `NSIDC-0001` and `NSIDC-0007` are used.
+> For data before 2016, `NSIDC-0001` and `NSIDC-0007` are used. These previous data have already been processed and are available as binary ".bin" files in the **/data/daily_melt_bin_files** directory. All new data are be caculated from the NSIDC-0080 "Near Real-Time DMSP SSM/SSMIS Daily Polar Gridded Brightness Temperature" product (https://nsidc.org/data/nsidc-0080/versions/2).
 >
 > 🛠️ _TODO_
 >
-> - [ ] Does this mean we need to download 0001 and 0007 too to initialize the db?
 > - [ ] Add functionality to CLI if needed.
 
 
 ## 2. Generate all the daily melt binary files
 
 ```
-PYTHONPATH=. python antarctica_today/generate_daily_melt_file.py
+PYTHONPATH=.
+python antarctica_today/generate_daily_melt_file.py
 ```
 
 > :memo: Note
 >
 > Binaries provided in `data/daily_melt_bin_files` already calibrated by
-> Tom Mote for pre 2016 dates.
+> Tom Mote for pre 2016 dates. This generates new daily melt files from the NSIDC-0080 data downloaded in the previous step.
 >
 > 🛠️ _TODO_
 >
@@ -62,15 +63,19 @@ PYTHONPATH=. python antarctica_today/generate_daily_melt_file.py
 
 ## 3. Generate the database
 
-This software manages a database covering the full climatology in the form of a pickle
-file.
+This software manages a database covering the full climatology in the form of a pickle file.
 
 
-> TODO: ?is this as simple as:
+> TODO: This this as simple as:
 >
 > ```
-> PYTHONPATH=. python antarctica_today/main.py preprocess
+> PYTHONPATH=.
+> python antarctica_today/main.py preprocess
 > ```
+> 
+> 🛠️ _TODO_
+> 
+> - [ ] Convert from storage via picklefiles to NetCDF. See issue https://github.com/nsidc/Antarctica_Today/issues/19
 
 
 ### Initializing
@@ -83,18 +88,24 @@ file.
 Create the melt array picklefile, a file containing a 2d grid for each day:
 
 ```
-PYTHONPATH=. python antarctica_today/melt_array_picklefile.py
+PYTHONPATH=.
+python antarctica_today/melt_array_picklefile.py
 ```
 
-Create a gap filled melt picklefile, (TODO: What is it?):
-
+Create a gap-filled melt picklefile, This "fills the gaps" of missing data or missing days in the historical record with climatological averages. This is especially prevalent in the 1980s when composites are only tallied every other day. In the small 'pole hole' orbital gap, "no melt" (1) is filled. (NOTE: This assumption may need to be changed if melt ever reaches South Pole.)
 ```
-PYTHONPATH=. python antarctica_today/generate_gap_filled_melt_picklefile.py
+PYTHONPATH=.
+python antarctica_today/generate_gap_filled_melt_picklefile.py
 ```
 
 
 ### Daily updates
-
+This step will download any new Tb data files from NSIDC since its last run, and generate new plots from the last day's data (for all of Antartica and for each individual region), including:
+1) A "daily melt" map of the most recent day's melt extent
+2) A "sum" map of that season's total melt days
+3) An "anomaly" map of that season's total melt days in comparison to baseline average values to-that-day-of-year
+4) A line plot of melt extent up do that date, compared to historical baseline averages.
+It will copy these plots into a sub-directory /plots/daily_plots_gathered/[date]/ for easy collection.
 > 🛠️ _TODO_
 >
 > - [ ] Simpler command, shouldn't have to know to set PYTHONPATH.
@@ -105,14 +116,18 @@ PYTHONPATH=. python antarctica_today/generate_gap_filled_melt_picklefile.py
 > All initialization steps above must be completed first.
 
 ```
-PYTHONPATH=. python antarctica_today/update_data.py
+PYTHONPATH=.
+python antarctica_today/update_data.py
 ```
 
 
 ## 4. Generate outputs
+(Optional.)
 
+This will go through the entire database and produce summary maps and plots for every year on record.
 Run the main CLI's `process` command.
 
 ```
-PYTHONPATH=. python antarctica_today/main.py process
+PYTHONPATH=.
+python antarctica_today/main.py process
 ```

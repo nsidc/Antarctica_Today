@@ -33,6 +33,7 @@
 from __future__ import print_function
 
 import datetime
+import dateutil.parser
 import math
 import os.path
 import sys
@@ -230,11 +231,41 @@ def _results_with_links(results: list) -> list:
     return filtered
 
 
+def _get_mmdd_from_earthdata_granule(granule):
+    date_str = granule['umm']['TemporalExtent']['RangeDateTime']['BeginningDateTime']
+    dt = dateutil.parser.parse(date_str)
+    return dt.month, dt.day
+
+
+def filter_data_only_in_melt_season(results: list,
+                                    mmdd_start: tuple = (10, 1),
+                                    mmdd_end: tuple = (4, 30)) -> list:
+    """For Antarctica Today, we're interested only in dates that correspond with the melt season, defined here from
+    1st of October thru 30th of April of the following year (the Antartic melt season).
+    Results outside of that date range will be omitted and not downloaded.
+
+    Tb values in the cold frozen winter are used to calibrate the model and set thresholds before the beginning of
+    the next melt season.
+    """
+    mmdd_list = [_get_mmdd_from_earthdata_granule(granule) for granule in results]
+    results_to_return = []
+    for granule, mmdd in zip(results, mmdd_list):
+        # If the melt season wraps around the new year (as it does in Antartcica)
+        if mmdd_start > mmdd_end:
+            if mmdd >= mmdd_start or mmdd <= mmdd_end:
+                results_to_return.append(granule)
+        else:
+            if mmdd_start <= mmdd <= mmdd_end:
+                results_to_return.append(granule)
+
+    return results_to_return
+
+
 def download_new_files(
     *,
     time_start="2021-02-17",
     time_end=datetime.datetime.now().strftime("%Y-%m-%d"),
-    argv=None,
+    only_in_melt_season=True,
 ) -> list[str]:
     """Download new NSIDC-0080 files into the directory of your choice.
 
@@ -266,7 +297,12 @@ def download_new_files(
             debug=True,
         )
         results = _results_with_links(results)
-        print(f"Found {len(results)} downloadable granules.")
+
+        if only_in_melt_season:
+            results = filter_data_only_in_melt_season(results)
+            print(f"Found {len(results)} downloadable granules within the Antarctic melt season.")
+        else:
+            print(f"Found {len(results)} downloadable granules.")
 
         # If there are no granules to download, return an empty list of files without bothering to call "download()."
         if len(results) == 0:
@@ -282,4 +318,5 @@ def download_new_files(
 
 
 if __name__ == "__main__":
-    download_new_files(time_start="2023-10-21")
+    # By default, start the following day after the .bin files end in the /data/daily_melt_bin_files/ directory.
+    download_new_files(time_start="2022-01-10")
