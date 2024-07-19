@@ -293,8 +293,7 @@ def create_daily_melt_array(
         ((Tb_array_19v - Tb_array_37v) < 0) & (Tb_array_37h < (threshold_array + 10))
     ] = 1
 
-    # Mark all "nodata" as no data.
-
+    # Convert all NaNs to legacy (0080v1) NoData value -999.
     Tb_array_37h[numpy.isnan(Tb_array_37h)] = -999
     Tb_array_37v[numpy.isnan(Tb_array_37v)] = -999
     Tb_array_19v[numpy.isnan(Tb_array_19v)] = -999
