@@ -89,7 +89,7 @@ def read_NSIDC_bin_file(
     ):
         return_array = numpy.array(int_array, dtype=return_type)
     # Else, if it's meant to be a floating-point array, scale by the multiplier
-    # and return the floating-point array. If the mutiplier is a float (i.e. 0.1),
+    # and return the floating-point array. If the multiplier is a float (i.e. 0.1),
     # numpy will convert and return an array of floats
     else:
         return_array = numpy.array(int_array * multiplier, dtype=return_type)

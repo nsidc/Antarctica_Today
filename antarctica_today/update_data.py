@@ -4,13 +4,13 @@ Created by: mmacferrin
 2021.04.08
 """
 import datetime
-import matplotlib.pyplot
 import os
 import pickle
 import re
 import shutil
 
 import dateutil.parser
+import matplotlib.pyplot
 import numpy
 
 from antarctica_today import (
@@ -101,9 +101,7 @@ def update_everything_to_latest_date(
             latest_dt = dt
 
     start_time = latest_dt + datetime.timedelta(days=1)
-    start_time_str = start_time.strftime(
-        "%Y-%m-%dT00:00:00Z"
-    )
+    start_time_str = start_time.strftime("%Y-%m-%dT00:00:00Z")
 
     # Define "today" as today at midnight.
     if date_today is None:
@@ -128,7 +126,9 @@ def update_everything_to_latest_date(
     # # Ignore the .xml files, only get a list of the .bin files we downloaded.
     # tb_file_list = [fname for fname in tb_file_list if os.path.splitext(fname)[-1].lower() == ".bin"]
     tb_0080_dir = DATA_TB_DIR / "nsidc-0080"
-    tb_file_list = [fp for fp in tb_0080_dir.iterdir() if fp.suffix.lower() in (".bin", ".nc")]
+    tb_file_list = [
+        fp for fp in tb_0080_dir.iterdir() if fp.suffix.lower() in (".bin", ".nc")
+    ]
 
     # Collect all the new Tb .bin files and create a daily melt .bin file from each.
     for day_delta in range(1, ((dt_today - latest_dt).days + 1)):
@@ -171,20 +171,23 @@ def update_everything_to_latest_date(
         # Generate the name of the output daily melt .bin file.
         melt_bin_fname = os.path.join(
             melt_bin_dir,
-            dt.strftime("antarctica_melt_%Y%m%d_S3B_{0}.bin".format(dt_today.strftime("%Y%m%d")))
+            dt.strftime(
+                "antarctica_melt_%Y%m%d_S3B_{0}.bin".format(dt_today.strftime("%Y%m%d"))
+            ),
         )
 
         # If only one file was found on this date and it's a netCDF, we'll read it with the netCDF functionality.
-        if (len(fnames_this_date) == 1) and (fnames_this_date[0].suffix.lower() == ".nc"):
+        if (len(fnames_this_date) == 1) and (
+            fnames_this_date[0].suffix.lower() == ".nc"
+        ):
             # Read in netCDF file here.
             # print("Generating melt file {0} from {1}.".format(os.path.basename(melt_bin_fname),
             #                                                   os.path.basename(fnames_this_date[0])
             #                                                   )
             #       )
-            generate_daily_melt_file.create_daily_melt_file(fnames_this_date[0],
-                                                            threshold_file,
-                                                            melt_bin_fname
-                                                            )
+            generate_daily_melt_file.create_daily_melt_file(
+                fnames_this_date[0], threshold_file, melt_bin_fname
+            )
 
         # If three files are found and they're all .bin file (old v1 code), handle that here.
         # THIS CODE MAY NO LONGER WORK. HAS NOT BEEN TESTED WITH NEW DATA. This is how the previous v1 .bin data was
@@ -235,19 +238,22 @@ def update_everything_to_latest_date(
         #         fnames_37h[0], fnames_37v[0], fnames_19v[0], threshold_file, melt_bin_fname
         #     )
         else:
-            raise UserWarning("Downloads of NSIDC-0080 data should supply 3x .bin files (v1) or 1x .nc file (v2). " +
-                              "Instead, the following files were retrieved:\n\t" +
-                              "\n\t".join([str(fn) for fn in fnames_this_date]) +
-                              "\nSkipping this date and moving along.")
+            raise UserWarning(
+                "Downloads of NSIDC-0080 data should supply 3x .bin files (v1) or 1x .nc file (v2). "
+                + "Instead, the following files were retrieved:\n\t"
+                + "\n\t".join([str(fn) for fn in fnames_this_date])
+                + "\nSkipping this date and moving along."
+            )
             continue
-
 
         # This code is no longer necessary. The melt array files are read in the next loop and concatenated all at once.
         # Add a third dimension to aid in concatenating with the larger melt array.
         # melt_array.shape = (melt_array.shape[0], melt_array.shape[1], 1)
 
     # Now, get a list of all melt arrays that aren't yet in the melt array picklefile.
-    melt_bin_paths = [os.path.join(melt_bin_dir, fn) for fn in sorted(os.listdir(melt_bin_dir))]
+    melt_bin_paths = [
+        os.path.join(melt_bin_dir, fn) for fn in sorted(os.listdir(melt_bin_dir))
+    ]
     previous_melt_array, previous_dt_dict = read_model_array_picklefile()
     latest_dt_in_array = max(previous_dt_dict.keys())
 
@@ -294,7 +300,9 @@ def update_everything_to_latest_date(
         new_melt_array = numpy.concatenate(new_daily_melt_arrays, axis=2)
 
         # Concatenate the new melt array onto the old (existing) one.
-        melt_array_updated = numpy.concatenate((previous_melt_array, new_melt_array), axis=2)
+        melt_array_updated = numpy.concatenate(
+            (previous_melt_array, new_melt_array), axis=2
+        )
         # Add all the new datetimes to the dictionary, adding to the indices of the old melt array.
         for i, dt in enumerate(new_daily_dts):
             dt_dict[dt] = previous_melt_array.shape[2] + i
@@ -370,7 +378,7 @@ def update_everything_to_latest_date(
         )
 
         # Clear the figures just made above in order to not get too many open at once.
-        matplotlib.pyplot.close('all')
+        matplotlib.pyplot.close("all")
 
     # Then, if specified, make copies of all the files in the "daily_plots_gathered" directory for easy reference.
     # It turns out we don't want to use Symlinks here. Posting these files online can get squirreley when we're using
@@ -379,7 +387,7 @@ def update_everything_to_latest_date(
         copy_latest_date_plots_to_date_directory(
             year=generate_daily_melt_file.get_melt_year_of_current_date(dt_today),
             date=latest_date,
-            use_symlinks=False
+            use_symlinks=False,
         )
 
     # Return the updated arrays, if wanted.
@@ -398,7 +406,7 @@ def copy_latest_date_plots_to_date_directory(
     line_plots_dir=tb_file_data.climatology_plots_directory,
     use_symlinks=True,
     verbose=True,
-    ):
+):
     """After running the 'update_everything_to_latest_date()' function, use this to gather all the
     latest-date plots into one location. Put it in a sub-directory of the daily_plots_gathered_dir
     with all the latest plots just made."""

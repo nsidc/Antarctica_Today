@@ -219,7 +219,7 @@ class AT_map_generator:
     """A class for generating both daily, annual, and annual-anomaly melt maps.
 
     Stores internal information for creating the maps in order to help facilitate
-    ease and re-use of matplotlib base figures, and speed up execution.
+    ease and reuse of matplotlib base figures, and speed up execution.
     """
 
     def __init__(
@@ -1724,7 +1724,9 @@ class AT_map_generator:
 
             if mmdd_of_year is not None:
                 datetime_of_year = datetime.datetime(
-                    year=(y + 1) if (tuple(mmdd_of_year) <= tuple(melt_end_mmdd)) else y,
+                    year=(y + 1)
+                    if (tuple(mmdd_of_year) <= tuple(melt_end_mmdd))
+                    else y,
                     month=mmdd_of_year[0],
                     day=mmdd_of_year[1],
                 )

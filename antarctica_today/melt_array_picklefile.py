@@ -235,7 +235,7 @@ def _filter_out_erroneous_swaths(model_array, datetimes_dict):
     """Nullify particular false-positive satellite swaths in the data.
 
     These are hand-outlined to nullify data (primarily from the 1980s) in which the satellite was
-    giving false-positive readings and producing melt extents that were unreasonable and ficticious.
+    giving false-positive readings and producing melt extents that were unreasonable and fictitious.
 
     We outline those regions and set false "melt" (2) values to "no data" (0).
 
