@@ -45,11 +45,11 @@ python antarctica_today download-tb
 ```
 
 > [!NOTE]
-> For data before 2016, `NSIDC-0001` and `NSIDC-0007` are used. These previous data have
-> already been processed and are available as binary ".bin" files in the
-> **/data/daily_melt_bin_files** directory. All new data are be calculated from the
-> NSIDC-0080 "Near Real-Time DMSP SSM/SSMIS Daily Polar Gridded Brightness Temperature"
-> product (https://nsidc.org/data/nsidc-0080/versions/2), which is in NetCDF format.
+> For data before 2022-01-10, `NSIDC-0001` and `NSIDC-0007` are used. These previous
+> data have already been processed and are available as binary ".bin" files in the
+> `/data/daily_melt_bin_files` directory. All data newer than that date are calculated
+> from the `NSIDC-0080` v2 product (https://nsidc.org/data/nsidc-0080/versions/2), which
+> is in NetCDF format.
 
 
 ## 2. Generate all the daily melt binary files
