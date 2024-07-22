@@ -15,7 +15,7 @@ import os
 import pickle
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, Tuple
 
 import numpy
 from osgeo import gdal
@@ -323,15 +323,15 @@ def _filter_out_erroneous_swaths(model_array, datetimes_dict):
 
 
 def read_gap_filled_melt_picklefile(
-    picklefile=gap_filled_melt_picklefile, verbose=True
-):
+    picklefile: Path = gap_filled_melt_picklefile,
+    verbose: bool = True,
+) -> Tuple[numpy.ndarray, Dict[datetime.datetime, int]]:
     """Read the gap-filled picklefile, return to user."""
     if verbose:
         print("Reading", picklefile)
 
-    f = open(picklefile, "rb")
-    array, dt_dict = pickle.load(f)
-    f.close()
+    with open(picklefile, "rb") as f:
+        array, dt_dict = pickle.load(f)
 
     return array, dt_dict
 

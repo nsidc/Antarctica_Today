@@ -429,7 +429,8 @@ def create_partial_year_melt_anomaly_tif(
 
     # Round to integers, if it isn't already.
     anomalies_int: numpy.ndarray = numpy.array(
-        numpy.round(anomaly_this_season_so_far), dtype=numpy.int32
+        numpy.round(anomaly_this_season_so_far),
+        dtype=numpy.int32,
     )
 
     # If dest_fname is None, create it.
@@ -591,9 +592,7 @@ def create_annual_melt_sum_tif(
     dt_list = list(datetimes_dict.keys())
 
     if year == "all":
-        years = numpy.unique([dt.year for dt in dt_list])
-        years.sort()
-
+        years = sorted({dt.year for dt in dt_list})
     else:
         assert year == int(year)
         years = [year]
