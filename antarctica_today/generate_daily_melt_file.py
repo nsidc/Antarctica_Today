@@ -378,6 +378,3 @@ def create_daily_melt_array(
 #     output_gtif_filename=gtif_name,
 #     verbose=args.verbose,
 # )
-
-if __name__ == "__main__":
-    generate_new_daily_melt_files(overwrite=False)

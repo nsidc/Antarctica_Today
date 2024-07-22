@@ -56,8 +56,18 @@ python antarctica_today download-tb
 
 ```bash
 PYTHONPATH=.
-python antarctica_today/generate_daily_melt_file.py
+python antarctica_today generate-daily-melt
 ```
+
+> [!WARNING]
+> I receive a large number of warnings like:
+>
+> ```
+> UserWarning: Warning: At least one NSIDC Tb file on date '20230909' is missing. Skipping
+> that date.
+> ```
+>
+> Why?
 
 > [!NOTE]
 > Binaries provided in `data/daily_melt_bin_files` are already calibrated by Tom Mote
@@ -67,7 +77,17 @@ python antarctica_today/generate_daily_melt_file.py
 
 ## 3. Generate the database
 
-This software manages a database covering the full climatology in the form of a pickle file.
+This software manages a database covering the full climatology in the form of a pickle
+file.
+
+> [!NOTE]
+> This command may take up to tens of minutes.
+>
+> 🛠️ _TODO_
+> 
+> - [ ] What does this command do? Create the pickle?
+> - [ ] Why is the next section called "Initializing"? Are there multiple pickle files?
+>       Does each command initialize one? Can we combine them all into one command?
 
 ```bash
 PYTHONPATH=.
@@ -75,13 +95,13 @@ python antarctica_today preprocess
 ```
 
 
-### Initializing
+### Database initialization (?)
 
 Create the melt array picklefile, a file containing a 2d grid for each day:
 
 ```bash
 PYTHONPATH=.
-python antarctica_today/melt_array_picklefile.py
+python antarctica_today melt-array-picklefile
 ```
 
 Create a gap-filled melt picklefile, This "fills the gaps" of missing data or missing
@@ -92,7 +112,7 @@ melt ever reaches South Pole.)
 
 ```bash
 PYTHONPATH=.
-python antarctica_today/generate_gap_filled_melt_picklefile.py
+python antarctica_today gap-filled-melt-picklefile
 ```
 
 
