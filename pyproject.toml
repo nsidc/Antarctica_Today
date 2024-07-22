@@ -57,7 +57,6 @@ disallow_incomplete_defs = false
 module = [
   "cairo.*",
   "cartopy.*",
-  "earthaccess.*",  # TODO: Remove after upgrading earthaccess >=0.10
   "gdal.*",
   "geopandas.*",
   "gi.*",
