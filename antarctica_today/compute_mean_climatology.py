@@ -345,23 +345,26 @@ def create_baseline_climatology_tif(
 
 
 def create_partial_year_melt_anomaly_tif(
-    current_datetime_in: Optional[datetime.datetime] = None,
+    current_datetime: Optional[datetime.datetime] = None,
     dest_fname: Optional[str] = None,
     gap_filled: bool = True,
     verbose: bool = True,
 ) -> numpy.ndarray:
     """Create a tif of melt anomaly compared to baseline climatology for that day of the melt season."""
     # If no datetime is given, use "today"
-    current_datetime: datetime.datetime
-    if current_datetime_in is None:
+    if current_datetime is None:
         now = datetime.datetime.today()
         # Strip off the hour,min,second
         # TODO: Why not use a datetime.date object instead?
         current_datetime = datetime.datetime(
             year=now.year, month=now.month, day=now.day
         )
-    else:
-        current_datetime = current_datetime_in
+
+    if not isinstance(current_datetime, datetime.datetime):
+        raise ValueError(
+            f"Unexpected value for current_datetime: {current_datetime}."
+            "This should never happen, but this helps the typechecker narrow."
+        )
 
     daily_melt_sums, daily_sums_dt_dict = read_daily_sum_melt_averages_picklefile()
 
