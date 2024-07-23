@@ -106,7 +106,3 @@ def fill_melt_array_with_interpolations(array=None, datetimes_dict=None, verbose
             # print("\t", "Day missing, fill with mean. Average:", numpy.sum(day_slice[day_slice!=-1]))
 
     return gap_filled_array, gap_filled_dt_dict
-
-
-if __name__ == "__main__":
-    save_gap_filled_picklefile()

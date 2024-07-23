@@ -334,8 +334,3 @@ def read_gap_filled_melt_picklefile(
         array, dt_dict = pickle.load(f)
 
     return array, dt_dict
-
-
-if __name__ == "__main__":
-    # Let's save the v2.5 data from Tom's stuff.
-    array, dt_dict = save_model_array_picklefile()

@@ -167,9 +167,10 @@ def compute_daily_climatology_pixel_averages(
 
     # Save out to a picklefile array.
     if output_picklefile != None:
-        f = open(output_picklefile, "wb")
-        pickle.dump((average_melt_array, baseline_dates_mmdd_dict), f)
-        f.close()
+        output_picklefile.parent.mkdir(exist_ok=True, parents=True)
+        with open(output_picklefile, "wb") as f:
+            pickle.dump((average_melt_array, baseline_dates_mmdd_dict), f)
+
         if verbose:
             print(output_picklefile, "written.")
 

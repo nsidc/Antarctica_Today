@@ -110,35 +110,3 @@ def generate_all_plots_and_maps_main():
 #                             outfile = fname_svg)
 
 #     # TODO: Finish if you want.
-
-
-@click.group()
-def cli():
-    """Antarctica Today."""
-    pass
-
-
-@cli.command()
-def preprocess():
-    """Perform pre-processing steps for Antarctica Today data.
-
-    This includes:
-        - ...
-        - ...
-    """
-    preprocessing_main()
-
-
-@cli.command()
-def process():
-    """Perform processing steps for Antarctica Today data.
-
-    This includes:
-        - ...
-        - ...
-    """
-    generate_all_plots_and_maps_main()
-
-
-if __name__ == "__main__":
-    cli()
