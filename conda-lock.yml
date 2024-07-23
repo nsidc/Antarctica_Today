@@ -13,7 +13,7 @@
 version: 1
 metadata:
   content_hash:
-    linux-64: f3266edc27a5d2b17f9d24a563487e778a5aeccd2d192a3a31f5525b50817296
+    linux-64: 5a8ecb85578447b396175b83bbbb9299310098579a3245564715c5d96ec659ba
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -1754,10 +1754,10 @@ package:
   platform: linux-64
   dependencies:
     libopenblas: '>=0.3.27,<1.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libblas-3.9.0-22_linux64_openblas.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libblas-3.9.0-23_linux64_openblas.conda
   hash:
-    md5: 1a2a0cd3153464fee6646f3dd6dad9b8
-    sha256: 082b8ac20d43a7bbcdc28b3b1cd40e4df3a8b5daf0a2d23d68953a44d2d12c1b
+    md5: 96c8450a40aa2b9733073a9460de972c
+    sha256: edb1cee5da3ac4936940052dcab6969673ba3874564f90f5110f8c11eed789c2
   category: main
   optional: false
 - name: libbrotlicommon
@@ -1804,10 +1804,10 @@ package:
   platform: linux-64
   dependencies:
     libblas: 3.9.0
-  url: https://conda.anaconda.org/conda-forge/linux-64/libcblas-3.9.0-22_linux64_openblas.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libcblas-3.9.0-23_linux64_openblas.conda
   hash:
-    md5: 4b31699e0ec5de64d5896e580389c9a1
-    sha256: da1b2faa017663c8f5555c1c5518e96ac4cd8e0be2a673c1c9e2cb8507c8fe46
+    md5: eede29b40efa878cbe5bdcb767e97310
+    sha256: 3e7a3236e7e03e308e1667d91d0aa70edd0cba96b4b5563ef4adde088e0881a5
   category: main
   optional: false
 - name: libcurl
@@ -2082,10 +2082,10 @@ package:
   platform: linux-64
   dependencies:
     libblas: 3.9.0
-  url: https://conda.anaconda.org/conda-forge/linux-64/liblapack-3.9.0-22_linux64_openblas.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/liblapack-3.9.0-23_linux64_openblas.conda
   hash:
-    md5: b083767b6c877e24ee597d93b87ab838
-    sha256: db246341d42f9100d45adeb1a7ba8b1ef5b51ceb9056fd643e98046a3259fde6
+    md5: 2af0879961951987e464722fd00ec1e0
+    sha256: 25c7aef86c8a1d9db0e8ee61aa7462ba3b46b482027a65d66eb83e3e6f949043
   category: main
   optional: false
 - name: libnetcdf
@@ -2373,6 +2373,19 @@ package:
   hash:
     md5: 57d7dc60e9325e3de37ff8dffd18e814
     sha256: adf6096f98b537a11ae3729eaa642b0811478f0ea0402ca67b5108fe2cb0010d
+  category: main
+  optional: false
+- name: loguru
+  version: 0.7.2
+  manager: conda
+  platform: linux-64
+  dependencies:
+    python: '>=3.11,<3.12.0a0'
+    python_abi: 3.11.*
+  url: https://conda.anaconda.org/conda-forge/linux-64/loguru-0.7.2-py311h38be061_1.conda
+  hash:
+    md5: 94a4521bd7933a66d76b0274dbf8d2dd
+    sha256: 8b4e50db81def33fbb819ebaa2b3b50b92fa8b877b174a4e8d89e2e88a89750e
   category: main
   optional: false
 - name: lz4-c

@@ -6,6 +6,7 @@ from typing import Dict, Literal, Optional, Tuple, Union
 
 import numpy
 import pandas
+from loguru import logger
 from osgeo import gdal
 
 from antarctica_today.melt_array_picklefile import (
@@ -33,7 +34,6 @@ def compute_daily_climatology_pixel_averages(
     baseline_end_year: int = 2020,
     melt_end_mmdd: Tuple[int, int] = (4, 30),
     output_picklefile: Path = daily_melt_averages_picklefile,
-    verbose: bool = True,
 ) -> Tuple[numpy.ndarray, Dict[Tuple[int, int], int]]:
     """Compute fraction of days in the baseline period in which each give pixel melts.
 
@@ -171,8 +171,7 @@ def compute_daily_climatology_pixel_averages(
         with open(output_picklefile, "wb") as f:
             pickle.dump((average_melt_array, baseline_dates_mmdd_dict), f)
 
-        if verbose:
-            print(output_picklefile, "written.")
+        logger.debug(f"{output_picklefile} written.")
 
     return average_melt_array, baseline_dates_mmdd_dict
 
@@ -180,21 +179,19 @@ def compute_daily_climatology_pixel_averages(
 def read_daily_melt_averages_picklefile(
     build_picklefile_if_not_present: bool = True,
     daily_climatology_picklefile: Path = daily_melt_averages_picklefile,
-    verbose: bool = True,
 ):
     """Read the daily climatology averages picklefile."""
     if not os.path.exists(daily_climatology_picklefile):
         if build_picklefile_if_not_present:
             return compute_daily_climatology_pixel_averages(
-                output_picklefile=daily_climatology_picklefile, verbose=verbose
+                output_picklefile=daily_climatology_picklefile,
             )
         else:
             raise FileNotFoundError(
                 "Picklefile '{0}' not found.".format(daily_climatology_picklefile)
             )
 
-    if verbose:
-        print("Reading", daily_climatology_picklefile)
+    logger.debug(f"Reading {daily_climatology_picklefile}")
 
     with open(daily_climatology_picklefile, "rb") as f:
         array, dt_dict = pickle.load(f)
@@ -205,7 +202,6 @@ def read_daily_melt_averages_picklefile(
 def compute_daily_sum_pixel_averages(
     daily_picklefile: Path = daily_melt_averages_picklefile,
     sum_picklefile: Path = daily_cumulative_melt_averages_picklefile,
-    verbose: bool = True,
 ) -> None:
     """Compute a mean daily cumulative melt-day value for each pixel throughout the melt season.
 
@@ -219,7 +215,7 @@ def compute_daily_sum_pixel_averages(
     directly comparable to a given daily-sum value during the melt season.
     """
     # First, read the daily melt value picklefile.
-    daily_array, dt_dict = read_daily_melt_averages_picklefile(verbose=verbose)
+    daily_array, dt_dict = read_daily_melt_averages_picklefile()
     daily_sum_array: numpy.ndarray = numpy.zeros(daily_array.shape, dtype=numpy.int32)
     for dt in dt_dict:
         daily_sum_array[:, :, dt_dict[dt]] = numpy.array(
@@ -229,34 +225,28 @@ def compute_daily_sum_pixel_averages(
             dtype=numpy.int32,
         )
 
-    if verbose:
-        print("Writing", sum_picklefile, end="...")
-
+    logger.debug(f"Writing {sum_picklefile} ...")
     with open(sum_picklefile, "wb") as f:
         pickle.dump((daily_sum_array, dt_dict), f)
-
-    if verbose:
-        print("Done.")
+    logger.debug("Done.")
 
 
 def read_daily_sum_melt_averages_picklefile(
     build_picklefile_if_not_present: bool = True,
     daily_sum_picklefile: Path = daily_cumulative_melt_averages_picklefile,
-    verbose: bool = True,
 ):
     """Read the daily climatology averages picklefile."""
     if not os.path.exists(daily_sum_picklefile):
         if build_picklefile_if_not_present:
             return compute_daily_climatology_pixel_averages(
-                output_picklefile=daily_sum_picklefile, verbose=verbose
+                output_picklefile=daily_sum_picklefile,
             )
         else:
             raise FileNotFoundError(
                 "Picklefile '{0}' not found.".format(daily_sum_picklefile)
             )
 
-    if verbose:
-        print("Reading", daily_sum_picklefile)
+    logger.debug(f"Reading {daily_sum_picklefile}")
     f = open(daily_sum_picklefile, "rb")
     array, dt_dict = pickle.load(f)
     f.close()
@@ -271,7 +261,6 @@ def create_baseline_climatology_tif(
     f_out_std: str = std_climatology_geotiff,
     round_to_integers: bool = True,
     gap_filled: bool = True,
-    verbose: bool = True,
 ) -> numpy.ndarray:
     """Generate a "mean annual melt" map over the baseline period.
 
@@ -281,15 +270,15 @@ def create_baseline_climatology_tif(
     """
     # Read the gridded satellite data
     if gap_filled:
-        model_array, datetimes_dict = read_gap_filled_melt_picklefile(verbose=verbose)
+        model_array, datetimes_dict = read_gap_filled_melt_picklefile()
     else:
         model_array, datetimes_dict = read_model_array_picklefile(
-            resample_melt_codes=True, verbose=verbose
+            resample_melt_codes=True,
         )
     datetimes = list(datetimes_dict.keys())
 
     num_years = int((end_date - start_date).days / 365.25)
-    # print(num_years)
+    # logger.info(num_years)
 
     annual_sum_grids: numpy.ndarray = numpy.empty(
         model_array.shape[0:2] + (num_years,), dtype=int
@@ -339,8 +328,8 @@ def create_baseline_climatology_tif(
         f_std_base, f_std_ext = os.path.splitext(f_out_std)
         f_out_std = f_std_base + "_gap_filled" + f_std_ext
 
-    output_gtif(annual_mean_array, f_out_mean, nodata=-1, verbose=verbose)
-    output_gtif(annual_std_array, f_out_std, nodata=-1, verbose=verbose)
+    output_gtif(annual_mean_array, f_out_mean, nodata=-1)
+    output_gtif(annual_std_array, f_out_std, nodata=-1)
 
     return annual_mean_array
 
@@ -349,7 +338,6 @@ def create_partial_year_melt_anomaly_tif(
     current_datetime: Optional[datetime.datetime] = None,
     dest_fname: Optional[str] = None,
     gap_filled: bool = True,
-    verbose: bool = True,
 ) -> numpy.ndarray:
     """Create a tif of melt anomaly compared to baseline climatology for that day of the melt season."""
     # If no datetime is given, use "today"
@@ -382,13 +370,13 @@ def create_partial_year_melt_anomaly_tif(
         day=first_mmdd_of_melt_season[1],
     )
 
-    # print(current_datetime)
-    # print(first_dt_of_present_melt_season)
+    # logger.info(current_datetime)
+    # logger.info(first_dt_of_present_melt_season)
     if gap_filled:
-        melt_array, dt_dict = read_gap_filled_melt_picklefile(verbose=verbose)
+        melt_array, dt_dict = read_gap_filled_melt_picklefile()
     else:
         melt_array, dt_dict = read_model_array_picklefile(
-            resample_melt_codes=True, verbose=verbose
+            resample_melt_codes=True,
         )
 
     dt_list = sorted(list(dt_dict.keys()))
@@ -403,7 +391,7 @@ def create_partial_year_melt_anomaly_tif(
 
     # If we don't have days in the picklefile up to the current date, readjust the date and inform the user.
     if dts_masked[-1] < current_datetime:
-        print(
+        logger.info(
             "{0} not in the melt files. Adjusting to last known date: {1}".format(
                 current_datetime.strftime("%Y-%m-%d"),
                 dts_masked[-1].strftime("%Y-%m-%d"),
@@ -445,7 +433,7 @@ def create_partial_year_melt_anomaly_tif(
             ),
         )
 
-    output_gtif(anomalies_int, dest_fname, nodata=-999, verbose=verbose)
+    output_gtif(anomalies_int, dest_fname, nodata=-999)
 
     return anomalies_int
 
@@ -455,7 +443,6 @@ def create_annual_melt_anomaly_tif(
     year_melt_tif: Optional[str] = None,
     baseline_melt_tif: Optional[str] = None,
     gap_filled: bool = True,
-    verbose: bool = True,
 ):
     """Create a tif of annual melt anomaly compared to baseline climatology.
 
@@ -485,13 +472,16 @@ def create_annual_melt_anomaly_tif(
 
     anomaly_array[ice_mask == 0] = -999
 
-    output_gtif(anomaly_array, dest_fname, verbose=verbose, nodata=-999)
+    output_gtif(anomaly_array, dest_fname, nodata=-999)
 
     return anomaly_array
 
 
 def read_annual_melt_anomaly_tif(
-    year, anomaly_tif=None, gap_filled=True, generate_if_nonexistent=True, verbose=True
+    year,
+    anomaly_tif=None,
+    gap_filled=True,
+    generate_if_nonexistent=True,
 ):
     """Read the annual anomaly tif."""
     if anomaly_tif is None:
@@ -505,12 +495,12 @@ def read_annual_melt_anomaly_tif(
 
     if not os.path.exists(anomaly_tif):
         array = create_annual_melt_anomaly_tif(
-            year=year, gap_filled=gap_filled, verbose=verbose
+            year=year,
+            gap_filled=gap_filled,
         )
         return array
 
-    if verbose:
-        print("Reading", anomaly_tif)
+    logger.debug(f"Reading {anomaly_tif}")
 
     ds = gdal.Open(str(anomaly_tif), gdal.GA_ReadOnly)
     if ds is None:
@@ -575,7 +565,6 @@ def create_annual_melt_sum_tif(
     melt_start_mmdd: Tuple[int, int] = (10, 1),
     melt_end_mmdd: Tuple[int, int] = (4, 30),
     gap_filled: bool = True,
-    verbose: bool = True,
 ) -> Optional[numpy.ndarray]:
     """Create an integer tif file of that year's annual sum of melt-days, per pixel.
 
@@ -585,10 +574,10 @@ def create_annual_melt_sum_tif(
     changing that.
     """
     if gap_filled:
-        melt_array, datetimes_dict = read_gap_filled_melt_picklefile(verbose=verbose)
+        melt_array, datetimes_dict = read_gap_filled_melt_picklefile()
     else:
         melt_array, datetimes_dict = read_model_array_picklefile(
-            resample_melt_codes=True, verbose=verbose
+            resample_melt_codes=True,
         )
     dt_list = list(datetimes_dict.keys())
 
@@ -649,7 +638,7 @@ def create_annual_melt_sum_tif(
             base, ext = os.path.splitext(output_fname)
             output_fname = base + "_gap_filled" + ext
 
-        output_gtif(melt_array_year, output_fname, nodata=-1, verbose=verbose)
+        output_gtif(melt_array_year, output_fname, nodata=-1)
 
     return melt_array_year
 
@@ -661,7 +650,6 @@ def save_climatologies_as_CSV(
     doy_start=(10, 1),
     doy_end=(4, 30),
     gap_filled=True,
-    verbose=True,
 ):
     """Compute the percentiles of climatologies and save them as a pandas dataframe for later use."""
     baseline_melt_percentiles_for_each_basin = _generate_baseline_melt_climatology(
@@ -671,7 +659,6 @@ def save_climatologies_as_CSV(
         doy_end=doy_end,
         include_regional_totals=True,
         gap_filled=gap_filled,
-        verbose=verbose,
     )
 
     assert len(baseline_melt_percentiles_for_each_basin) == len(antarctic_regions_dict)
@@ -758,8 +745,7 @@ def save_climatologies_as_CSV(
     with open(csv_file, "w") as f:
         f.write(text_all)
 
-    if verbose:
-        print(csv_file, "written.")
+    logger.debug(f"Wrote {csv_file}")
 
     return
 
@@ -771,7 +757,6 @@ def _generate_baseline_melt_climatology(
     doy_end=(4, 30),  # (MM,DD)
     include_regional_totals=True,
     gap_filled=True,
-    verbose=True,
 ):
     """Generate the data for a climatology plot.
 
@@ -791,13 +776,12 @@ def _generate_baseline_melt_climatology(
         If True, plot each of the sub-regions as well.
     """
     if gap_filled:
-        melt_array, datetime_dict = read_gap_filled_melt_picklefile(verbose=verbose)
+        melt_array, datetime_dict = read_gap_filled_melt_picklefile()
     else:
         melt_array, datetime_dict = read_model_array_picklefile(
             fill_pole_hole=True,
             resample_melt_codes=True,
             resample_melt_code_threshold=4,
-            verbose=verbose,
         )
 
     ice_mask = get_ice_mask_array()
@@ -839,15 +823,15 @@ def _generate_baseline_melt_climatology(
 
 
 def open_baseline_climatology_csv_as_dataframe(
-    csv_file=baseline_percentiles_csv, gap_filled=True, verbose=True
+    csv_file=baseline_percentiles_csv,
+    gap_filled=True,
 ):
     """Open the dataframe for the baseline period climatology percentiles, and return a pandas dataframe."""
     if gap_filled and os.path.split(csv_file)[1].find("gap_filled") == -1:
         base, ext = os.path.splitext(csv_file)
         csv_file = base + "_gap_filled" + ext
 
-    if verbose:
-        print("Reading", csv_file)
+    logger.debug(f"Reading {csv_file}")
     return pandas.read_csv(csv_file, header=19)
 
 
@@ -871,8 +855,8 @@ def _get_regional_tif_masks(tifname=antarctic_regions_tif):
     try:
         assert numpy.all((ice_mask > 0) == (region_array > 0))
     except AssertionError as e:
-        print("ice_mask:", numpy.count_nonzero(ice_mask > 0))
-        print("regions: ", numpy.count_nonzero(region_array > 0))
+        logger.error(f"ice_mask: {numpy.count_nonzero(ice_mask > 0)}")
+        logger.error("regions: {numpy.count_nonzero(region_array > 0)}")
         raise e
 
     output_mask_dict = {}
@@ -1062,15 +1046,15 @@ def _compute_baseline_climatology_lists(
 
 
 def read_daily_melt_numbers_as_dataframe(
-    csv_file=daily_melt_csv, gap_filled=True, verbose=True
+    csv_file=daily_melt_csv,
+    gap_filled=True,
 ):
     """Read the daily melt files, return a Pandas dataframe."""
     if gap_filled and os.path.split(csv_file)[1].find("gap_filled") == -1:
         base, ext = os.path.splitext(csv_file)
         csv_file = base + "_gap_filled" + ext
 
-    if verbose:
-        print("Reading", csv_file)
+    logger.debug(f"Reading {csv_file}")
 
     # Read the dataframe. Convert the "date" field to a date object.
     df = pandas.read_csv(csv_file, header=18, converters={"date": pandas.to_datetime})
@@ -1079,7 +1063,8 @@ def read_daily_melt_numbers_as_dataframe(
 
 
 def save_daily_melt_numbers_to_csv(
-    csv_file=daily_melt_csv, gap_filled=True, verbose=True
+    csv_file=daily_melt_csv,
+    gap_filled=True,
 ):
     """Compute climatologies for all regions on every day of the dataset, save to a .csv file."""
     text_lines = [
@@ -1124,14 +1109,13 @@ def save_daily_melt_numbers_to_csv(
     text_lines.append(csv_fields_line)
 
     if gap_filled:
-        melt_array, datetime_dict = read_gap_filled_melt_picklefile(verbose=False)
+        melt_array, datetime_dict = read_gap_filled_melt_picklefile()
     else:
         melt_array, datetime_dict = read_model_array_picklefile(
             fill_pole_hole=True,
             filter_out_error_swaths=True,
             resample_melt_codes=True,
             resample_melt_code_threshold=4,
-            verbose=False,
         )
 
     ice_mask = get_ice_mask_array()
@@ -1208,8 +1192,7 @@ def save_daily_melt_numbers_to_csv(
     with open(csv_file, "w") as f:
         f.write(text_all)
 
-    if verbose:
-        print(csv_file, "written.")
+    logger.info(f"Wrote {csv_file}")
 
 
 if __name__ == "__main__":
