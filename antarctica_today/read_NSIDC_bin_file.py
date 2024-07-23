@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Tuple, Union
 
 import numpy
+from loguru import logger
 
 from antarctica_today.constants.grid import DEFAULT_GRID_SHAPE
 from antarctica_today.constants.paths import DATA_TB_DIR
@@ -114,8 +115,8 @@ if __name__ == "__main__":
         multiplier=0.1,
     )
 
-    print(array1.shape, array1.dtype)
-    print(array1)
+    print(array1.shape, array1.dtype)  # noqa: T201
+    print(array1)  # noqa: T201
 
     # An NSIDC-0051 sea-ice concentration v1 file, in a 1-byte unsigned integer array with
     # a 300-byte header.
@@ -130,8 +131,8 @@ if __name__ == "__main__":
         signed=False,
     )
 
-    print(array2.shape, array2.dtype)
-    print(array2)
+    print(array2.shape, array2.dtype)  # noqa: T201
+    print(array2)  # noqa: T201
 
     # For an Antarctic file
     array3 = read_NSIDC_bin_file(
@@ -143,8 +144,8 @@ if __name__ == "__main__":
         signed=False,
     )
 
-    print(array3.shape, array3.dtype)
-    print(array3)
+    print(array3.shape, array3.dtype)  # noqa: T201
+    print(array3)  # noqa: T201
 
     # An NSIDC-0079 sea-ice concentration v3 files, in 2-byte unsigned integer array with
     # a 300-byte header.
@@ -159,8 +160,8 @@ if __name__ == "__main__":
         signed=False,
     )
 
-    print(array4.shape, array4.dtype)
-    print(array4)
+    print(array4.shape, array4.dtype)  # noqa: T201
+    print(array4)  # noqa: T201
 
     # For an Antarctic file, alternately returning the array in floating-point values (your choice, just pick the parameter you want.)
     array5 = read_NSIDC_bin_file(
@@ -173,5 +174,5 @@ if __name__ == "__main__":
         multiplier=0.1,
     )
 
-    print(array5.shape, array5.dtype)
-    print(array5)
+    print(array5.shape, array5.dtype)  # noqa: T201
+    print(array5)  # noqa: T201

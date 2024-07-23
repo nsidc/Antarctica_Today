@@ -12,6 +12,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy
 import pandas
+from loguru import logger
 
 from antarctica_today.compute_mean_climatology import (
     _get_region_area_km2,
@@ -96,7 +97,7 @@ def simple_plot_date_check(
         plt.show()
     else:
         fig.savefig(fname, dpi=300)
-        print(fname, "saved.")
+        logger.info(fname, "saved.")
 
 
 def _add_plot_legend(ax, loc="upper center", adjust_ylim_range=True):
@@ -215,7 +216,6 @@ def plot_current_year_melt_over_baseline_stats(
     gap_filled=True,
     add_max_line=False,
     dpi=300,
-    verbose=True,
 ):
     """Read the melt data for the melt year up through the "current_datetime", and plot over the baseline climatology.
 
@@ -235,13 +235,11 @@ def plot_current_year_melt_over_baseline_stats(
 
     outfile:   Image file to write out.
 
-    verbose:   Verbose output.
-
     Return
     ------
     None
     """
-    df = read_daily_melt_numbers_as_dataframe(verbose=False, gap_filled=gap_filled)
+    df = read_daily_melt_numbers_as_dataframe(gap_filled=gap_filled)
 
     if current_date is None:
         current_date = df["date"].iloc[-1]
@@ -289,19 +287,19 @@ def plot_current_year_melt_over_baseline_stats(
     if len(datetimes) == 0:
         return
 
-    # print("=========================================================")
-    # print(datetime_start, current_date)
-    # print(datetimes)
-    # print(melt_pcts)
-    # print(records_in_range)
+    # logger.info("=========================================================")
+    # logger.info(datetime_start, current_date)
+    # logger.info(datetimes)
+    # logger.info(melt_pcts)
+    # logger.info(records_in_range)
 
     datetimes, melt_pcts = _add_nans_in_gaps(datetimes, melt_pcts, gap_days_max=4)
 
-    # print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-    # print(datetime_start, current_date)
-    # print(datetimes)
-    # print(melt_pcts)
-    # print(records_in_range)
+    # logger.info("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    # logger.info(datetime_start, current_date)
+    # logger.info(datetimes)
+    # logger.info(melt_pcts)
+    # logger.info(records_in_range)
 
     if current_date > datetimes[-1]:
         current_date = datetimes[-1]
@@ -322,7 +320,6 @@ def plot_current_year_melt_over_baseline_stats(
         gap_filled=gap_filled,
         add_max_line=add_max_line,
         dpi=dpi,
-        verbose=verbose,
     )
 
     return
@@ -331,10 +328,10 @@ def plot_current_year_melt_over_baseline_stats(
 def _add_nans_in_gaps(datetimes, melt_pcts, gap_days_max=4):
     """Add nans to areas with large day gaps to make blanks in data series when plotted."""
     time_deltas = [(datetimes[i + 1] - datetimes[i]) for i in range(len(datetimes) - 1)]
-    # print(time_deltas)
+    # logger.info(time_deltas)
 
     gap_indices = numpy.where([td.days > gap_days_max for td in time_deltas])[0]
-    # print(gap_indices)
+    # logger.info(gap_indices)
 
     last_gap_index = 0
     new_datetimes = []
@@ -372,7 +369,6 @@ def _plot_current_year_and_baseline(
     gap_filled=True,
     add_max_line=False,
     dpi=300,
-    verbose=True,
 ):
     """Plot the current year's melt over the top of the baseline climatology.
 
@@ -389,8 +385,6 @@ def _plot_current_year_and_baseline(
     region_num: 0 thru 7. See tb_file_data.antarctic_regions_dict for details.
 
     outfile:   Image file to write out.
-
-    verbose:   Verbose output.
 
     Return
     ------
@@ -413,7 +407,6 @@ def _plot_current_year_and_baseline(
         add_max_line=add_max_line,
         current_year_percents_for_printout=current_year_percents,
         gap_filled=gap_filled,
-        verbose=verbose,
     )
 
     plot_label = (
@@ -445,8 +438,7 @@ def _plot_current_year_and_baseline(
             base, ext = os.path.splitext(outfile)
             outfile = base + "_gap_filled" + ext
 
-        if verbose:
-            print("Plotting", outfile)
+        logger.debug(f"Plotting {outfile}")
         if os.path.splitext(outfile)[1].lower() == ".eps":
             fig.savefig(outfile, dpi=dpi, format="eps")
         else:
@@ -460,15 +452,14 @@ def _get_previous_max_melt_values(
     fraction_or_area="fraction",
     region_num=0,
     gap_filled=True,
-    verbose=True,
 ):
     # For a given set of datetimes in a melt year, return the previous datetime and previous max melt value
     # ("fraction" or "area") of the previous highest melt in the observational record.
     # Return two arrays, each of equal length to "current_datetimes":
     #    previous_melt_dts = previous datetime of each max melt. Each datetime should have the same "month, day" value and be from a previous year.
     #    previous_melt_vals = previous maximum melt value ("fraction" or "area") associated with that datetime, in the region specified.
-    df = read_daily_melt_numbers_as_dataframe(gap_filled=gap_filled, verbose=verbose)
-    # print(df)
+    df = read_daily_melt_numbers_as_dataframe(gap_filled=gap_filled)
+    # logger.info(df)
 
     # Convert the "YYYY-MM-DD" column into datetime objects.
     # melt_dates_all = numpy.array([datetime.datetime.strptime(date, "%Y-%d-%m") for date in df['date']])
@@ -522,7 +513,6 @@ def _plot_baseline_climatology(
     dpi=150,
     current_year_percents_for_printout=None,
     gap_filled=True,
-    verbose=True,
 ):
     """Plot the baseline (median, inter-quartile, inter-decile) melt ranges into a matplotlib axis.
 
@@ -554,7 +544,8 @@ def _plot_baseline_climatology(
     If "return_axes" is False or None, return None.
     """
     md_tuples, p10, p25, p50, p75, p90 = _get_baseline_percentiles_from_csv(
-        region_number=region_num, gap_filled=gap_filled, verbose=False
+        region_number=region_num,
+        gap_filled=gap_filled,
     )
     # Convert to percentages
     p10 = p10 * 100.0
@@ -645,7 +636,6 @@ def _plot_baseline_climatology(
             fraction_or_area="fraction",
             region_num=region_num,
             gap_filled=gap_filled,
-            verbose=verbose,
         )
 
         # Plot the previous max in a thin organge line.
@@ -661,25 +651,24 @@ def _plot_baseline_climatology(
         # label='{0} - {1} Daily Maximum'.format(1979, datetimes[-1].year - 1))
 
         # NOTE: If I want to query what the previous dates were, I can put some logic here to print them to the console.
-        if verbose:
-            print("============")
-            print("Region {0} previous maximums:".format(region_num))
-            print(
-                "-- prev_date -- max_pct -- max_area -- cur_date -- cur_pct -- cur_area --"
+        logger.debug("============")
+        logger.debug("Region {0} previous maximums:".format(region_num))
+        logger.debug(
+            "-- prev_date -- max_pct -- max_area -- cur_date -- cur_pct -- cur_area --"
+        )
+        region_area_km2 = _get_region_area_km2(region_num)
+        for pdt, pm, cdt, cm in zip(
+            max_dts, max_melt_frac, datetimes, current_year_percents_for_printout
+        ):
+            logger.debug(
+                f"{pandas.Timestamp(pdt).to_pydatetime().strftime('%Y-%m-%d')}"
+                + "      {0:>5.2f}  ".format(pm * 100.0)
+                + "  {0:>7.0f}   ".format(pm * region_area_km2)
+                + f"{cdt.strftime('%Y-%m-%d')}"
+                + "  {0:>5.2f}  ".format(cm)
+                + "  {0:>7.0f}".format(cm / 100.0 * region_area_km2)
+                + ("**" if cm > (pm * 100) else "")
             )
-            region_area_km2 = _get_region_area_km2(region_num)
-            for pdt, pm, cdt, cm in zip(
-                max_dts, max_melt_frac, datetimes, current_year_percents_for_printout
-            ):
-                print(
-                    pandas.Timestamp(pdt).to_pydatetime().strftime("%Y-%m-%d"),
-                    "      {0:>5.2f}  ".format(pm * 100.0),
-                    "  {0:>7.0f}   ".format(pm * region_area_km2),
-                    cdt.strftime("%Y-%m-%d"),
-                    "  {0:>5.2f}  ".format(cm),
-                    "  {0:>7.0f}".format(cm / 100.0 * region_area_km2),
-                    "**" if cm > (pm * 100) else "",
-                )
 
     # Put ticks every month, month names in between.
     ax.xaxis.set_major_locator(mpl.dates.MonthLocator())  # Tick every month.
@@ -712,8 +701,7 @@ def _plot_baseline_climatology(
         _add_plot_legend(ax, adjust_ylim_range=True)
 
     if outfile:
-        if verbose:
-            print("Plotting", outfile)
+        logger.debug(f"Plotting {outfile}")
         if os.path.splitext(outfile)[1].lower() == ".eps":
             fig.savefig(outfile, dpi=dpi, format="eps")
         else:
@@ -728,7 +716,9 @@ def _plot_baseline_climatology(
 
 
 def _get_baseline_percentiles_from_csv(
-    region_number=0, df=None, gap_filled=True, verbose=True
+    region_number=0,
+    df=None,
+    gap_filled=True,
 ):
     """Read the Antarctica Today baseline climatologies, return the (month,day) tuples and the 10,25,50,75,90th percentiles.
 
@@ -737,7 +727,6 @@ def _get_baseline_percentiles_from_csv(
     region_num: 0 thru 7. See tb_file_data.antarctic_regions_dict for details.
     df:  Pandas datafram containing the data. If None, open the dataframe and read from it.
         (Useful to open it only once and pass it along if we will be calling this function repeatedlly.)
-    verbose: Specifies whether to provide feedback (primarily if opening the CSV file.)
 
     Return
     ------
@@ -750,9 +739,7 @@ def _get_baseline_percentiles_from_csv(
         - numpy array of 90th percentile values for each day.
     """
     if not df:
-        df = open_baseline_climatology_csv_as_dataframe(
-            gap_filled=gap_filled, verbose=verbose
-        )
+        df = open_baseline_climatology_csv_as_dataframe(gap_filled=gap_filled)
 
     assert 0 <= region_number < len(antarctic_regions_dict)
 
@@ -785,14 +772,6 @@ def DO_IT_ALL(gap_filled=True):
 
 
 def special_figure_REG5_FEB_APR_2022(outfile):
-    region_num = 5
-    doy_start = (2, 1)
-    doy_end = (4, 30)
-    gap_filled = True
-    add_max_line = True
-    dpi = 600
-    verbose = True
-    current_date = None
     """Read the melt data for the melt year up through the "current_datetime", and plot over the baseline climatology.
 
     current_datetime should be a date within the melt season (October 1 thru April 30).
@@ -811,13 +790,18 @@ def special_figure_REG5_FEB_APR_2022(outfile):
 
     outfile:   Image file to write out.
 
-    verbose:   Verbose output.
-
     Return
     ------
     None
     """
-    df = read_daily_melt_numbers_as_dataframe(verbose=False, gap_filled=gap_filled)
+    region_num = 5
+    doy_start = (2, 1)
+    doy_end = (4, 30)
+    gap_filled = True
+    add_max_line = True
+    dpi = 600
+    current_date = None
+    df = read_daily_melt_numbers_as_dataframe(gap_filled=gap_filled)
 
     if current_date is None:
         current_date = df["date"].iloc[-1]
@@ -865,19 +849,19 @@ def special_figure_REG5_FEB_APR_2022(outfile):
     if len(datetimes) == 0:
         return
 
-    # print("=========================================================")
-    # print(datetime_start, current_date)
-    # print(datetimes)
-    # print(melt_pcts)
-    # print(records_in_range)
+    # logger.info("=========================================================")
+    # logger.info(datetime_start, current_date)
+    # logger.info(datetimes)
+    # logger.info(melt_pcts)
+    # logger.info(records_in_range)
 
     datetimes, melt_pcts = _add_nans_in_gaps(datetimes, melt_areas, gap_days_max=4)
 
-    # print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-    # print(datetime_start, current_date)
-    # print(datetimes)
-    # print(melt_pcts)
-    # print(records_in_range)
+    # logger.info("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    # logger.info(datetime_start, current_date)
+    # logger.info(datetimes)
+    # logger.info(melt_pcts)
+    # logger.info(records_in_range)
 
     if current_date > datetimes[-1]:
         current_date = datetimes[-1]
@@ -1017,9 +1001,7 @@ def special_figure_REG5_FEB_APR_2022(outfile):
         - numpy array of 75th percentile values for each day.
         - numpy array of 90th percentile values for each day.
     """
-    dfb = open_baseline_climatology_csv_as_dataframe(
-        gap_filled=gap_filled, verbose=verbose
-    )
+    dfb = open_baseline_climatology_csv_as_dataframe(gap_filled=gap_filled)
 
     assert 0 <= region_num < len(antarctic_regions_dict)
 
@@ -1142,7 +1124,6 @@ def special_figure_REG5_FEB_APR_2022(outfile):
         fraction_or_area="area",
         region_num=region_num,
         gap_filled=gap_filled,
-        verbose=verbose,
     )
 
     # Plot the previous max in a thin organge line.
@@ -1159,12 +1140,12 @@ def special_figure_REG5_FEB_APR_2022(outfile):
 
     # NOTE: If I want to query what the previous dates were, I can put some logic here to print them to the console.
     # if verbose:
-    #     print("============")
-    #     print("Region {0} previous maximums:".format(region_num))
-    #     print("-- prev_date -- max_pct -- max_area -- cur_date -- cur_pct -- cur_area --")
+    #     logger.info("============")
+    #     logger.info("Region {0} previous maximums:".format(region_num))
+    #     logger.info("-- prev_date -- max_pct -- max_area -- cur_date -- cur_pct -- cur_area --")
     #     region_area_km2 = _get_region_area_km2(region_num)
     #     for pdt, pm, cdt, cm in zip(max_dts, max_melt_frac, datetimes, current_year_percents_for_printout):
-    #         print(pandas.Timestamp(pdt).to_pydatetime().strftime("%Y-%m-%d"),
+    #         logger.info(pandas.Timestamp(pdt).to_pydatetime().strftime("%Y-%m-%d"),
     #               "      {0:>5.2f}  ".format(pm * 100.),
     #               "  {0:>7.0f}   ".format(pm * region_area_km2),
     #               cdt.strftime("%Y-%m-%d"),
@@ -1202,7 +1183,7 @@ def special_figure_REG5_FEB_APR_2022(outfile):
 
     # if outfile:
     #     if verbose:
-    #         print("Plotting", outfile)
+    #         logger.info("Plotting", outfile)
     #     if os.path.splitext(outfile)[1].lower() == ".eps":
     #         fig.savefig(outfile, dpi=dpi, format="eps")
     #     else:
@@ -1246,8 +1227,7 @@ def special_figure_REG5_FEB_APR_2022(outfile):
             base, ext = os.path.splitext(outfile)
             outfile = base + "_gap_filled" + ext
 
-        if verbose:
-            print("Plotting", outfile)
+        logger.debug(f"Plotting {outfile}")
         if os.path.splitext(outfile)[1].lower() == ".eps":
             fig.savefig(outfile, dpi=dpi, format="eps")
         else:
@@ -1290,7 +1270,6 @@ if __name__ == "__main__":
                 dpi=1200,
                 add_max_line=False,
                 gap_filled=True,
-                verbose=True,
             )
 
     # df = plot_current_year_melt_over_baseline_stats(datetime.datetime(2020,6,30))

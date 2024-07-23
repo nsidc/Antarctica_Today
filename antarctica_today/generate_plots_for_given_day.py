@@ -10,6 +10,7 @@ import shutil
 
 import dateutil.parser
 import matplotlib.pyplot
+from loguru import logger
 
 from antarctica_today import (
     generate_antarctica_today_map,
@@ -105,7 +106,6 @@ def generate_maps_and_plots_for_a_date(
             gap_filled=True,
             dpi=dpi,
             outfile=lineplot_outfile,
-            verbose=True,
         )
 
         # Close the current plots open in matplotlib. (Keeps them from accumulating.)
@@ -174,7 +174,7 @@ def generate_maps_and_plots_for_a_date(
         )
         if not os.path.exists(dest_dir_location):
             os.mkdir(dest_dir_location)
-            print("Created directory '{0}'.".format(dest_dir_location))
+            logger.info("Created directory '{0}'.".format(dest_dir_location))
 
         for fn in files_to_move:
             src = fn
@@ -184,7 +184,7 @@ def generate_maps_and_plots_for_a_date(
 
             shutil.copyfile(src, dst)
 
-            print("{0} -> {1}.".format(src, dst))
+            logger.info("{0} -> {1}.".format(src, dst))
 
 
 def define_and_parse_args():

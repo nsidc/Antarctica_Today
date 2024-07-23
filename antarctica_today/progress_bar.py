@@ -34,10 +34,10 @@ def ProgressBar(
     )
     filledLength = int((length * iteration) // total)
     bar = fill * filledLength + "-" * (length - filledLength)
-    print(f"\r{prefix} |{bar}| {percent}% {suffix}", end=printEnd)
+    print(f"\r{prefix} |{bar}| {percent}% {suffix}", end=printEnd)  # noqa: T201
     # Print New Line on Complete
     if iteration == total:
-        print()
+        print()  # noqa: T201
 
 
 # Sample Usage

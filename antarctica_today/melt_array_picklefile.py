@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any, Dict, Tuple
 
 import numpy
+from loguru import logger
 from osgeo import gdal
 
 from antarctica_today.map_filedata import ice_mask_tif
@@ -76,37 +77,36 @@ def find_largest_melt_days_in_an_interval(
     top_dts = datetimes_in_interval[max_interval_index]
 
     if top_n:
-        print(top_melt)
-        print([dt.astype(datetime.datetime).strftime("%Y-%m-%d") for dt in top_dts])
+        logger.info(str(top_melt))
+        logger.info(
+            str([dt.astype(datetime.datetime).strftime("%Y-%m-%d") for dt in top_dts])
+        )
     else:
-        print(
+        logger.info(
             "{0} km2 in {1}".format(
                 top_melt, top_dts.astype(datetime.datetime).strftime("%Y-%m-%d")
             )
         )
 
 
-def get_array_from_model_files(file_dir=model_results_dir, verbose=True):
+def get_array_from_model_files(file_dir=model_results_dir, progress=True):
     """Take the individual .bin arrays for each day, and turn it into a M x N x T shaped numpy array."""
     file_list = recurse_directory(file_dir)
 
     first_file_data = read_NSIDC_bin_file(file_list[0], return_type=int)
-    # print(first_file_data.shape)
-    # print(first_file_data)
-    # print(numpy.unique(first_file_data)) # Values are -1, 0, 1, 2... look from
+    # logger.info(first_file_data.shape)
+    # logger.info(first_file_data)
+    # logger.info(numpy.unique(first_file_data)) # Values are -1, 0, 1, 2... look from
     # Tom what each of those values actually means.
 
     # 3D array, Y x X x T
     array_shape = first_file_data.shape + (len(file_list),)
     data_array = numpy.empty(array_shape, dtype=first_file_data.dtype)
 
-    if verbose:
-        print(
-            "Retrieving melt data from {0} binary (.bin) files.".format(len(file_list))
-        )
+    logger.debug(f"Retrieving melt data from {len(file_list)} binary (.bin) files.")
 
     for i, fname in enumerate(file_list):
-        if verbose:
+        if progress:
             ProgressBar(
                 i + 1,
                 len(file_list),
@@ -134,7 +134,7 @@ def save_model_array_picklefile(
     pickle.dump((data_array, datetime_dict), f)
     f.close()
 
-    print(picklefile, "written.")
+    logger.info(f"Wrote {picklefile}")
     return data_array, datetime_dict
 
 
@@ -158,7 +158,6 @@ def read_model_array_picklefile(
     filter_out_error_swaths=True,
     resample_melt_codes=False,
     resample_melt_code_threshold=4,
-    verbose=True,
 ):
     """Read the model array picklefile.
 
@@ -171,13 +170,11 @@ def read_model_array_picklefile(
     and irrelevant to the v3 data.
     Just keep "resample_melt_codes" to False when running with v3 code.
     """
-    if verbose:
-        print("Reading", os.path.split(picklefile)[-1] + "...", end="")
+    logger.debug(f"Reading {os.path.split(picklefile)[-1]}...")
     f = open(picklefile, "rb")
     model_array, datetime_dict = pickle.load(f)
     f.close()
-    if verbose:
-        print("Done.")
+    logger.debug("Done.")
 
     if fill_pole_hole:
         # Fill the pole hole (any missing values) with "no melt" (1)
@@ -324,11 +321,9 @@ def _filter_out_erroneous_swaths(model_array, datetimes_dict):
 
 def read_gap_filled_melt_picklefile(
     picklefile: Path = gap_filled_melt_picklefile,
-    verbose: bool = True,
 ) -> Tuple[numpy.ndarray, Dict[datetime.datetime, int]]:
     """Read the gap-filled picklefile, return to user."""
-    if verbose:
-        print("Reading", picklefile)
+    logger.debug(f"Reading {picklefile}")
 
     with open(picklefile, "rb") as f:
         array, dt_dict = pickle.load(f)

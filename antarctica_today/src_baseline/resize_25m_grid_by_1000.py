@@ -9,6 +9,7 @@ of Dan Dixon's 10m temp plot to be km instead of mis-scaled as m.
 
 import os
 
+from loguru import logger
 from osgeo import gdal
 
 infile = "C:/Users/mmacferrin/Dropbox/Research/Antarctica_Today/Dan Dixon/derived/polar_grid_10m_temps_25m_OFF_BY_1000.tif"
@@ -45,4 +46,4 @@ band_out.SetStatistics(*stats_in)
 ds_out.FlushCache()
 band_out = None
 ds_out = None
-print(outfile, "written.")
+logger.info(f"Wrote {outfile}")

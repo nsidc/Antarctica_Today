@@ -41,6 +41,7 @@ from typing import List
 
 import dateutil.parser
 import earthaccess
+from loguru import logger
 
 from antarctica_today.constants.paths import DATA_TB_DIR
 
@@ -72,7 +73,7 @@ CMR_FILE_URL = (
 def build_version_query_params(version):
     desired_pad_length = 3
     if len(version) > desired_pad_length:
-        print('Version string too long: "{0}"'.format(version))
+        logger.info('Version string too long: "{0}"'.format(version))
         quit()
 
     version = str(int(version))  # Strip off any leading zeros
@@ -142,7 +143,9 @@ def output_progress(count, total, status="", bar_len=60):
     percents = int(round(100.0 * fraction))
     bar = "=" * filled_len + " " * (bar_len - filled_len)
     fmt = "  [{0}] {1:3d}%  {2}   ".format(bar, percents, status)
-    print("\b" * (len(fmt) + 4), end="")  # clears the line
+
+    # Clear the line
+    print("\b" * (len(fmt) + 4), end="")  # noqa: T201
     sys.stdout.write(fmt)
     sys.stdout.flush()
 
@@ -156,25 +159,23 @@ def cmr_read_in_chunks(file_object, chunk_size=1024 * 1024):
         yield data
 
 
-def cmr_download(urls, force=False, quiet=False, output_directory=None):
+def cmr_download(urls, force=False, progress=False, output_directory=None):
     """Download files from list of urls."""
     if not urls:
         return
 
     url_count = len(urls)
-    if not quiet:
-        print(f"Downloading {url_count} files...")
+    logger.info(f"Downloading {url_count} files...")
 
     files_saved = []
 
     for index, url in enumerate(urls, start=1):
         filename = url.split("/")[-1]
-        if not quiet:
-            print(
-                "{0}/{1}: {2}".format(
-                    str(index).zfill(len(str(url_count))), url_count, filename
-                )
+        logger.debug(
+            "{0}/{1}: {2}".format(
+                str(index).zfill(len(str(url_count))), url_count, filename
             )
+        )
 
         # Put the new file into the output directory where we want it.
         if output_directory:
@@ -189,8 +190,7 @@ def cmr_download(urls, force=False, quiet=False, output_directory=None):
             length = int(response.headers["content-length"])
             try:
                 if not force and length == os.path.getsize(filename):
-                    if not quiet:
-                        print("  File exists, skipping")
+                    logger.debug("  File exists, skipping")
                     continue
             except OSError:
                 pass
@@ -201,21 +201,21 @@ def cmr_download(urls, force=False, quiet=False, output_directory=None):
             with open(filename, "wb") as out_file:
                 for data in cmr_read_in_chunks(response, chunk_size=chunk_size):
                     out_file.write(data)
-                    if not quiet:
+                    if progress:
                         count = count + 1
                         time_elapsed = time.time() - time_initial
                         download_speed = get_speed(time_elapsed, count * chunk_size)
                         output_progress(count, max_chunks, status=download_speed)
-            if not quiet:
-                print()
+            logger.debug("")
 
             files_saved.append(filename)
 
         except HTTPError as e:
-            print(f"HTTP error {e.code}, {e.reason} ({e.url})".format(e.code, e.reason))
+            logger.error(f"HTTP error {e.code}, {e.reason} ({e.url})")
             raise
         except URLError as e:
-            print(f"URL error: {e.reason} ({e.url})")
+            logger.warning(f"URL error: {e.reason} ({e.url})")
+            # TODO: Why don't we `raise` here?
         except IOError:
             raise
 
@@ -301,11 +301,11 @@ def download_new_files(
 
         if only_in_melt_season:
             results = filter_data_only_in_melt_season(results)
-            print(
+            logger.info(
                 f"Found {len(results)} downloadable granules within the Antarctic melt season."
             )
         else:
-            print(f"Found {len(results)} downloadable granules.")
+            logger.info(f"Found {len(results)} downloadable granules.")
 
         # If there are no granules to download, return an empty list of files without bothering to call "download()."
         if len(results) == 0:

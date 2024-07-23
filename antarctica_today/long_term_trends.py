@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import numpy
 import statsmodels
 import statsmodels.api
+from loguru import logger
 from osgeo import gdal
 from statsmodels.stats.outliers_influence import summary_table
 
@@ -151,7 +152,6 @@ def plot_time_series(
     offset_years_by_one=True,
     add_confidence_intervals=True,
     add_prediction_intervals=True,
-    verbose=True,
 ):
     """Create a plot of the time series of melt.
 
@@ -265,21 +265,19 @@ def plot_time_series(
 
         # If go into all this if we've indicated we might want to plot a trendline.
         if include_trendline or include_trendline_only_if_significant:
-            # print(results.params)
-            # print(results.pvalues)
+            # logger.info(results.params)
+            # logger.info(results.pvalues)
             pval_int, pval_slope = results.pvalues
             intercept, slope = results.params
             # fit_func = numpy.poly1d((slope, intercept))
 
             if print_trendline_summary:
-                print("\n")
-                print(
-                    "============",
-                    antarctic_regions_dict[region_n] + ",",
-                    melt_index_or_extent,
-                    "==============",
+                logger.info("\n")
+                logger.info(
+                    f"============ {antarctic_regions_dict[region_n]} ,"
+                    f"{melt_index_or_extent} =============="
                 )
-                print(results.summary())
+                logger.info(results.summary())
 
             if include_trendline or (
                 pval_slope <= 0.05 and include_trendline_only_if_significant
@@ -388,8 +386,7 @@ def plot_time_series(
             else:
                 fname = fname_template.format(region_n)
                 fig.savefig(fname, dpi=dpi)
-                if verbose:
-                    print(fname, "written.")
+                logger.debug(f"Wrote {fname}")
 
             plt.close(fig)
 
@@ -450,7 +447,7 @@ def special_plot_antarctica_and_peninsula_index(
     for fmt in (".png", ".svg"):
         figname = os.path.splitext(figname)[0] + fmt
         fig.savefig(figname, dpi=600)
-        print(figname, "written.")
+        logger.info(f"Wrote {figname}")
 
     return results
 
@@ -462,7 +459,7 @@ def special_plot_antarctica_and_all_regions(
 ):
     """Make a special plot for the BAMS report, having all the regions in it."""
     fig, axes = plt.subplots(2, 4, sharex=True, sharey=False, figsize=(12.0, 4.0))
-    print(axes)
+    logger.info(axes)
 
     for region in range(8):
         ax = axes[int(int(region) / 4), int(region % 4)]
@@ -574,7 +571,7 @@ def special_plot_antarctica_and_all_regions(
     for fmt in (".png", ".svg"):
         figname = os.path.splitext(figname)[0] + fmt
         fig.savefig(figname, dpi=600)
-        print(figname, "written.")
+        logger.info(f"Wrote {figname}")
 
     return
 
@@ -585,13 +582,12 @@ def compare_ind_year_to_baseline_averages(
     baseline_end=2019,
     gap_filled=True,
     omit_1987=True,
-    verbose=True,
 ):
     """Print a chart that compares the baseline annual sum melt indices
     (mean, std, min_base, max_base, min_all, max_all, mi_this_year) for each region.
     """
-    print("All values in km2*days, x 1e3.")
-    print(
+    logger.info("All values in km2*days, x 1e3.")
+    logger.info(
         "R# | {0:>8s} | {1:>8s} | {2:>8s} | {3:>8s} | {4:>8s} | {5:>8s} | {6:>8s} | {7:>8d}".format(
             "BL-med",
             "BL-mean",
@@ -627,7 +623,7 @@ def compare_ind_year_to_baseline_averages(
         assert len(melt_i_this_year) == 1
         melt_i_this_year = melt_i_this_year[0]
 
-        print(
+        logger.info(
             "{0:>2d} | {1:>8.1f} | {2:>8.1f} | {3:>8.1f} | {4:>8.1f} | {5:>8.1f} | {6:>8.1f} | {7:>8.1f} | {8:>8.1f}".format(
                 region,
                 baseline_med * 1e-3,
@@ -656,7 +652,6 @@ if __name__ == "__main__":
     #                       offset_years_by_one=True,
     #                       include_trendline=False,
     #                       dpi=300,
-    #                       extent_melt_days_threshold = 1,
-    #                       verbose=True)
+    #                       extent_melt_days_threshold = 1)
     # special_plot_antarctica_and_all_regions()
     compare_ind_year_to_baseline_averages(2021)

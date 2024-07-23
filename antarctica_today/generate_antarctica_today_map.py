@@ -20,6 +20,7 @@ import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy
 import PIL
+from loguru import logger
 from osgeo import gdal
 
 from antarctica_today import read_NSIDC_bin_file, write_NSIDC_bin_to_gtif
@@ -53,7 +54,8 @@ def main():
     """Do stuff I want to do here."""
 
     m = AT_map_generator(
-        fill_pole_hole=False, filter_out_error_swaths=True, verbose=True
+        fill_pole_hole=False,
+        filter_out_error_swaths=True,
     )
 
     for region in [
@@ -207,13 +209,6 @@ def read_and_parse_args():
         default=False,
         help="Omit the legend. Default if not set: include a legend.",
     )
-    parser.add_argument(
-        "--verbose",
-        "-v",
-        action="store_true",
-        default=False,
-        help="Increase output verbosity.",
-    )
 
     return parser.parse_args()
 
@@ -230,7 +225,6 @@ class AT_map_generator:
         melt_array_picklefile=model_results_picklefile,
         fill_pole_hole=True,
         filter_out_error_swaths=True,
-        verbose=True,
     ):
         """Initialize the class."""
         self.melt_array_picklefile = melt_array_picklefile
@@ -240,7 +234,6 @@ class AT_map_generator:
         # Options for reading and/or gap-filling the data.
         self.OPT_fill_pole_hole = fill_pole_hole
         self.OPT_filter_out_error_swaths = filter_out_error_swaths
-        self.OPT_verbose = verbose
 
         # Containers to store the pickled data for each basemap figure and axes object.
         # Can generate these once and save them to a picklefile, both on disk and
@@ -288,7 +281,6 @@ class AT_map_generator:
             ) = read_model_array_picklefile(
                 fill_pole_hole=self.OPT_fill_pole_hole,
                 filter_out_error_swaths=self.OPT_filter_out_error_swaths,
-                verbose=self.OPT_verbose,
             )
 
         return self.cached_melt_array, self.cached_datetime_dict
@@ -330,7 +322,6 @@ class AT_map_generator:
                 picklefile=self.melt_array_picklefile,
                 fill_pole_hole=self.OPT_fill_pole_hole,
                 filter_out_error_swaths=self.OPT_filter_out_error_swaths,
-                verbose=self.OPT_verbose,
             )
 
         return self.melt_array, self.datetimes_dict
@@ -452,8 +443,7 @@ class AT_map_generator:
         Use the cached version if already read.
         """
         if self.mountains_df is None:
-            if self.OPT_verbose:
-                print("Reading", mountains_shapefile_path)
+            logger.debug(f"Reading {mountains_shapefile_path}")
             self.mountains_df = geopandas.read_file(
                 mountains_shapefile_path, crs=self.SPS_projection.proj4_init
             )
@@ -561,8 +551,7 @@ class AT_map_generator:
             f = open(fname, "wb")
             pickle.dump(fig, f)
             f.close()
-            if self.OPT_verbose:
-                print(fname, "written.")
+            logger.debug(f"Wrote {fname}")
 
         return fig, ax
 
@@ -579,8 +568,7 @@ class AT_map_generator:
         if not os.path.exists(fname):
             return None, None
 
-        if self.OPT_verbose:
-            print("Reading", fname)
+        logger.debug(f"Reading {fname}")
 
         # Read the picklefile
         f = open(fname, "rb")
@@ -898,8 +886,7 @@ class AT_map_generator:
             return
         # svgclip.py isn't working... can't seem to resolve the Rsvg namespace.
         # svgclip.clip(filename, filename, margin=0)
-        # if self.OPT_verbose:
-        #     print(filename, "trimmed.")
+        # logger.debug(f"Trimmed {filename}")
 
         else:
             bg = PIL.Image.new(im.mode, im.size, im.getpixel((0, 0)))
@@ -909,8 +896,7 @@ class AT_map_generator:
             if bbox:
                 im2 = im.crop(bbox)
                 im2.save(filename)
-                if self.OPT_verbose:
-                    print(filename, "trimmed.")
+                logger.debug(f"Trimmed {filename}")
 
         return
 
@@ -1413,9 +1399,9 @@ class AT_map_generator:
 
         import numpy
 
-        print(numpy.unique(data_array))
+        logger.info(numpy.unique(data_array))
         for i in range(-1, 8 + 1):
-            print(i, numpy.count_nonzero(data_array == i))
+            logger.info(f"{i} {numpy.count_nonzero(data_array == i)}")
 
         # Plot the data
         ax.pcolormesh(
@@ -1436,7 +1422,7 @@ class AT_map_generator:
             fig.savefig(outfile, dpi=150, format="eps")
         else:
             fig.savefig(outfile, dpi=150)
-        print(outfile, "written.")
+        logger.info(f"Wrote {outfile}")
 
         self._strip_empty_image_border(outfile)
 
@@ -1517,8 +1503,7 @@ class AT_map_generator:
             infile = os.path.join(model_results_dir, max(os.listdir(model_results_dir)))
 
         # 1: Read the data file into an array.
-        if self.OPT_verbose:
-            print("Reading", infile)
+        logger.debug(f"Reading {infile}")
 
         infile_ext = os.path.splitext(infile)[-1].lower()
         # If it's a GeoTiff
@@ -1597,8 +1582,7 @@ class AT_map_generator:
             else:
                 fig.savefig(outfile, dpi=new_dpi)
 
-            if self.OPT_verbose:
-                print(outfile, "written.")
+            logger.debug(f"Wrote {outfile}")
 
             self._strip_empty_image_border(outfile)
 
@@ -1773,8 +1757,7 @@ class AT_map_generator:
             else:
                 fig.savefig(outfile_fname, dpi=new_dpi)
 
-            if self.OPT_verbose:
-                print(outfile_fname, "written.")
+            logger.debug(f"Wrote {outfile_fname}")
 
             self._strip_empty_image_border(outfile_fname)
 
@@ -1800,7 +1783,6 @@ class AT_map_generator:
         keep_year_label_wrapped=True,
         reset_picklefile=False,
         message_below_year="relative to 1990-2020",
-        verbose=True,
     ):
         """Generate a cumulative annual anomaly melt map compared to the baseline climatology period.
 
@@ -1874,7 +1856,7 @@ class AT_map_generator:
 
             if mmdd_of_year is None:
                 # Just get the annual anomlay map for that year.
-                anomaly_data = read_annual_melt_anomaly_tif(year=year, verbose=verbose)
+                anomaly_data = read_annual_melt_anomaly_tif(year=year)
             else:
                 datetime_this_year = datetime.datetime(
                     year=year
@@ -1885,7 +1867,6 @@ class AT_map_generator:
                 anomaly_data = create_partial_year_melt_anomaly_tif(
                     current_datetime=datetime_this_year,
                     gap_filled=False,
-                    verbose=verbose,
                 )
 
             if anomaly_data is None:
@@ -1952,8 +1933,7 @@ class AT_map_generator:
             else:
                 fig.savefig(outfile_fname, dpi=new_dpi)
 
-            if self.OPT_verbose:
-                print(outfile_fname, "written.")
+            logger.debug(f"Wrote {outfile_fname}")
 
             self._strip_empty_image_border(outfile_fname)
 
@@ -1977,7 +1957,6 @@ class AT_map_generator:
         keep_year_label_wrapped=True,
         reset_picklefile=False,
         message_below_year=None,
-        verbose=True,
     ):
         """Same as generate_anomaly_melt_map, but do it for only a partial year,
         up until the last day of data that we have in the melt array.
@@ -2009,7 +1988,6 @@ class AT_map_generator:
             keep_year_label_wrapped=keep_year_label_wrapped,
             reset_picklefile=reset_picklefile,
             message_below_year=message_below_year,
-            verbose=verbose,
         )
 
 
@@ -2025,7 +2003,7 @@ def SPECIAL_make_map_with_borders(year=2020):
         DATA_QGIS_DIR / "basins " / "Antarctic_Regions_v2_interior_borders.shp"
     )
 
-    at = AT_map_generator(fill_pole_hole=False, verbose=True)
+    at = AT_map_generator(fill_pole_hole=False)
     for fmt in ("png", "svg"):
         # for fmt in ("png",):
         fname = os.path.join(
@@ -2137,7 +2115,7 @@ def SPECIAL_make_map_with_borders(year=2020):
             fig.savefig(fname, dpi=dpi)
         at._strip_empty_image_border(fname)
 
-        print(fname, "overwritten.")
+        logger.info(f"Overwrote {fname}")
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ import os
 
 import numpy
 import pandas as pd
+from loguru import logger
 from matplotlib import pyplot as plt
 
 EGM96 = True
@@ -19,7 +20,7 @@ thermap_df = pd.read_csv(THERMAP_CSV, header=0)
 thermap_df["REMA_Elev"] = [0] * len(thermap_df)
 thermap_df["REMA_or_Thermap_Elev"] = [0] * len(thermap_df)
 
-print(thermap_df.columns)
+logger.info(thermap_df.columns)
 
 elevs = thermap_df["Elev"]
 lons = thermap_df["Lon(W)"]
@@ -40,11 +41,10 @@ for idx, row in thermap_df.iterrows():
         )
     )
     try:
-        print(
+        logger.info(
             "{0:>30s} {1:0.2f} {2:0.2f}, {4:0.2f}*C, {3:0.1f} -> ".format(
                 row["Name"], row["Lat(S)"], row["Lon(W)"], row["Elev"], row["Temp"]
-            ),
-            end="",
+            )
         )
         elev_value = float(return_line.read())
         row["REMA_Elev"] = float(elev_value)
@@ -61,12 +61,12 @@ for idx, row in thermap_df.iterrows():
 
     rema_elevs[idx] = row["REMA_Elev"]  # type: ignore [call-overload]
     rema_or_thermap_elevs[idx] = row["REMA_or_Thermap_Elev"]  # type: ignore [call-overload]
-    print("{0:0.1f}".format(row["REMA_Elev"]))
+    logger.info("-> {0:0.1f}".format(row["REMA_Elev"]))
 
 thermap_df["REMA_Elev"] = rema_elevs
 thermap_df["REMA_or_Thermap_Elev"] = rema_or_thermap_elevs
 
-print("Done")
+logger.info("Done")
 
 fig, ax = plt.subplots(1, 1, figsize=(4, 4))
 ax.set_aspect("equal")
@@ -90,8 +90,8 @@ else:
     )
 
 fig.savefig(fig_outfile, dpi=120)
-print(os.path.split(fig_outfile)[1], "saved.")
+logger.info(f"Saved {os.path.split(fig_outfile)[1]}")
 
 thermap_df.fillna("", inplace=True)
 thermap_df.to_csv(output_csv, index=False, header=True)
-print(os.path.split(output_csv)[1], "saved.")
+logger.info(f"Saved {os.path.split(output_csv)[1]}")
