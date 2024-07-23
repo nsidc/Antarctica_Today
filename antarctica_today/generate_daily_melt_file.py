@@ -21,6 +21,7 @@ from typing import List, Optional
 
 import numpy
 import xarray
+from loguru import logger
 
 from antarctica_today import tb_file_data, write_NSIDC_bin_to_gtif
 from antarctica_today.melt_array_picklefile import get_ice_mask_array
@@ -91,11 +92,13 @@ def generate_new_daily_melt_files(
         # Make sure there's at least one of each file (i.e. exactly one). If not, just skip & continue
         if len(nsidc_fps) == 0:
             if warn_if_missing_files:
-                warnings.warn(
+                msg = (
                     "Warning: At least one NSIDC Tb file on date '"
                     + dt.strftime("%Y%m%d")
                     + "' is missing. Skipping that date."
                 )
+                logger.warning(msg)
+                warnings.warn(msg)
             continue
 
         threshold_file = get_correct_threshold_file(dt)
@@ -119,7 +122,6 @@ def create_daily_melt_file(
     output_bin_filename,
     output_gtif_filename=None,
     Tb_nodata_value=-999,
-    verbose=True,
 ) -> numpy.ndarray:
     """Read input files and generate a daily melt file. Primary function."""
     output_array = read_files_and_generate_melt_array(
@@ -131,7 +133,10 @@ def create_daily_melt_file(
     # Write the output .bin file
     # write_flat_binary.write_array_to_binary(
     write_array_to_binary(
-        output_array, output_bin_filename, numbytes=2, signed=True, verbose=verbose
+        output_array,
+        output_bin_filename,
+        numbytes=2,
+        signed=True,
     )
 
     # Write the output.tif file, if called for
@@ -142,7 +147,6 @@ def create_daily_melt_file(
             resolution=25,
             hemisphere="S",
             nodata=None,
-            verbose=verbose,
         )
 
     return output_array

@@ -3,6 +3,7 @@ from typing import Any, List, Tuple, cast
 import numpy
 import pandas as pd
 import statsmodels.api as sm
+from loguru import logger
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
@@ -30,7 +31,7 @@ axes[0].set_ylabel("10 m temperature (C)")
 
 X = sm.add_constant(elevs)
 model_elev_only = sm.OLS(thermap_df[["Temp"]], X).fit()
-print(model_elev_only.summary())
+logger.info(model_elev_only.summary())
 coefs = model_elev_only.params
 
 
@@ -75,11 +76,11 @@ axes[1].set_xlabel("Latitude (deg)")
 X = thermap_df[["REMA_or_Thermap_Elev", "Lat(S)"]]
 Y = thermap_df[["Temp"]]
 
-print("\n=== Statsmodels ===")
+logger.info("=== Statsmodels ===")
 X = sm.add_constant(X)
 model = sm.OLS(Y, X).fit()
 
-print(model.summary())
+logger.info(model.summary())
 coefs = model.params
 
 temps_lat_corrected_75 = temps - coefs["Lat(S)"] * (75 + lats)
@@ -87,7 +88,7 @@ axes[2].scatter(elevs, temps_lat_corrected_75, color="purple")
 
 # # Compute a quadratic curve through this line.
 # poly_coefs = numpy.polyfit(elevs, temps_lat_corrected_75, deg=2)
-# print(poly_coefs)
+# logger.info(poly_coefs)
 # # Quadratic trend-line
 # trend_x = numpy.linspace(*min_max_elev, 100)
 # trend_y = poly_coefs[0]*(trend_x**2) + poly_coefs[1]*trend_x + poly_coefs[2]

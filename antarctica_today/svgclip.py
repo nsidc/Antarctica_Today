@@ -32,6 +32,7 @@ import subprocess
 
 import cairo
 import gi
+from loguru import logger
 
 gi.require_version("Rsvg", "2.0")
 gi.require_foreign("cairo")
@@ -58,7 +59,7 @@ def get_bounding_box(svgfile):
 
 def print_info(svgfile):
     bbox = get_bounding_box(svgfile)
-    print(
+    logger.info(
         """
 X:      %f
 Y:      %f

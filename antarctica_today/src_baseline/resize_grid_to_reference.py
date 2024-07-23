@@ -9,24 +9,23 @@ import os
 
 import gdal
 import numpy
+from loguru import logger
 
 
-def resize_tif_to_reference_grid(gtif_in, gtif_reference, gtif_out, verbose=False):
+def resize_tif_to_reference_grid(gtif_in, gtif_reference, gtif_out):
     """I have RACMO & REMA files written out the same grid format & resolution
     as the NSIDC's nsidc-0001 and nsidc-0080 files. But the grid sizes are different
     with different boundaries. This takes a .tif GeoTiff, and a reference Tb GeoTiff,
     and creates a copy of the gtif_in data with the same array size as the gtif_Tb_reference,
     and spits it out to gtif_out. Extra values are filled in with the gtif_in NoDataValue.
     """
-    if verbose:
-        print("Reading", os.path.split(gtif_in)[1])
+    logger.debug(f"Reading {os.path.split(gtif_in)[1]}")
 
     ds_in = gdal.Open(gtif_in, gdal.GA_ReadOnly)
     if ds_in is None:
         raise FileNotFoundError("Gdal could not read input file '{0}'".format(gtif_in))
 
-    if verbose:
-        print("Reading", os.path.split(gtif_reference)[1])
+    logger.debug(f"Reading {os.path.split(gtif_reference)[1]}")
 
     ds_ref = gdal.Open(gtif_reference, gdal.GA_ReadOnly)
     if ds_ref is None:
@@ -66,7 +65,9 @@ def resize_tif_to_reference_grid(gtif_in, gtif_reference, gtif_out, verbose=Fals
         (x_UL_in % x_res_in) == (x_UL_ref % x_res_ref)
         and (y_UL_in % y_res_in) == (y_UL_ref % y_res_ref)
     ):
-        print(
+        msg = "Input grids are not geographically aligned."
+        logger.error(msg)
+        logger.error(
             "X: {0} % {1} = {2}, {3} % {4} = {5}".format(
                 x_UL_in,
                 x_res_in,
@@ -76,7 +77,7 @@ def resize_tif_to_reference_grid(gtif_in, gtif_reference, gtif_out, verbose=Fals
                 x_UL_ref % x_res_ref,
             )
         )
-        print(
+        logger.error(
             "Y: {0} % {1} = {2}, {3} % {4} = {5}".format(
                 y_UL_in,
                 y_res_in,
@@ -86,7 +87,7 @@ def resize_tif_to_reference_grid(gtif_in, gtif_reference, gtif_out, verbose=Fals
                 y_UL_ref % y_res_ref,
             )
         )
-        raise ValueError("Input grids are not geographically aligned.")
+        raise ValueError(msg)
 
     # Create the output array, same shape as the reference array, but same datatype
     # as the source array. Fill with the array_in NDV
@@ -147,8 +148,7 @@ def resize_tif_to_reference_grid(gtif_in, gtif_reference, gtif_out, verbose=Fals
     ds_out.FlushCache()
     ds_out = None
 
-    if verbose:
-        print(os.path.split(gtif_out)[-1], "written.")
+    logger.debug(f"Wrote {os.path.split(gtif_out)[-1]}")
 
     return
 
@@ -160,13 +160,6 @@ def read_and_parse_args():
     parser.add_argument("input_gtif", type=str, help="Source file (.tif)")
     parser.add_argument("reference_gtif", type=str, help="Reference file (.tif)")
     parser.add_argument("output_gtif", type=str, help="Destination file (.tif)")
-    parser.add_argument(
-        "--verbose",
-        "-v",
-        action="store_true",
-        default=False,
-        help="Increase output verbosity.",
-    )
 
     return parser.parse_args()
 
@@ -175,5 +168,7 @@ if __name__ == "__main__":
     args = read_and_parse_args()
 
     resize_tif_to_reference_grid(
-        args.input_gtif, args.reference_gtif, args.output_gtif, verbose=args.verbose
+        args.input_gtif,
+        args.reference_gtif,
+        args.output_gtif,
     )

@@ -13,6 +13,7 @@ import shutil
 import dateutil.parser
 import matplotlib.pyplot
 import numpy
+from loguru import logger
 
 from antarctica_today import (
     generate_daily_melt_file,
@@ -48,7 +49,7 @@ def get_list_of_NSIDC_bin_files_to_import(
         if os.path.splitext(f)[1].lower() == target_extension.strip().lower()
     ]
 
-    # print(len(file_list_all), "total files.")
+    # logger.info(len(file_list_all), "total files.")
 
     # Filter out only the files we want.
     hemisphere_lower = hemisphere.lower()
@@ -63,7 +64,7 @@ def get_list_of_NSIDC_bin_files_to_import(
         + ".bin$"
     )
 
-    # print(search_template)
+    # logger.info(search_template)
     # Create a compiled regular-expression search object
     pattern = re.compile(search_template)
     # Keep only the file names that match the search pattern.
@@ -182,7 +183,7 @@ def update_everything_to_latest_date(
             fnames_this_date[0].suffix.lower() == ".nc"
         ):
             # Read in netCDF file here.
-            # print("Generating melt file {0} from {1}.".format(os.path.basename(melt_bin_fname),
+            # logger.info("Generating melt file {0} from {1}.".format(os.path.basename(melt_bin_fname),
             #                                                   os.path.basename(fnames_this_date[0])
             #                                                   )
             #       )
@@ -261,11 +262,11 @@ def update_everything_to_latest_date(
     new_daily_melt_arrays = []
     new_daily_dts = []
 
-    # print("dt_today:", dt_today)
-    # print("latest_dt_in_array:", latest_dt_in_array)
-    # print(range(1, ((dt_today - latest_dt_in_array).days + 1)))
-    # print(melt_bin_files[-1])
-    # print(melt_bin_paths[-1])
+    # logger.info("dt_today:", dt_today)
+    # logger.info("latest_dt_in_array:", latest_dt_in_array)
+    # logger.info(range(1, ((dt_today - latest_dt_in_array).days + 1)))
+    # logger.info(melt_bin_files[-1])
+    # logger.info(melt_bin_paths[-1])
 
     # For each day, find the .bin file for that day (if it exists) and append it to the list.
     for day_delta in range(1, ((dt_today - latest_dt_in_array).days + 1)):
@@ -288,7 +289,7 @@ def update_everything_to_latest_date(
         daily_melt_array = read_NSIDC_bin_file(
             melt_filepath, element_size=2, return_type=int, signed=True, multiplier=1
         )
-        print(melt_filename, "read.")
+        logger.info(f"Read {melt_filename}")
 
         # Add a 3rd (time) dimension to each array to allow concatenating.
         daily_melt_array.shape = list(daily_melt_array.shape) + [1]
@@ -313,7 +314,7 @@ def update_everything_to_latest_date(
             pickle.dump((melt_array_updated, dt_dict), f)
             f.close()
 
-        print(tb_file_data.model_results_picklefile, "written.")
+        logger.info(f"Wrote {tb_file_data.model_results_picklefile}")
 
     else:
         melt_array_updated = previous_melt_array
@@ -375,7 +376,6 @@ def update_everything_to_latest_date(
             region_num=region_num,
             gap_filled=True,
             outfile=line_plot_outfile,
-            verbose=True,
         )
 
         # Clear the figures just made above in order to not get too many open at once.
@@ -406,7 +406,6 @@ def copy_latest_date_plots_to_date_directory(
     anomaly_maps_dir=map_filedata.anomaly_maps_directory,
     line_plots_dir=tb_file_data.climatology_plots_directory,
     use_symlinks=True,
-    verbose=True,
 ):
     """After running the 'update_everything_to_latest_date()' function, use this to gather all the
     latest-date plots into one location. Put it in a sub-directory of the daily_plots_gathered_dir
@@ -453,8 +452,7 @@ def copy_latest_date_plots_to_date_directory(
     dest_dir_location = os.path.join(dest_parent_dir, date_string)
     if not os.path.exists(dest_dir_location):
         os.mkdir(dest_dir_location)
-        if verbose:
-            print("Created directory '{0}'.".format(dest_dir_location))
+        logger.debug("Created directory '{0}'.".format(dest_dir_location))
 
     for fn in files_to_move:
         src = fn
@@ -467,8 +465,7 @@ def copy_latest_date_plots_to_date_directory(
         else:
             shutil.copyfile(src, dst)
 
-        if verbose:
-            print("{0} -> {1}.".format(src, dst))
+        logger.debug("{0} -> {1}.".format(src, dst))
 
 
 if __name__ == "__main__":

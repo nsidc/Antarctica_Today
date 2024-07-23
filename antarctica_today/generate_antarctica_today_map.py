@@ -54,7 +54,8 @@ def main():
     """Do stuff I want to do here."""
 
     m = AT_map_generator(
-        fill_pole_hole=False, filter_out_error_swaths=True, verbose=True
+        fill_pole_hole=False,
+        filter_out_error_swaths=True,
     )
 
     for region in [
@@ -208,13 +209,6 @@ def read_and_parse_args():
         default=False,
         help="Omit the legend. Default if not set: include a legend.",
     )
-    parser.add_argument(
-        "--verbose",
-        "-v",
-        action="store_true",
-        default=False,
-        help="Increase output verbosity.",
-    )
 
     return parser.parse_args()
 
@@ -231,7 +225,6 @@ class AT_map_generator:
         melt_array_picklefile=model_results_picklefile,
         fill_pole_hole=True,
         filter_out_error_swaths=True,
-        verbose=True,
     ):
         """Initialize the class."""
         self.melt_array_picklefile = melt_array_picklefile
@@ -893,7 +886,7 @@ class AT_map_generator:
             return
         # svgclip.py isn't working... can't seem to resolve the Rsvg namespace.
         # svgclip.clip(filename, filename, margin=0)
-        # logger.debug("Trimmed {filename}.")
+        # logger.debug(f"Trimmed {filename}")
 
         else:
             bg = PIL.Image.new(im.mode, im.size, im.getpixel((0, 0)))
@@ -903,7 +896,7 @@ class AT_map_generator:
             if bbox:
                 im2 = im.crop(bbox)
                 im2.save(filename)
-                logger.debug("Trimmed {filename}.")
+                logger.debug(f"Trimmed {filename}")
 
         return
 
@@ -1790,7 +1783,6 @@ class AT_map_generator:
         keep_year_label_wrapped=True,
         reset_picklefile=False,
         message_below_year="relative to 1990-2020",
-        verbose=True,
     ):
         """Generate a cumulative annual anomaly melt map compared to the baseline climatology period.
 
@@ -1864,7 +1856,7 @@ class AT_map_generator:
 
             if mmdd_of_year is None:
                 # Just get the annual anomlay map for that year.
-                anomaly_data = read_annual_melt_anomaly_tif(year=year, verbose=verbose)
+                anomaly_data = read_annual_melt_anomaly_tif(year=year)
             else:
                 datetime_this_year = datetime.datetime(
                     year=year
@@ -1875,7 +1867,6 @@ class AT_map_generator:
                 anomaly_data = create_partial_year_melt_anomaly_tif(
                     current_datetime=datetime_this_year,
                     gap_filled=False,
-                    verbose=verbose,
                 )
 
             if anomaly_data is None:
@@ -1966,7 +1957,6 @@ class AT_map_generator:
         keep_year_label_wrapped=True,
         reset_picklefile=False,
         message_below_year=None,
-        verbose=True,
     ):
         """Same as generate_anomaly_melt_map, but do it for only a partial year,
         up until the last day of data that we have in the melt array.
@@ -1998,7 +1988,6 @@ class AT_map_generator:
             keep_year_label_wrapped=keep_year_label_wrapped,
             reset_picklefile=reset_picklefile,
             message_below_year=message_below_year,
-            verbose=verbose,
         )
 
 
@@ -2014,7 +2003,7 @@ def SPECIAL_make_map_with_borders(year=2020):
         DATA_QGIS_DIR / "basins " / "Antarctic_Regions_v2_interior_borders.shp"
     )
 
-    at = AT_map_generator(fill_pole_hole=False, verbose=True)
+    at = AT_map_generator(fill_pole_hole=False)
     for fmt in ("png", "svg"):
         # for fmt in ("png",):
         fname = os.path.join(

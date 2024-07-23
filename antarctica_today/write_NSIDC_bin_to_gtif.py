@@ -10,6 +10,7 @@ import re
 from typing import Type
 
 import numpy
+from loguru import logger
 from osgeo import gdal, osr
 
 from antarctica_today.read_NSIDC_bin_file import read_NSIDC_bin_file
@@ -112,7 +113,6 @@ def output_bin_to_gtif(
     header_size=0,
     resolution=None,
     hemisphere=None,
-    verbose=True,
     nodata=0,
     signed=False,
     multiplier="auto",
@@ -138,9 +138,6 @@ def output_bin_to_gtif(
 
     hemisphere = "N" or "S"
                  If None, the hemisphere is derived from the nsidc-0001 filename.
-
-    verbose = Verbosity of the output. False will run this silently. True will
-              produce feedback to stdout. (default True)
 
     nodata = Nodata value to put in the geotiff. Defaults to 0.0
 
@@ -199,7 +196,6 @@ def output_bin_to_gtif(
         resolution=resolution,
         hemisphere=hemisphere,
         nodata=nodata,
-        verbose=verbose,
     )
 
     return
@@ -219,7 +215,11 @@ def get_nsidc_geotransform(hemisphere, resolution):
 
 
 def output_gtif(
-    array, gtif_file, resolution=25, hemisphere="S", nodata=0, verbose=True
+    array,
+    gtif_file,
+    resolution=25,
+    hemisphere="S",
+    nodata=0,
 ):
     """Take an array, output to a geotiff in the NSIDC resolution specified.
 
@@ -288,8 +288,7 @@ def output_gtif(
     ds.FlushCache()
     ds = None
 
-    if verbose:
-        print(gtif_file, "written.")
+    logger.debug(f"Wrote {gtif_file}")
 
     return
 
@@ -360,13 +359,6 @@ def read_and_parse_args():
         default=False,
         help="Read bin as signed data. Default to unsigned.",
     )
-    parser.add_argument(
-        "--verbose",
-        "-v",
-        action="store_true",
-        default=False,
-        help="Increase output verbosity.",
-    )
 
     return parser.parse_args()
 
@@ -433,5 +425,4 @@ if __name__ == "__main__":
         nodata=int(args.nodata),
         return_type=out_type,
         multiplier=multiplier,
-        verbose=args.verbose,
     )

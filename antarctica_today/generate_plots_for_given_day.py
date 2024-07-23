@@ -106,7 +106,6 @@ def generate_maps_and_plots_for_a_date(
             gap_filled=True,
             dpi=dpi,
             outfile=lineplot_outfile,
-            verbose=True,
         )
 
         # Close the current plots open in matplotlib. (Keeps them from accumulating.)
