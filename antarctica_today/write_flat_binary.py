@@ -36,35 +36,34 @@ def write_array_to_binary(
         byteorder = "big"
 
     # Open the output file name.
-    f = open(bin_filename, "wb")
+    with open(bin_filename, "wb") as f:
+        # Convert the number of bytes into the correct numpy array datatype.
+        if signed:
+            n_dtype = {1: numpy.int8, 2: numpy.int16, 4: numpy.int32, 8: numpy.int64}[
+                int(numbytes)
+            ]
+        else:
+            n_dtype = {
+                1: numpy.uint8,
+                2: numpy.uint16,
+                4: numpy.uint32,
+                8: numpy.uint64,
+            }[int(numbytes)]
 
-    # Convert the number of bytes into the correct numpy array datatype.
-    if signed:
-        n_dtype = {1: numpy.int8, 2: numpy.int16, 4: numpy.int32, 8: numpy.int64}[
-            int(numbytes)
-        ]
-    else:
-        n_dtype = {1: numpy.uint8, 2: numpy.uint16, 4: numpy.uint32, 8: numpy.uint64}[
-            int(numbytes)
-        ]
+        # Converte the array into the appropriate data type, and multiply by the multiplier
+        out_array = numpy.array(array * multiplier, dtype=n_dtype)
 
-    # Converte the array into the appropriate data type, and multiply by the multiplier
-    out_array = numpy.array(array * multiplier, dtype=n_dtype)
+        # Flatten the array.
+        out_array = out_array.flatten()
 
-    # Flatten the array.
-    out_array = out_array.flatten()
-
-    for value in out_array:
-        f.write(
-            int.to_bytes(
-                int(value), length=numbytes, byteorder=byteorder, signed=signed
+        for value in out_array:
+            f.write(
+                int.to_bytes(
+                    int(value), length=numbytes, byteorder=byteorder, signed=signed
+                )
             )
-        )
-
-    f.close()
 
     logger.debug(f"Wrote {os.path.split(bin_filename)[-1]}")
-
     return bin_filename
 
 

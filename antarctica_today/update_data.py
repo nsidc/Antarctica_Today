@@ -310,9 +310,8 @@ def update_everything_to_latest_date(
             dt_dict[dt] = previous_melt_array.shape[2] + i
 
         if overwrite:
-            f = open(tb_file_data.model_results_picklefile, "wb")
-            pickle.dump((melt_array_updated, dt_dict), f)
-            f.close()
+            with open(tb_file_data.model_results_picklefile, "wb") as f:
+                pickle.dump((melt_array_updated, dt_dict), f)
 
         logger.info(f"Wrote {tb_file_data.model_results_picklefile}")
 
