@@ -47,7 +47,6 @@ These steps will use Docker, as we expect that to be the main operation mode. Se
 
 ```bash
 docker compose run cli init all
-docker compose run cli plots
 ```
 
 
@@ -188,7 +187,7 @@ This will go through the entire database and produce summary maps and plots for 
 
 ```bash
 PYTHONPATH=.
-python antarctica_today plots 
+python antarctica_today init plots 
 ```
 
 <details><summary>🛠️ _TODO_</summary>

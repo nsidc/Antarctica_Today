@@ -22,7 +22,7 @@ def cli():
 
 @cli.group()
 def init():
-    """Initialize the Antarctica Today database."""
+    """Initialize the Antarctica Today database and generate all plots."""
     pass
 
 
@@ -59,12 +59,20 @@ def preprocess():
     logger.success("Preprocess complete.")
 
 
+@init.command("04-all-plots")
+def all_plots():
+    """Generate all Antarctica Today plot images from the database."""
+    generate_all_plots_and_maps_main()
+    logger.success("All plots generated.")
+
+
 @init.command("all")
 def init_all():
-    """Initialize the Antarctica Today database."""
+    """Initialize the Antarctica Today database and generate all plots."""
     download_new_files()
     generate_new_daily_melt_files(overwrite=False)
     preprocessing_main()
+    generate_all_plots_and_maps_main()
     logger.success("Antarctica Today database initialized.")
 
 
@@ -86,13 +94,6 @@ def daily_update_and_plots():
     """
     update_everything_to_latest_date(copy_to_gathered_dir=True)
     logger.success("Database updated to the current date. New plots produced.")
-
-
-@cli.command()
-def all_plots():
-    """Generate all Antarctica Today plot images from the database."""
-    generate_all_plots_and_maps_main()
-    logger.success("All plots generated.")
 
 
 if __name__ == "__main__":
