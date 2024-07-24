@@ -21,4 +21,6 @@ jobs:
   build-and-publish-docker-image:
     name: "Build and publish Docker image"
     uses: "nsidc/.github/.github/workflows/build-and-publish-container-image.yml@main"
+    with:
+      docker-image-name: "nsidc/antarctica_today"
     secrets: "inherit"
