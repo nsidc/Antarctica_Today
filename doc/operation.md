@@ -39,14 +39,14 @@ threshold binaries provided by Tom Mote. These are checked in to this repository
 
 ## 1. Download NSIDC-0080
 
-Download NSIDC-0080 granules into the `Tb/` directory:
+Download NSIDC-0080 granules:
 
 ```bash
 PYTHONPATH=.
 python antarctica_today download-tb
 ```
 
-> [!IMPORTANT]
+> [!NOTE]
 > For data before 2022-01-10, data have already been processed through step 2 and are
 > available as binary ".bin" files in this repo's `/data/daily_melt_bin_files`
 > directory. This data was generated from `NSIDC-0001` and `NSIDC-0007` datasets.
@@ -56,19 +56,18 @@ python antarctica_today download-tb
 > downloads that raw data.
 
 
+#### Creates data:
+
+* `.nc` files in `Tb/` directory
+
+
 ## 2. Generate all the daily melt binary files
 
-Generate new data in `data/daily_melt_bin_files/`:
 
 ```bash
 PYTHONPATH=.
 python antarctica_today generate-daily-melt
 ```
-> [!IMPORTANT]
-> Binaries provided in this repo's `data/daily_melt_bin_files/` dir with pre-2016 dates
-> are already calibrated by Tom Mote and don't need to be generated. Remember from the
-> note in the previous step: pre-generated data goes through to 2022-01-10.
-
 
 <details><summary>🛠️ _TODO_</summary>
 I receive a large number of warnings like:
@@ -82,29 +81,26 @@ Why?
 </details>
 
 
+#### Creates data:
+
+* `.bin` files in `data/daily_melt_bin_files/` directory for dates on or after
+  2022-01-10
+
+> [!IMPORTANT]
+> Binaries provided in this repo's `data/daily_melt_bin_files/` dir with pre-2016 dates
+> are already calibrated by Tom Mote and don't need to be generated. Remember from the
+> note in the previous step: pre-generated data goes through to 2022-01-10.
+
+
 ## 3. Generate the database
 
-This step creates, primarily, four pickle files:
-
-* `daily_cumulative_melt_averages.pickle`
-* `daily_melt_pixel_averages.pickle`
-* `database/v3_1979-present_gap_filled.pickle`
-* `database/v3_1979-present_raw.pickle`
-
-Additionally:
-
-* `.csv` files will be created in `database/` directory
-* `.tif` files will be created in `data/mean_climatology/` directory
-* `.tif` files will be created in `data/annual_*_geotifs` directories
-
+> [!NOTE]
+> This command may take up to tens of minutes.
 
 ```bash
 PYTHONPATH=.
 python antarctica_today preprocess
 ```
-
-> [!NOTE]
-> This command may take up to tens of minutes.
 
 <details><summary>🛠️ _TODO_</summary>
 
@@ -124,11 +120,21 @@ python antarctica_today preprocess
 </details>
 
 
+#### Creates data:
+
+* `database/v3_1979-present_gap_filled.pickle`
+* `database/v3_1979-present_raw.pickle`
+* `database/gap_fill_data/daily_cumulative_melt_averages.pickle`
+* `database/gap_fill_data/daily_melt_pixel_averages.pickle`
+* `.csv` files in `database/` directory
+* `.tif` files in `data/mean_climatology/` directory
+* `.tif` files in `data/annual_*_geotifs/` directories
+
+
 ### Database initialization (?)
 
-
 <details><summary>🛠️ _TODO_</summary>
-Is this step necessary? It seems like new files aren't being created when this step is
+Is this step necessary? New files aren't being created when this step is
 run.
 </details>
 
@@ -174,7 +180,7 @@ python antarctica_today/update_data.py
 > [!NOTE]
 > This command may take up to tens of minutes.
 
-This will go through the entire database and produce summary maps and plots for every year on record in the `plots/` directory.
+This will go through the entire database and produce summary maps and plots for every year on record.
 
 ```bash
 PYTHONPATH=.
@@ -188,6 +194,11 @@ python antarctica_today process
 </details>
 
 
+#### Creates data:
+
+* `.png` files in `plots/` subdirectories
+
+
 ## Running in Docker
 
 This repository includes a `compose.yml` configuration which enables running this code
@@ -196,3 +207,7 @@ with Docker. For example, the `download-tb` command can be run as follows:
 ```bash
 docker compose run cli download-tb
 ```
+
+> [!WARNING]
+> By default, outputs will be written as `root`! You can override the user (TODO: how?)
+> to match your desired production user.
