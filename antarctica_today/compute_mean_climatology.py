@@ -247,9 +247,8 @@ def read_daily_sum_melt_averages_picklefile(
             )
 
     logger.debug(f"Reading {daily_sum_picklefile}")
-    f = open(daily_sum_picklefile, "rb")
-    array, dt_dict = pickle.load(f)
-    f.close()
+    with open(daily_sum_picklefile, "rb") as f:
+        array, dt_dict = pickle.load(f)
 
     return array, dt_dict
 

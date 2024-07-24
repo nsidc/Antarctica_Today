@@ -548,9 +548,8 @@ class AT_map_generator:
 
         if save_to_picklefile:
             fname = map_picklefile_dictionary[(map_type_lower, region_number)]
-            f = open(fname, "wb")
-            pickle.dump(fig, f)
-            f.close()
+            with open(fname, "wb") as f:
+                pickle.dump(fig, f)
             logger.debug(f"Wrote {fname}")
 
         return fig, ax
@@ -571,9 +570,9 @@ class AT_map_generator:
         logger.debug(f"Reading {fname}")
 
         # Read the picklefile
-        f = open(fname, "rb")
-        fig = pickle.load(f)
-        f.close()
+        with open(fname, "rb") as f:
+            fig = pickle.load(f)
+
         # Get the axes, should just be one panel here.
         ax = fig.axes[0]
         # Set the current axes to ax
