@@ -1,0 +1,54 @@
+name: "Build & publish artifacts"
+
+on:
+  push:
+    branches:
+      - "main"
+      - "v2"  # TODO: Remove before merge!
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+env:
+  # Many color libraries just need this to be set to any value, but at least
+  # one distinguishes color depth, where "3" -> "256-bit color".
+  FORCE_COLOR: 3
+
+jobs:
+  # build-python-package:
+  #   name: Build Python package
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #     - uses: hynek/build-and-inspect-python-package@v2
+
+  # publish-python-package:
+  #   name: Publish Python package to PyPI
+  #   if: github.ref_type == 'tag'
+  #   needs: ["build-python-package"]
+  #   runs-on: ubuntu-latest
+  #   environment: pypi
+  #   permissions:
+  #     id-token: write
+  #   steps:
+  #     - uses: actions/download-artifact@v4
+  #       with:
+  #         name: Packages
+  #         path: dist
+
+  #     - uses: pypa/gh-action-pypi-publish@release/v1
+  #       if: github.event_name == 'release' && github.event.action == 'published'
+  #       with:
+  #         # Remember to tell (test-)pypi about this repo before publishing
+  #         # Remove this line to publish to PyPI
+  #         repository-url: https://test.pypi.org/legacy/
+
+  build-and-publish-docker-image:
+    name: "Build and publish Docker image"
+    uses: "nsidc/.github/.github/workflows/build-and-publish-container-image.yml@main"
+    secrets: "inherit"

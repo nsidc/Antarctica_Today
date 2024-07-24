@@ -186,3 +186,13 @@ python antarctica_today process
 - [ ] After this step, `git status` shows changed files. Should they be committed?
 
 </details>
+
+
+## Running in Docker
+
+This repository includes a `compose.yml` configuration which enables running this code
+with Docker. For example, the `download-tb` command can be run as follows:
+
+```bash
+docker compose run cli download-tb
+```

@@ -1,0 +1,11 @@
+services:
+  cli:
+    image: "nsidc/antarctica_today:local"
+    build: "."
+    user: "root"
+    volumes:
+      - "./Tb/:/app/Tb/"
+      - "./data/:/app/data/"
+      - "./database/:/app/database/"
+      - "./plots/:/app/plots/"
+      - "./baseline_datasets/:/app/baseline_datasets/:ro"
