@@ -8,3 +8,7 @@ services:
       - "./database/:/app/database/"
       - "./plots/:/app/plots/"
       - "./baseline_datasets/:/app/baseline_datasets/:ro"
+    environment:
+      # NOTE: null value indicates passthrough from host.
+      EARTHDATA_USERNAME: null
+      EARTHDATA_PASSWORD: null

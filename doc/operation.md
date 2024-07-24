@@ -43,6 +43,14 @@ These steps will use Docker, as we expect that to be the main operation mode. Se
 "Detailed steps" section below for examples of running the code without Docker.
 
 
+### Setup
+
+```
+export EARTHDATA_USERNAME="myusername"
+export EARTHDATA_PASSWORD="mypassword"
+```
+
+
 ### Initialize the database and generate all plots
 
 ```bash
