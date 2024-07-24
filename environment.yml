@@ -33,7 +33,8 @@ dependencies:
   - matplotlib-base
   - pre-commit
   - conda-lock
-  # - pytest
+  - pytest
+  - pytest-cov
 
   - mypy
   - types-pillow ~=9.2

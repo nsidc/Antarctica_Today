@@ -24,6 +24,7 @@ import xarray
 from loguru import logger
 
 from antarctica_today import tb_file_data, write_NSIDC_bin_to_gtif
+from antarctica_today.date import date_within_melt_period
 from antarctica_today.melt_array_picklefile import get_ice_mask_array
 from antarctica_today.read_NSIDC_bin_file import read_NSIDC_bin_file
 from antarctica_today.read_NSIDC_nc_file import read_NSIDC_nc_file
@@ -94,7 +95,7 @@ def generate_new_daily_melt_files(
 
         # Make sure there's at least one of each file (i.e. exactly one). If not, just skip & continue
         if len(nsidc_fps) == 0:
-            if warn_if_missing_files:
+            if warn_if_missing_files and date_within_melt_period(dt):
                 msg = (
                     "Warning: At least one NSIDC Tb file on date '"
                     + dt.strftime("%Y%m%d")

@@ -110,16 +110,16 @@ PYTHONPATH=.
 python antarctica_today init 02-generate-daily-melt
 ```
 
-<details><summary>🛠️ _TODO_</summary>
-I receive a large number of warnings like:
-
-```
-UserWarning: Warning: At least one NSIDC Tb file on date '20230909' is missing. Skipping
-that date.
-```
-
-Why?
-</details>
+> [!NOTE]
+> This step may yield warnings like this:
+> 
+> ```
+> UserWarning: Warning: At least one NSIDC Tb file on date '20231009' is missing. Skipping
+> that date.
+> ```
+> 
+> These warnings *should not be ignored*. The warning will only display if the data is
+> within the melt period.
 
 
 ##### Creates data:
