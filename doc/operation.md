@@ -37,13 +37,42 @@ threshold binaries provided by Tom Mote. These are checked in to this repository
 > :bangbang: Steps must be performed in order :bangbang:
 
 
-## 1. Download NSIDC-0080
+## Quick start
+
+These steps will use Docker, as we expect that to be the main operation mode. See the
+"Detailed steps" section below for examples of running the code without Docker.
+
+
+### Initialize the database and generate all plots
+
+```bash
+docker compose run cli init all
+docker compose run cli plots
+```
+
+
+### Daily updates and plots
+
+```bash
+docker compose run cli daily-update-and-plots
+```
+
+Plots will be available in the repository subdirectory
+`/plots/daily_plots_gathered/[date]/`.
+
+
+## Detailed steps
+
+It's not necessary to run these steps separately, as they will be run by the "Quick
+start" commands above.
+
+### 1. Download NSIDC-0080
 
 Download NSIDC-0080 granules:
 
 ```bash
 PYTHONPATH=.
-python antarctica_today download-tb
+python antarctica_today init 01-download-tb
 ```
 
 > [!NOTE]
@@ -56,17 +85,17 @@ python antarctica_today download-tb
 > downloads that raw data.
 
 
-#### Creates data:
+##### Creates data:
 
 * `.nc` files in `Tb/` directory
 
 
-## 2. Generate all the daily melt binary files
+### 2. Generate all the daily melt binary files
 
 
 ```bash
 PYTHONPATH=.
-python antarctica_today generate-daily-melt
+python antarctica_today init 02-generate-daily-melt
 ```
 
 <details><summary>🛠️ _TODO_</summary>
@@ -81,7 +110,7 @@ Why?
 </details>
 
 
-#### Creates data:
+##### Creates data:
 
 * `.bin` files in `data/daily_melt_bin_files/` directory for dates on or after
   2022-01-10
@@ -92,14 +121,14 @@ Why?
 > note in the previous step: pre-generated data goes through to 2022-01-10.
 
 
-## 3. Generate the database
+### 3. Generate the database
 
 > [!NOTE]
 > This command may take up to tens of minutes.
 
 ```bash
 PYTHONPATH=.
-python antarctica_today preprocess
+python antarctica_today init 03-preprocess
 ```
 
 <details><summary>🛠️ _TODO_</summary>
@@ -120,7 +149,7 @@ python antarctica_today preprocess
 </details>
 
 
-#### Creates data:
+##### Creates data:
 
 * `database/v3_1979-present_gap_filled.pickle`
 * `database/v3_1979-present_raw.pickle`
@@ -131,33 +160,7 @@ python antarctica_today preprocess
 * `.tif` files in `data/annual_*_geotifs/` directories
 
 
-### Database initialization (?)
-
-<details><summary>🛠️ _TODO_</summary>
-Is this step necessary? New files aren't being created when this step is
-run.
-</details>
-
-Create the melt array picklefile, a file containing a 2d grid for each day:
-
-```bash
-PYTHONPATH=.
-python antarctica_today melt-array-picklefile
-```
-
-Create a gap-filled melt picklefile, This "fills the gaps" of missing data or missing
-days in the historical record with climatological averages. This is especially prevalent
-in the 1980s when composites are only tallied every other day. In the small 'pole hole'
-orbital gap, "no melt" (1) is filled. (NOTE: This assumption may need to be changed if
-melt ever reaches South Pole.)
-
-```bash
-PYTHONPATH=.
-python antarctica_today gap-filled-melt-picklefile
-```
-
-
-### Daily updates
+#### Daily updates
 
 > [!WARNING]
 > All initialization steps above must be completed first.
@@ -167,15 +170,16 @@ This step will download any new Tb data files from NSIDC since its last run, and
 2) A "sum" map of that season's total melt days
 3) An "anomaly" map of that season's total melt days in comparison to baseline average values to-that-day-of-year
 4) A line plot of melt extent up do that date, compared to historical baseline averages.
+
 It will copy these plots into a sub-directory /plots/daily_plots_gathered/[date]/ for easy collection.
 
 ```bash
 PYTHONPATH=.
-python antarctica_today/update_data.py
+python antarctica_today daily_update_and_plots
 ```
 
 
-## 4. Generate outputs (optional)
+### 4. Generate outputs (optional)
 
 > [!NOTE]
 > This command may take up to tens of minutes.
@@ -184,7 +188,7 @@ This will go through the entire database and produce summary maps and plots for 
 
 ```bash
 PYTHONPATH=.
-python antarctica_today process
+python antarctica_today plots 
 ```
 
 <details><summary>🛠️ _TODO_</summary>
@@ -194,20 +198,6 @@ python antarctica_today process
 </details>
 
 
-#### Creates data:
+##### Creates data:
 
 * `.png` files in `plots/` subdirectories
-
-
-## Running in Docker
-
-This repository includes a `compose.yml` configuration which enables running this code
-with Docker. For example, the `download-tb` command can be run as follows:
-
-```bash
-docker compose run cli download-tb
-```
-
-> [!WARNING]
-> By default, outputs will be written as `root`! You can override the user (TODO: how?)
-> to match your desired production user.
