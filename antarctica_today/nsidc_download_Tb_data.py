@@ -264,13 +264,16 @@ def filter_data_only_in_melt_season(
 
 def download_new_files(
     *,
-    time_start="2021-02-17",
+    time_start="2022-01-10",
     time_end=datetime.datetime.now().strftime("%Y-%m-%d"),
     only_in_melt_season=True,
 ) -> List[str]:
     """Download new NSIDC-0080 files into the directory of your choice.
 
     Will download 25km resolution data files from the southern hemisphere.
+
+    The default start date is the day after the end of the .bin data available in
+    `/data/daily_melt_bin_files/` directory in this repo.
     """
     short_name = "NSIDC-0080"
     version = "2"

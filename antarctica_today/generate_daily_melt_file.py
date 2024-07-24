@@ -31,7 +31,7 @@ from antarctica_today.write_flat_binary import write_array_to_binary
 
 
 def generate_new_daily_melt_files(
-    start_date: str = "2021-10-01",
+    start_date: str = "2022-01-10",
     end_date: Optional[str] = None,
     overwrite: bool = True,
     warn_if_missing_files: bool = True,
@@ -40,6 +40,9 @@ def generate_new_daily_melt_files(
 
     This function assumes the necessary .bin Tb files from NSIDC are downloaded.
     If not, go to "nsidc_download_Tb_data.py" and update there first.
+
+    The default start date is the day after the end of the .bin data available in
+    `/data/daily_melt_bin_files/` directory in this repo.
     """
     start_dt = datetime.datetime(
         year=int(start_date[0:4]), month=int(start_date[5:7]), day=int(start_date[8:10])
