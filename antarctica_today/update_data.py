@@ -3,31 +3,41 @@
 Created by: mmacferrin
 2021.04.08
 """
-# from read_NSIDC_bin_file import read_NSIDC_bin_file
+
 import datetime
 import os
 import pickle
 import re
 import shutil
 
-import compute_mean_climatology
-import dateutil
-import generate_antarctica_today_map
-import generate_daily_melt_file
-import generate_gap_filled_melt_picklefile
-import map_filedata
-import melt_array_picklefile
-import nsidc_download_Tb_data
+import dateutil.parser
+import matplotlib.pyplot
 import numpy
-import plot_daily_melt_and_climatology
-import read_NSIDC_bin_file
-import tb_file_data
+from loguru import logger
+
+from antarctica_today import (
+    generate_daily_melt_file,
+    map_filedata,
+    tb_file_data,
+)
+from antarctica_today.compute_mean_climatology import save_daily_melt_numbers_to_csv
+from antarctica_today.constants.paths import DATA_TB_DIR
+from antarctica_today.generate_antarctica_today_map import AT_map_generator
+from antarctica_today.generate_gap_filled_melt_picklefile import (
+    save_gap_filled_picklefile,
+)
+from antarctica_today.melt_array_picklefile import read_model_array_picklefile
+from antarctica_today.nsidc_download_Tb_data import download_new_files
+from antarctica_today.plot_daily_melt_and_climatology import (
+    plot_current_year_melt_over_baseline_stats,
+)
+from antarctica_today.read_NSIDC_bin_file import read_NSIDC_bin_file
 
 
 def get_list_of_NSIDC_bin_files_to_import(
     datadir=tb_file_data.NSIDC_0080_file_dir,
     hemisphere="S",
-    frequencies=[19, 37],
+    frequencies=(19, 37),
     polarization="v",
     target_extension=".bin",
 ):
@@ -39,7 +49,7 @@ def get_list_of_NSIDC_bin_files_to_import(
         if os.path.splitext(f)[1].lower() == target_extension.strip().lower()
     ]
 
-    # print(len(file_list_all), "total files.")
+    # logger.info(len(file_list_all), "total files.")
 
     # Filter out only the files we want.
     hemisphere_lower = hemisphere.lower()
@@ -54,7 +64,7 @@ def get_list_of_NSIDC_bin_files_to_import(
         + ".bin$"
     )
 
-    # print(search_template)
+    # logger.info(search_template)
     # Create a compiled regular-expression search object
     pattern = re.compile(search_template)
     # Keep only the file names that match the search pattern.
@@ -71,8 +81,8 @@ def update_everything_to_latest_date(
     melt_bin_dir=tb_file_data.model_results_dir,
     copy_to_gathered_dir=True,
     melt_season_only=True,
-    melt_season_start_mmdd=[10, 1],
-    melt_season_end_mmdd=[4, 30],
+    melt_season_start_mmdd=(10, 1),
+    melt_season_end_mmdd=(4, 30),
     date_today=None,
 ):
     """Using today's date, do everything to update with the newest data.
@@ -85,46 +95,50 @@ def update_everything_to_latest_date(
     existing_bin_files_list = os.listdir(tb_file_data.model_results_dir)
     latest_dt = datetime.datetime(year=1900, month=1, day=1)
     for fname in existing_bin_files_list:
-        datestr = re.search("(?<=antarctica_melt_)\d{8}(?=_S3B)", fname).group()
+        datestr = re.search(r"(?<=antarctica_melt_)\d{8}(?=_S3B)", fname).group()
         dt = datetime.datetime(
             year=int(datestr[0:4]), month=int(datestr[4:6]), day=int(datestr[6:8])
         )
         if dt > latest_dt:
             latest_dt = dt
 
-    start_time_str = (latest_dt + datetime.timedelta(days=1)).strftime(
-        "%Y-%m-%dT00:00:00Z"
-    )
-
-    # Download all Tb files (19 & 37 GHz vertical), starting with the day
-    # after the last date in the present array.
-    tb_file_list = nsidc_download_Tb_data.download_new_files(time_start=start_time_str)
-    # # Ignore the .xml files, only get a list of the .bin files we downloaded.
-    # tb_file_list = [fname for fname in tb_file_list if os.path.splitext(fname)[-1].lower() == ".bin"]
-    tb_file_list = [
-        os.path.join("../Tb/nsidc-0080", fname)
-        for fname in os.listdir("../Tb/nsidc-0080")
-        if os.path.splitext(fname)[-1] == ".bin"
-    ]
+    start_time = latest_dt + datetime.timedelta(days=1)
+    start_time_str = start_time.strftime("%Y-%m-%dT00:00:00Z")
 
     # Define "today" as today at midnight.
     if date_today is None:
         dt_today = datetime.datetime.today()
-        dt_today = datetime.datetime(
-            year=dt_today.year, month=dt_today.month, day=dt_today.day
-        )
     else:
         if type(date_today) in (datetime.datetime, datetime.date):
             dt_today = date_today
         else:
             dt_today = dateutil.parser.parse(date_today)
 
+    # Only attempt to download new data if there's actually a potential gap of missing data, i.e. if the start_time
+    # (measured as the next day from the last day we have data) is equal to or less than the date today.
+    if start_time <= dt_today:
+        # Download all Tb files, starting with the day
+        # after the last date in the present array.
+        download_new_files(
+            time_start=start_time_str,
+            time_end=dt_today.strftime("%Y-%m-%d"),
+            only_in_melt_season=melt_season_only,
+        )
+
+    # # Ignore the .xml files, only get a list of the .bin files we downloaded.
+    # tb_file_list = [fname for fname in tb_file_list if os.path.splitext(fname)[-1].lower() == ".bin"]
+    tb_0080_dir = DATA_TB_DIR / "nsidc-0080"
+    tb_file_list = [
+        fp for fp in tb_0080_dir.iterdir() if fp.suffix.lower() in (".bin", ".nc")
+    ]
+
     # Collect all the new Tb .bin files and create a daily melt .bin file from each.
     for day_delta in range(1, ((dt_today - latest_dt).days + 1)):
         dt = latest_dt + datetime.timedelta(days=day_delta)
 
+        # If we only want to process files within the melt season (preferred, then skip any dates outside the melt season.
         if melt_season_only:
-            dt_mmdd = [dt.month, dt.day]
+            dt_mmdd = (dt.month, dt.day)
             if (
                 (melt_season_start_mmdd > melt_season_end_mmdd)
                 and (melt_season_end_mmdd < dt_mmdd < melt_season_start_mmdd)
@@ -137,45 +151,26 @@ def update_everything_to_latest_date(
             ):
                 continue
 
-        fnames_37h = [
+        search_string = r"(?<=S25km_)" + dt.strftime("%Y%m%d") + r"(?=_v2\.0)"
+        fnames_this_date = [
             fname
             for fname in tb_file_list
             if (
-                fname.find(dt.strftime("%Y%m%d")) > -1
-                and (fname.find("s37h.bin") > -1)
-                and (fname.find(".xml") == -1)
+                re.search(search_string, os.path.basename(fname)) is not None
+                and fname.suffix.lower() in (".bin", ".nc")
             )
         ]
-        fnames_19v = [
-            fname
-            for fname in tb_file_list
-            if (
-                fname.find(dt.strftime("%Y%m%d")) > -1
-                and (fname.find("s19v.bin") > -1)
-                and (fname.find(".xml") == -1)
-            )
-        ]
-        fnames_37v = [
-            fname
-            for fname in tb_file_list
-            if (
-                fname.find(dt.strftime("%Y%m%d")) > -1
-                and (fname.find("s37v.bin") > -1)
-                and (fname.find(".xml") == -1)
-            )
-        ]
-        # Make sure there's just one of each file. If not, figure out what's going on here.
-        try:
-            assert len(fnames_37h) == 1
-            assert len(fnames_37v) == 1
-            assert len(fnames_19v) == 1
-        except AssertionError as e:
-            if len(fnames_19v) == 0 or len(fnames_37h) == 0 or len(fnames_37v) == 0:
-                continue
-            else:
-                raise e
 
-        # Generate the name of the output .bin file.
+        # If there are no Tb files found on this date, move along. This guarantees at least one .bin or .nc file was found.
+        if len(fnames_this_date) == 0:
+            continue
+
+        # Retrieve the correct threshold file for this melt date.
+        threshold_file = generate_daily_melt_file.get_correct_threshold_file(dt)
+        if threshold_file is None:
+            continue
+
+        # Generate the name of the output daily melt .bin file.
         melt_bin_fname = os.path.join(
             melt_bin_dir,
             dt.strftime(
@@ -183,82 +178,159 @@ def update_everything_to_latest_date(
             ),
         )
 
-        threshold_file = generate_daily_melt_file.get_correct_threshold_file(dt)
-        if threshold_file is None:
+        # If only one file was found on this date and it's a netCDF, we'll read it with the netCDF functionality.
+        if (len(fnames_this_date) == 1) and (
+            fnames_this_date[0].suffix.lower() == ".nc"
+        ):
+            # Read in netCDF file here.
+            # logger.info("Generating melt file {0} from {1}.".format(os.path.basename(melt_bin_fname),
+            #                                                   os.path.basename(fnames_this_date[0])
+            #                                                   )
+            #       )
+            generate_daily_melt_file.create_daily_melt_file(
+                fnames_this_date[0], threshold_file, melt_bin_fname
+            )
+
+        # If three files are found and they're all .bin file (old v1 code), handle that here.
+        # THIS CODE MAY NO LONGER WORK. HAS NOT BEEN TESTED WITH NEW DATA. This is how the previous v1 .bin data was
+        # processed.
+        # TODO: Remove this code block. I'm keeping it here for now to preserve documentation of the legacy processing.
+        # elif len(fnames_this_date) == 3 and numpy.all([(fn.suffix.lower() == ".bin") for fn in fnames_this_date]):
+        #
+        #     fnames_37h = [
+        #         fname
+        #         for fname in tb_file_list
+        #         if (
+        #             fname.find(dt.strftime("%Y%m%d")) > -1
+        #             and (fname.find("s37h.bin") > -1)
+        #             and (fname.find(".xml") == -1)
+        #         )
+        #     ]
+        #     fnames_19v = [
+        #         fname
+        #         for fname in tb_file_list
+        #         if (
+        #             fname.find(dt.strftime("%Y%m%d")) > -1
+        #             and (fname.find("s19v.bin") > -1)
+        #             and (fname.find(".xml") == -1)
+        #         )
+        #     ]
+        #     fnames_37v = [
+        #         fname
+        #         for fname in tb_file_list
+        #         if (
+        #             fname.find(dt.strftime("%Y%m%d")) > -1
+        #             and (fname.find("s37v.bin") > -1)
+        #             and (fname.find(".xml") == -1)
+        #         )
+        #     ]
+        #     # Make sure there's just one of each file. If not, figure out what's going on here.
+        #     try:
+        #         assert len(fnames_37h) == 1
+        #         assert len(fnames_37v) == 1
+        #         assert len(fnames_19v) == 1
+        #     except AssertionError as e:
+        #         if len(fnames_19v) == 0 or len(fnames_37h) == 0 or len(fnames_37v) == 0:
+        #             continue
+        #         else:
+        #             raise e
+        #
+        #     # Create new .bin files for each new melt day.
+        #     melt_array = generate_daily_melt_file.create_daily_melt_file(
+        #         fnames_37h[0], fnames_37v[0], fnames_19v[0], threshold_file, melt_bin_fname
+        #     )
+        else:
+            raise UserWarning(
+                "Downloads of NSIDC-0080 data should supply 3x .bin files (v1) or 1x .nc file (v2). "
+                + "Instead, the following files were retrieved:\n\t"
+                + "\n\t".join([str(fn) for fn in fnames_this_date])
+                + "\nSkipping this date and moving along."
+            )
             continue
 
-        # Create new .bin files for each new melt day.
-        melt_array = generate_daily_melt_file.create_daily_melt_file(
-            fnames_37h[0], fnames_37v[0], fnames_19v[0], threshold_file, melt_bin_fname
-        )
-
+        # This code is no longer necessary. The melt array files are read in the next loop and concatenated all at once.
         # Add a third dimension to aid in concatenating with the larger melt array.
-        melt_array.shape = (melt_array.shape[0], melt_array.shape[1], 1)
+        # melt_array.shape = (melt_array.shape[0], melt_array.shape[1], 1)
 
     # Now, get a list of all melt arrays that aren't yet in the melt array picklefile.
-    melt_bin_files = sorted(os.listdir(melt_bin_dir))
-    melt_bin_paths = [os.path.join(melt_bin_dir, fn) for fn in melt_bin_files]
-    melt_array, dt_dict = melt_array_picklefile.read_model_array_picklefile()
-    latest_dt_in_array = max(dt_dict.keys())
+    melt_bin_paths = [
+        os.path.join(melt_bin_dir, fn) for fn in sorted(os.listdir(melt_bin_dir))
+    ]
+    previous_melt_array, previous_dt_dict = read_model_array_picklefile()
+    latest_dt_in_array = max(previous_dt_dict.keys())
 
-    daily_melt_arrays = []
-    daily_dts = []
+    new_daily_melt_arrays = []
+    new_daily_dts = []
+
+    # logger.info("dt_today:", dt_today)
+    # logger.info("latest_dt_in_array:", latest_dt_in_array)
+    # logger.info(range(1, ((dt_today - latest_dt_in_array).days + 1)))
+    # logger.info(melt_bin_files[-1])
+    # logger.info(melt_bin_paths[-1])
 
     # For each day, find the .bin file for that day (if it exists) and append it to the list.
     for day_delta in range(1, ((dt_today - latest_dt_in_array).days + 1)):
         dt = latest_dt_in_array + datetime.timedelta(days=day_delta)
         melt_filepath = None
         melt_filename = None
-        for i, fn in enumerate(melt_bin_files):
+
+        # Search through all the melt file paths and find one matching this date.
+        # Search backward because it's likely to be at the end.
+        for fp in reversed(melt_bin_paths):
+            fn = os.path.basename(fp)
             if fn.find("antarctica_melt_{0}_S3B".format(dt.strftime("%Y%m%d"))) > -1:
                 melt_filename = fn
-                melt_filepath = melt_bin_paths[i]
+                melt_filepath = fp
                 break
-        # If this day doesn't have a .bin file associated with it, just skip it.
+        # If there is not melt .bin file associated with this day, just skip it.
         if melt_filepath is None:
             continue
 
-        print(melt_filename, "read.")
-        daily_melt_array = read_NSIDC_bin_file.read_NSIDC_bin_file(
+        daily_melt_array = read_NSIDC_bin_file(
             melt_filepath, element_size=2, return_type=int, signed=True, multiplier=1
         )
+        logger.info(f"Read {melt_filename}")
+
         # Add a 3rd (time) dimension to each array to allow concatenating.
         daily_melt_array.shape = list(daily_melt_array.shape) + [1]
 
-        daily_dts.append(dt)
-        daily_melt_arrays.append(daily_melt_array)
+        new_daily_dts.append(dt)
+        new_daily_melt_arrays.append(daily_melt_array)
 
-    if len(daily_melt_arrays) > 0:
-        new_melt_array = numpy.concatenate(daily_melt_arrays, axis=2)
+    dt_dict = previous_dt_dict.copy()
+    if len(new_daily_melt_arrays) > 0:
+        new_melt_array = numpy.concatenate(new_daily_melt_arrays, axis=2)
 
-        # Concatenate the new melt array with the old one.
-        melt_array_updated = numpy.concatenate((melt_array, new_melt_array), axis=2)
-        # Add all the new datetimes to the dictionary
-        for i, dt in enumerate(daily_dts):
-            dt_dict[dt] = melt_array.shape[2] + i
+        # Concatenate the new melt array onto the old (existing) one.
+        melt_array_updated = numpy.concatenate(
+            (previous_melt_array, new_melt_array), axis=2
+        )
+        # Add all the new datetimes to the dictionary, adding to the indices of the old melt array.
+        for i, dt in enumerate(new_daily_dts):
+            dt_dict[dt] = previous_melt_array.shape[2] + i
 
         if overwrite:
-            f = open(tb_file_data.model_results_picklefile, "wb")
-            pickle.dump((melt_array_updated, dt_dict), f)
-            f.close()
+            with open(tb_file_data.model_results_picklefile, "wb") as f:
+                pickle.dump((melt_array_updated, dt_dict), f)
 
-        print(tb_file_data.model_results_picklefile, "written.")
+        logger.info(f"Wrote {tb_file_data.model_results_picklefile}")
 
     else:
-        melt_array_updated = melt_array
+        melt_array_updated = previous_melt_array
 
-    if len(daily_melt_arrays) > 0:
+    # If the raw melt array was updated with new dates, then update the gap-filled version too, as well as the
+    # daily-melt CSVs for both the raw and gap-filled versions.
+    if len(new_daily_melt_arrays) > 0:
         # Interpolate the gaps.
-        generate_gap_filled_melt_picklefile.save_gap_filled_picklefile()
+        save_gap_filled_picklefile()
 
         # Now that we have the arrays updated, let's re-compute the daily melt sums.
-        compute_mean_climatology.save_daily_melt_numbers_to_csv(gap_filled=False)
-        compute_mean_climatology.save_daily_melt_numbers_to_csv(gap_filled=True)
+        save_daily_melt_numbers_to_csv(gap_filled=False)
+        save_daily_melt_numbers_to_csv(gap_filled=True)
 
-    # Generate the latest current-day maps.
-    mapper = generate_antarctica_today_map.AT_map_generator()
-    if len(daily_dts) > 0:
-        year = generate_daily_melt_file.get_melt_year_of_current_date(daily_dts[-1])
+        # Also snag what the current melt-year value is, for the maps below.
+        year = generate_daily_melt_file.get_melt_year_of_current_date(new_daily_dts[-1])
+
     else:
         year = generate_daily_melt_file.get_melt_year_of_current_date(
             latest_dt_in_array
@@ -267,8 +339,12 @@ def update_everything_to_latest_date(
     latest_date = sorted(dt_dict.keys())[-1]
     date_message = "through " + latest_date.strftime("%d %b %Y").lstrip("0")
 
-    # Plot the latest line plots.
+    # Generate the latest current-day maps.
+    mapper = AT_map_generator()
+
+    # Plot the latest maps and plots.
     for region_num in range(0, 7 + 1):
+        # The map of sum-total of annual melt this season so far.
         mapper.generate_annual_melt_map(
             year=year,
             region_number=region_num,
@@ -276,35 +352,45 @@ def update_everything_to_latest_date(
             dpi=300,
             message_below_year=date_message,
         )
+        # Map of anomaly of melt to-this-date of the melt season.
         mapper.generate_latest_partial_anomaly_melt_map(
             dpi=300,
             region_number=region_num,
             message_below_year=date_message + "\nrelative to 1990-2020 averages",
         )
+        # Binary map of melt/no-melt on the latest date.
         mapper.generate_daily_melt_map(
             infile="latest", outfile="auto", region_number=region_num, dpi=300
         )
 
-        outfile = os.path.join(
+        # Line plot of melt compared to climatology so far this season.
+        line_plot_outfile = os.path.join(
             tb_file_data.climatology_plots_directory,
             "R{0}_{1}-{2}_{3}_gap_filled.png".format(
                 region_num, year, year + 1, latest_date.strftime("%Y.%m.%d")
             ),
         )
-        plot_daily_melt_and_climatology.plot_current_year_melt_over_baseline_stats(
+        plot_current_year_melt_over_baseline_stats(
             current_date=latest_date,
             region_num=region_num,
             gap_filled=True,
-            outfile=outfile,
-            verbose=True,
+            outfile=line_plot_outfile,
         )
 
+        # Clear the figures just made above in order to not get too many open at once.
+        matplotlib.pyplot.close("all")
+
+    # Then, if specified, make copies of all the files in the "daily_plots_gathered" directory for easy reference.
+    # It turns out we don't want to use Symlinks here. Posting these files online can get squirreley when we're using
+    # simlinks rather than actual files.
     if copy_to_gathered_dir:
         copy_latest_date_plots_to_date_directory(
             year=generate_daily_melt_file.get_melt_year_of_current_date(dt_today),
             date=latest_date,
+            use_symlinks=False,
         )
 
+    # Return the updated arrays, if wanted.
     return melt_array_updated, dt_dict
 
 
@@ -318,7 +404,7 @@ def copy_latest_date_plots_to_date_directory(
     sum_maps_dir=map_filedata.annual_maps_directory,
     anomaly_maps_dir=map_filedata.anomaly_maps_directory,
     line_plots_dir=tb_file_data.climatology_plots_directory,
-    verbose=True,
+    use_symlinks=True,
 ):
     """After running the 'update_everything_to_latest_date()' function, use this to gather all the
     latest-date plots into one location. Put it in a sub-directory of the daily_plots_gathered_dir
@@ -327,7 +413,7 @@ def copy_latest_date_plots_to_date_directory(
     # Get latest file from melt anomaly directory. Also, get the date we're computing up to.
     date_string = date.strftime("%Y.%m.%d")
     search_str = (
-        "R[0-7]_{0}-{1}_{2}".format(year, year + 1, date_string) + "(\w)*\.png\Z"
+        "R[0-7]_{0}-{1}_{2}".format(year, year + 1, date_string) + r"(\w)*\.png\Z"
     )
     # Get all the files that match our search string. May be different dates and possibly different regions.
 
@@ -365,8 +451,7 @@ def copy_latest_date_plots_to_date_directory(
     dest_dir_location = os.path.join(dest_parent_dir, date_string)
     if not os.path.exists(dest_dir_location):
         os.mkdir(dest_dir_location)
-        if verbose:
-            print("Created directory '{0}'.".format(dest_dir_location))
+        logger.debug("Created directory '{0}'.".format(dest_dir_location))
 
     for fn in files_to_move:
         src = fn
@@ -374,16 +459,17 @@ def copy_latest_date_plots_to_date_directory(
         if os.path.exists(dst) and os.path.exists(src):
             os.remove(dst)
 
-        shutil.copyfile(src, dst)
+        if use_symlinks:
+            os.symlink(src, dst)
+        else:
+            shutil.copyfile(src, dst)
 
-        if verbose:
-            print("{0} -> {1}.".format(src, dst))
+        logger.debug("{0} -> {1}.".format(src, dst))
 
 
 if __name__ == "__main__":
     update_everything_to_latest_date(
-        date_today=datetime.datetime.today().strftime("%Y.%m.%d"),
         copy_to_gathered_dir=True,
     )
-    # update_everything_to_latest_date(date_today="2022.04.30")
+    # update_everything_to_latest_date(date_today="2022.04.30", overwrite=False)
     # copy_latest_date_plots_to_date_directory()

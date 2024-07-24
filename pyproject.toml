@@ -21,6 +21,7 @@ select = [
   # "B",  # flake8-bugbear
   # "A",  # flake8-builtins
   "T10",  # flake8-debugger
+  "T20",  # flake8-print
   # "RUF",  # ruff-specific rules
 ]
 
@@ -42,3 +43,36 @@ max-complexity = 23
 
 [tool.ruff.flake8-quotes]
 inline-quotes = "double"
+
+
+[tool.mypy]
+files = ["antarctica_today"]
+python_version = "3.8"
+warn_unused_configs = true
+warn_unreachable = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+# strict = true
+
+[[tool.mypy.overrides]]
+module = [
+  "cairo.*",
+  "cartopy.*",
+  "gdal.*",
+  "geopandas.*",
+  "gi.*",
+  "netCDF4.*",
+  "numpy.*",
+  "osgeo.*",
+  "scipy.stats",
+  "statsmodels.*",
+  # TODO: Remove when Python2 compat is dropped: https://github.com/nsidc/Antarctica_Today/issues/37
+  "urllib2.*",
+  "urlparse.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "antarctica_today.*"
+# disallow_untyped_defs = true
+# disallow_incomplete_defs = true

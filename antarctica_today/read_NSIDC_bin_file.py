@@ -3,26 +3,25 @@ Created on Fri Feb 21 15:03:50 2020
 
 @author: mmacferrin
 """
-import numpy
 
-# 332 rows x 316 cols for Antarctic Polar Stereo data,
-# per https://nsidc.org/data/polar-stereo/ps_grids.html
-#
-# If you are using Arctic data or some other grid, change the DEFAULT_GRID_SHAPE below,
-# or just use the optional parameter when you call it.
-# For Antarctica, (rows, cols) = (332,316)
-# For Arctic, (rows, cols) = (448, 304)
-DEFAULT_GRID_SHAPE = (332, 316)
+from pathlib import Path
+from typing import Tuple, Union
+
+import numpy
+from loguru import logger
+
+from antarctica_today.constants.grid import DEFAULT_GRID_SHAPE
+from antarctica_today.constants.paths import DATA_TB_DIR
 
 
 def read_NSIDC_bin_file(
-    fname,
-    grid_shape=DEFAULT_GRID_SHAPE,
-    header_size=0,
-    element_size=2,
-    return_type=float,
-    signed=False,
-    multiplier=0.1,
+    fname: Union[Path, str],
+    grid_shape: Tuple[int, int] = DEFAULT_GRID_SHAPE,
+    header_size: int = 0,
+    element_size: int = 2,
+    return_type: type = float,
+    signed: bool = False,
+    multiplier: float = 0.1,
 ):
     """Read an SSMI file, return a 2D grid of integer values.
 
@@ -56,7 +55,7 @@ def read_NSIDC_bin_file(
     # Check to make sure the data is the right size, raise ValueError if not.
     # TODO: The NSIDC-0051 data has the rows,cols in the header. We could read it from there,
     # although right now we just get the grid size from the parameter.
-    if int(len(raw_data) / element_size) != int(numpy.product(grid_shape)):
+    if int(len(raw_data) / element_size) != int(numpy.prod(grid_shape)):
         raise ValueError(
             "File {0} has {1} elements, does not match grid size {2}.".format(
                 fname, int(len(raw_data) / element_size), str(grid_shape)
@@ -64,7 +63,7 @@ def read_NSIDC_bin_file(
         )
 
     # Creating a uint16 array to read the data in
-    int_array = numpy.empty(grid_shape, dtype=return_type)
+    int_array: numpy.ndarray = numpy.empty(grid_shape, dtype=return_type)
     int_array = int_array.flatten()
 
     # Read the data. The built_int "from_bytes" function does the work here.
@@ -79,9 +78,9 @@ def read_NSIDC_bin_file(
     int_array.shape = grid_shape
 
     # If the file is meant to be an integer array, just return it.
+    return_array: numpy.ndarray
     if return_type in (
         int,
-        numpy.int,
         numpy.uint8,
         numpy.int8,
         numpy.uint16,
@@ -93,7 +92,7 @@ def read_NSIDC_bin_file(
     ):
         return_array = numpy.array(int_array, dtype=return_type)
     # Else, if it's meant to be a floating-point array, scale by the multiplier
-    # and return the floating-point array. If the mutiplier is a float (i.e. 0.1),
+    # and return the floating-point array. If the multiplier is a float (i.e. 0.1),
     # numpy will convert and return an array of floats
     else:
         return_array = numpy.array(int_array * multiplier, dtype=return_type)
@@ -107,7 +106,7 @@ if __name__ == "__main__":
     # An NSIDC-0001 brightness-temperature file, in 2-byte little-endian integers
     # converted to floating point. No header.
     array1 = read_NSIDC_bin_file(
-        "../Tb/nsidc-0001/tb_f08_19870709_v5_s19h.bin",
+        DATA_TB_DIR / "nsidc-0001" / "tb_f08_19870709_v5_s19h.bin",
         grid_shape=(332, 316),
         header_size=0,
         element_size=2,
@@ -116,15 +115,15 @@ if __name__ == "__main__":
         multiplier=0.1,
     )
 
-    print(array1.shape, array1.dtype)
-    print(array1)
+    print(array1.shape, array1.dtype)  # noqa: T201
+    print(array1)  # noqa: T201
 
     # An NSIDC-0051 sea-ice concentration v1 file, in a 1-byte unsigned integer array with
     # a 300-byte header.
 
     # For an Arctic file
     array2 = read_NSIDC_bin_file(
-        "../Tb/nsidc-0051/nt_20201231_f17_v1.1_n.bin",
+        DATA_TB_DIR / "nsidc-0051" / "nt_20201231_f17_v1.1_n.bin",
         grid_shape=(448, 304),
         header_size=300,
         element_size=1,
@@ -132,12 +131,12 @@ if __name__ == "__main__":
         signed=False,
     )
 
-    print(array2.shape, array2.dtype)
-    print(array2)
+    print(array2.shape, array2.dtype)  # noqa: T201
+    print(array2)  # noqa: T201
 
     # For an Antarctic file
     array3 = read_NSIDC_bin_file(
-        "../Tb/nsidc-0051/nt_20201231_f17_v1.1_s.bin",
+        DATA_TB_DIR / "nsidc-0051" / "nt_20201231_f17_v1.1_s.bin",
         grid_shape=(332, 316),
         header_size=300,
         element_size=1,
@@ -145,15 +144,15 @@ if __name__ == "__main__":
         signed=False,
     )
 
-    print(array3.shape, array3.dtype)
-    print(array3)
+    print(array3.shape, array3.dtype)  # noqa: T201
+    print(array3)  # noqa: T201
 
     # An NSIDC-0079 sea-ice concentration v3 files, in 2-byte unsigned integer array with
     # a 300-byte header.
 
     # For an Arctic file, returning the array in integer values.
     array4 = read_NSIDC_bin_file(
-        "../Tb/nsidc-0079/bt_20201231_f17_v3.1_n.bin",
+        DATA_TB_DIR / "nsidc-0079" / "bt_20201231_f17_v3.1_n.bin",
         grid_shape=(448, 304),
         header_size=0,
         element_size=2,
@@ -161,12 +160,12 @@ if __name__ == "__main__":
         signed=False,
     )
 
-    print(array4.shape, array4.dtype)
-    print(array4)
+    print(array4.shape, array4.dtype)  # noqa: T201
+    print(array4)  # noqa: T201
 
     # For an Antarctic file, alternately returning the array in floating-point values (your choice, just pick the parameter you want.)
     array5 = read_NSIDC_bin_file(
-        "../Tb/nsidc-0079/bt_20201231_f17_v3.1_s.bin",
+        DATA_TB_DIR / "nsidc-0079" / "bt_20201231_f17_v3.1_s.bin",
         grid_shape=(332, 316),
         header_size=0,
         element_size=2,
@@ -175,5 +174,5 @@ if __name__ == "__main__":
         multiplier=0.1,
     )
 
-    print(array5.shape, array5.dtype)
-    print(array5)
+    print(array5.shape, array5.dtype)  # noqa: T201
+    print(array5)  # noqa: T201

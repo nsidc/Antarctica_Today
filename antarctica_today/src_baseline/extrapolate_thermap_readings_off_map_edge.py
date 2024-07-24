@@ -14,6 +14,7 @@ Also, reset the NoDataValue from whatever odd floating-point value it is, to 0.0
 import os
 
 import numpy
+from loguru import logger
 from osgeo import gdal
 
 ice_mask_tif = "F:/Research/DATA/Antarctica_Today/baseline_datasets/ice_mask.tif"
@@ -38,7 +39,7 @@ out_array = tm_array.copy()
 out_ndv = 0.0
 out_array[out_array == tm_ndv] = out_ndv
 
-print(numpy.where(numpy.logical_and((im_array == 1), (tm_array == tm_ndv))))
+logger.info(numpy.where(numpy.logical_and((im_array == 1), (tm_array == tm_ndv))))
 
 # These are the hand-selected pixel values, eight lines total.
 # Five going vertically along Queen Maud Land, extrapolating 1-2 pixels
@@ -85,9 +86,9 @@ for (known_i, interp_i), (known_j, interp_j) in zip(
     p = numpy.polyfit(known_x, tm_array[known_i, known_j], 2)
     extrapolated_values = f(numpy.array(interp_x), *p)
 
-    print("\n", known_i, interp_i, known_j, interp_j)
-    print(tm_array[known_i, known_j], extrapolated_values)
-    print(known_x, interp_x)
+    logger.info(f"\n {known_i} {interp_i} {known_j} {interp_j}")
+    logger.info(f"{tm_array[known_i, known_j]} {extrapolated_values}")
+    logger.info(f"{known_x} {interp_x}")
 
     # Fill in missing values with extrapolated values
     out_array[interp_i, interp_j] = extrapolated_values
@@ -105,7 +106,10 @@ ds_out.SetProjection(tm_prj)
 band_out = ds_out.GetRasterBand(1)
 band_out.WriteArray(out_array)
 band_out.SetNoDataValue(out_ndv)
-out_array_data = numpy.array(out_array[out_array != out_ndv], dtype=numpy.float64)
+out_array_data: numpy.ndarray = numpy.array(
+    out_array[out_array != out_ndv],
+    dtype=numpy.float64,
+)
 band_out.SetStatistics(
     numpy.min(out_array_data),
     numpy.max(out_array_data),
@@ -116,4 +120,4 @@ band_out.SetStatistics(
 ds_out.FlushCache()
 band_out = None
 ds_out = None
-print("\n", thermap_tif_out, "written.")
+logger.info(f"\n {thermap_tif_out} written.")

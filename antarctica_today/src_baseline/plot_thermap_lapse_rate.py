@@ -1,7 +1,12 @@
+from typing import Any, List, Tuple, cast
+
 import numpy
 import pandas as pd
 import statsmodels.api as sm
+from loguru import logger
 from matplotlib import pyplot as plt
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 
 thermap_csv_file = r"C:/Users/mmacferrin/Dropbox/Research/Antarctica_Today/Dan Dixon/10m_temps_ALL_Dixon_REMA_EGM96.csv"
 
@@ -11,7 +16,13 @@ temps = thermap_df["Temp"]
 elevs = thermap_df["REMA_or_Thermap_Elev"]
 lats = thermap_df["Lat(S)"]
 
-fig, axes = plt.subplots(1, 3, figsize=(12.5, 4), sharey=True)
+# HACK: Tell the typechecker what we know about the axes object. This isn't the actual
+# type of the object, we're lying to the type checker, but the only interface we're
+# using is list subscripting, so that's probably OK.
+fig, axes = cast(
+    Tuple[Figure, List[Axes]],
+    plt.subplots(1, 3, figsize=(12.5, 4), sharey=True),
+)
 
 axes[0].scatter(elevs, temps, color="blue")
 axes[0].set_title("Temp vs Elevation")
@@ -20,7 +31,7 @@ axes[0].set_ylabel("10 m temperature (C)")
 
 X = sm.add_constant(elevs)
 model_elev_only = sm.OLS(thermap_df[["Temp"]], X).fit()
-print(model_elev_only.summary())
+logger.info(model_elev_only.summary())
 coefs = model_elev_only.params
 
 
@@ -65,11 +76,11 @@ axes[1].set_xlabel("Latitude (deg)")
 X = thermap_df[["REMA_or_Thermap_Elev", "Lat(S)"]]
 Y = thermap_df[["Temp"]]
 
-print("\n=== Statsmodels ===")
+logger.info("=== Statsmodels ===")
 X = sm.add_constant(X)
 model = sm.OLS(Y, X).fit()
 
-print(model.summary())
+logger.info(model.summary())
 coefs = model.params
 
 temps_lat_corrected_75 = temps - coefs["Lat(S)"] * (75 + lats)
@@ -77,7 +88,7 @@ axes[2].scatter(elevs, temps_lat_corrected_75, color="purple")
 
 # # Compute a quadratic curve through this line.
 # poly_coefs = numpy.polyfit(elevs, temps_lat_corrected_75, deg=2)
-# print(poly_coefs)
+# logger.info(poly_coefs)
 # # Quadratic trend-line
 # trend_x = numpy.linspace(*min_max_elev, 100)
 # trend_y = poly_coefs[0]*(trend_x**2) + poly_coefs[1]*trend_x + poly_coefs[2]

@@ -3,28 +3,31 @@ Putting this inside of melt_array_picklefile.py caused circular-dependency issue
 a function from compute_mean_climatology, which uses functions from melt_array_picklefile. So,
 we put this here instead."""
 
-
 import datetime
 import pickle
 
 import numpy
-from compute_mean_climatology import read_daily_melt_averages_picklefile
-from melt_array_picklefile import read_model_array_picklefile
-from tb_file_data import gap_filled_melt_picklefile
+from loguru import logger
+
+from antarctica_today.compute_mean_climatology import (
+    read_daily_melt_averages_picklefile,
+)
+from antarctica_today.melt_array_picklefile import read_model_array_picklefile
+from antarctica_today.tb_file_data import gap_filled_melt_picklefile
 
 
-def save_gap_filled_picklefile(picklefile=gap_filled_melt_picklefile, verbose=True):
+def save_gap_filled_picklefile(picklefile=gap_filled_melt_picklefile):
     """Write the picklefile."""
-    array, datetimes_dict = fill_melt_array_with_interpolations(verbose=verbose)
+    array, datetimes_dict = fill_melt_array_with_interpolations()
 
+    picklefile.parent.mkdir(parents=True, exist_ok=True)
     f = open(picklefile, "wb")
     pickle.dump((array, datetimes_dict), f)
     f.close()
-    if verbose:
-        print(picklefile, "written.")
+    logger.debug(f"Wrote {picklefile}")
 
 
-def fill_melt_array_with_interpolations(array=None, datetimes_dict=None, verbose=True):
+def fill_melt_array_with_interpolations(array=None, datetimes_dict=None):
     """Take the mean melt array, fill it with interpolations from the mean climatology.
 
     The array and datetimes_dict can be sent as parameters if they've already been read.
@@ -37,9 +40,7 @@ def fill_melt_array_with_interpolations(array=None, datetimes_dict=None, verbose
     """
     # Get the dates and
     if array == None or datetimes_dict == None:
-        array, datetimes_dict = read_model_array_picklefile(
-            resample_melt_codes=True, verbose=verbose
-        )
+        array, datetimes_dict = read_model_array_picklefile(resample_melt_codes=True)
 
     avg_array, avg_dt_dict = read_daily_melt_averages_picklefile(
         build_picklefile_if_not_present=True
@@ -72,7 +73,7 @@ def fill_melt_array_with_interpolations(array=None, datetimes_dict=None, verbose
     # print("\t",gap_filled_dt_list[0], gap_filled_dt_list[-1], len(gap_filled_dt_list))
 
     gap_filled_array = numpy.empty(
-        (array.shape[0], array.shape[1], len(gap_filled_dt_list)), dtype=numpy.float
+        (array.shape[0], array.shape[1], len(gap_filled_dt_list)), dtype=float
     )
 
     for gap_i, dt in enumerate(gap_filled_dt_list):

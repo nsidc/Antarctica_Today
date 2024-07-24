@@ -3,25 +3,32 @@ Created on Mon Apr  6 15:21:04 2020
 
 @author: mmacferrin
 """
+
 import argparse
 import os
 import re
+from typing import Type
 
 import numpy
+from loguru import logger
 from osgeo import gdal, osr
-from read_NSIDC_bin_file import read_NSIDC_bin_file
+
+from antarctica_today.read_NSIDC_bin_file import read_NSIDC_bin_file
+
+# To be forward-compatible with future GDAL versions, and to stop it from tossing a User Warning every time this runs.
+osr.UseExceptions()
 
 # See https://nsidc.org/data/polar-stereo/ps_grids.html for documentation on
 # these polar stereo grids
 # Upper-left corners of the grids, in km, in x,y
-NSIDC_S_GRID_UPPER_LEFT_KM = numpy.array((-3950, 4350), dtype=numpy.int)
-NSIDC_N_GRID_UPPER_LEFT_KM = numpy.array((-3850, 5850), dtype=numpy.int)
+NSIDC_S_GRID_UPPER_LEFT_KM: numpy.ndarray = numpy.array((-3950, 4350), dtype=int)
+NSIDC_N_GRID_UPPER_LEFT_KM: numpy.ndarray = numpy.array((-3850, 5850), dtype=int)
 # Pixel dimensions of the respective grids, in (y,x) --> (rows, cols)
-GRIDSIZE_25_N = numpy.array(
-    ((5850 + 5350) / 25, (3750 + 3850) / 25), dtype=numpy.long
+GRIDSIZE_25_N: numpy.ndarray = numpy.array(
+    ((5850 + 5350) / 25, (3750 + 3850) / 25), dtype=int
 )  # (448, 304)
-GRIDSIZE_25_S = numpy.array(
-    ((4350 + 3950) / 25, (3950 + 3950) / 25), dtype=numpy.long
+GRIDSIZE_25_S: numpy.ndarray = numpy.array(
+    ((4350 + 3950) / 25, (3950 + 3950) / 25), dtype=int
 )  # (332, 316)
 GRIDSIZE_12_5_N = GRIDSIZE_25_N * 2  # (896, 608)
 GRIDSIZE_12_5_S = GRIDSIZE_25_S * 2  # (664, 632)
@@ -106,7 +113,6 @@ def output_bin_to_gtif(
     header_size=0,
     resolution=None,
     hemisphere=None,
-    verbose=True,
     nodata=0,
     signed=False,
     multiplier="auto",
@@ -132,9 +138,6 @@ def output_bin_to_gtif(
 
     hemisphere = "N" or "S"
                  If None, the hemisphere is derived from the nsidc-0001 filename.
-
-    verbose = Verbosity of the output. False will run this silently. True will
-              produce feedback to stdout. (default True)
 
     nodata = Nodata value to put in the geotiff. Defaults to 0.0
 
@@ -193,7 +196,6 @@ def output_bin_to_gtif(
         resolution=resolution,
         hemisphere=hemisphere,
         nodata=nodata,
-        verbose=verbose,
     )
 
     return
@@ -213,7 +215,11 @@ def get_nsidc_geotransform(hemisphere, resolution):
 
 
 def output_gtif(
-    array, gtif_file, resolution=25, hemisphere="S", nodata=0, verbose=True
+    array,
+    gtif_file,
+    resolution=25,
+    hemisphere="S",
+    nodata=0,
 ):
     """Take an array, output to a geotiff in the NSIDC resolution specified.
 
@@ -282,8 +288,7 @@ def output_gtif(
     ds.FlushCache()
     ds = None
 
-    if verbose:
-        print(gtif_file, "written.")
+    logger.debug(f"Wrote {gtif_file}")
 
     return
 
@@ -354,13 +359,6 @@ def read_and_parse_args():
         default=False,
         help="Read bin as signed data. Default to unsigned.",
     )
-    parser.add_argument(
-        "--verbose",
-        "-v",
-        action="store_true",
-        default=False,
-        help="Increase output verbosity.",
-    )
 
     return parser.parse_args()
 
@@ -401,6 +399,7 @@ if __name__ == "__main__":
 
     assert hemisphere in (None, "N", "S")
 
+    out_type: Type
     if args.output_type.lower() in ("float", "f"):
         out_type = float
     elif args.output_type.lower() in ("int", "i", "d"):
@@ -426,5 +425,4 @@ if __name__ == "__main__":
         nodata=int(args.nodata),
         return_type=out_type,
         multiplier=multiplier,
-        verbose=args.verbose,
     )

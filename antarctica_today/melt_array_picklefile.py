@@ -14,13 +14,17 @@ import datetime
 import os
 import pickle
 import re
+from pathlib import Path
+from typing import Any, Dict, Tuple
 
 import numpy
-from map_filedata import ice_mask_tif
+from loguru import logger
 from osgeo import gdal
-from progress_bar import ProgressBar
-from read_NSIDC_bin_file import read_NSIDC_bin_file
-from tb_file_data import (
+
+from antarctica_today.map_filedata import ice_mask_tif
+from antarctica_today.progress_bar import ProgressBar
+from antarctica_today.read_NSIDC_bin_file import read_NSIDC_bin_file
+from antarctica_today.tb_file_data import (
     gap_filled_melt_picklefile,
     model_results_dir,
     model_results_picklefile,
@@ -30,9 +34,9 @@ from tb_file_data import (
 # from ssmi_bin_to_gtif import output_gtif
 
 
-def get_ice_mask_array(ice_tif=ice_mask_tif):
+def get_ice_mask_array(ice_tif: Path = ice_mask_tif) -> numpy.ndarray:
     """Read the ice mask tif, return the array."""
-    ice_mask_ds = gdal.Open(ice_tif, gdal.GA_ReadOnly)
+    ice_mask_ds = gdal.Open(str(ice_tif), gdal.GA_ReadOnly)
     ice_mask_array = ice_mask_ds.GetRasterBand(1).ReadAsArray()
     return numpy.array(ice_mask_array, dtype=bool)
 
@@ -73,37 +77,36 @@ def find_largest_melt_days_in_an_interval(
     top_dts = datetimes_in_interval[max_interval_index]
 
     if top_n:
-        print(top_melt)
-        print([dt.astype(datetime.datetime).strftime("%Y-%m-%d") for dt in top_dts])
+        logger.info(str(top_melt))
+        logger.info(
+            str([dt.astype(datetime.datetime).strftime("%Y-%m-%d") for dt in top_dts])
+        )
     else:
-        print(
+        logger.info(
             "{0} km2 in {1}".format(
                 top_melt, top_dts.astype(datetime.datetime).strftime("%Y-%m-%d")
             )
         )
 
 
-def get_array_from_model_files(file_dir=model_results_dir, verbose=True):
+def get_array_from_model_files(file_dir=model_results_dir, progress=True):
     """Take the individual .bin arrays for each day, and turn it into a M x N x T shaped numpy array."""
     file_list = recurse_directory(file_dir)
 
     first_file_data = read_NSIDC_bin_file(file_list[0], return_type=int)
-    # print(first_file_data.shape)
-    # print(first_file_data)
-    # print(numpy.unique(first_file_data)) # Values are -1, 0, 1, 2... look from
+    # logger.info(first_file_data.shape)
+    # logger.info(first_file_data)
+    # logger.info(numpy.unique(first_file_data)) # Values are -1, 0, 1, 2... look from
     # Tom what each of those values actually means.
 
     # 3D array, Y x X x T
     array_shape = first_file_data.shape + (len(file_list),)
     data_array = numpy.empty(array_shape, dtype=first_file_data.dtype)
 
-    if verbose:
-        print(
-            "Retrieving melt data from {0} binary (.bin) files.".format(len(file_list))
-        )
+    logger.debug(f"Retrieving melt data from {len(file_list)} binary (.bin) files.")
 
     for i, fname in enumerate(file_list):
-        if verbose:
+        if progress:
             ProgressBar(
                 i + 1,
                 len(file_list),
@@ -116,7 +119,8 @@ def get_array_from_model_files(file_dir=model_results_dir, verbose=True):
 
 
 def save_model_array_picklefile(
-    file_dir=model_results_dir, picklefile=model_results_picklefile
+    file_dir=model_results_dir,
+    picklefile=model_results_picklefile,
 ):
     """Save the data array *and* the dictionary of datetimes in a picklefile, as a tuple.
 
@@ -125,11 +129,12 @@ def save_model_array_picklefile(
     data_array = get_array_from_model_files(file_dir=file_dir)
     datetime_dict = get_datetimes_from_file_list(return_as_dict=True)
 
+    picklefile.parent.mkdir(parents=True, exist_ok=True)
     f = open(picklefile, "wb")
     pickle.dump((data_array, datetime_dict), f)
     f.close()
 
-    print(picklefile, "written.")
+    logger.info(f"Wrote {picklefile}")
     return data_array, datetime_dict
 
 
@@ -153,7 +158,6 @@ def read_model_array_picklefile(
     filter_out_error_swaths=True,
     resample_melt_codes=False,
     resample_melt_code_threshold=4,
-    verbose=True,
 ):
     """Read the model array picklefile.
 
@@ -166,13 +170,11 @@ def read_model_array_picklefile(
     and irrelevant to the v3 data.
     Just keep "resample_melt_codes" to False when running with v3 code.
     """
-    if verbose:
-        print("Reading", os.path.split(picklefile)[-1] + "...", end="")
+    logger.debug(f"Reading {os.path.split(picklefile)[-1]}...")
     f = open(picklefile, "rb")
     model_array, datetime_dict = pickle.load(f)
     f.close()
-    if verbose:
-        print("Done.")
+    logger.debug("Done.")
 
     if fill_pole_hole:
         # Fill the pole hole (any missing values) with "no melt" (1)
@@ -208,7 +210,7 @@ def get_datetimes_from_file_list(file_dir=model_results_dir, return_as_dict=Fals
 
     dt_list = [None] * len(file_list)
     for i, fpath in enumerate(file_list):
-        search_result = re.search("(?<=_)\d{8}(?=_)", os.path.split(fpath)[-1])
+        search_result = re.search(r"(?<=_)\d{8}(?=_)", os.path.split(fpath)[-1])
         if search_result is None:
             raise ValueError(
                 "Unrecognized file", fpath + ", cannot extract date from file name."
@@ -229,7 +231,15 @@ def get_datetimes_from_file_list(file_dir=model_results_dir, return_as_dict=Fals
 
 
 def _filter_out_erroneous_swaths(model_array, datetimes_dict):
-    """Nullify particular false-positive satellite swaths in the data."""
+    """Nullify particular false-positive satellite swaths in the data.
+
+    These are hand-outlined to nullify data (primarily from the 1980s) in which the satellite was
+    giving false-positive readings and producing melt extents that were unreasonable and fictitious.
+
+    We outline those regions and set false "melt" (2) values to "no data" (0).
+
+    Later, the gap-filling routine will fill these in with probable values for those days.
+    """
     try:
         # 1985-02-19
         array_slice = model_array[
@@ -310,19 +320,12 @@ def _filter_out_erroneous_swaths(model_array, datetimes_dict):
 
 
 def read_gap_filled_melt_picklefile(
-    picklefile=gap_filled_melt_picklefile, verbose=True
-):
+    picklefile: Path = gap_filled_melt_picklefile,
+) -> Tuple[numpy.ndarray, Dict[datetime.datetime, int]]:
     """Read the gap-filled picklefile, return to user."""
-    if verbose:
-        print("Reading", picklefile)
+    logger.debug(f"Reading {picklefile}")
 
-    f = open(picklefile, "rb")
-    array, dt_dict = pickle.load(f)
-    f.close()
+    with open(picklefile, "rb") as f:
+        array, dt_dict = pickle.load(f)
 
     return array, dt_dict
-
-
-if __name__ == "__main__":
-    # Let's save the v2.5 data from Tom's stuff.
-    array, dt_dict = save_model_array_picklefile()

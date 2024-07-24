@@ -32,25 +32,25 @@
 #
 from __future__ import print_function
 
-import base64
 import datetime
-import getopt
-import itertools
-import json
 import math
-import netrc
 import os.path
-import ssl
 import sys
 import time
-from getpass import getpass
+from typing import List
+
+import dateutil.parser
+import earthaccess
+from loguru import logger
+
+from antarctica_today.constants.paths import DATA_TB_DIR
 
 try:
     from urllib.error import HTTPError, URLError
     from urllib.parse import urlparse
     from urllib.request import HTTPCookieProcessor, Request, build_opener, urlopen
 except ImportError:
-    from urllib2 import (
+    from urllib2 import (  # type: ignore [no-redef]
         HTTPCookieProcessor,
         HTTPError,
         Request,
@@ -58,16 +58,7 @@ except ImportError:
         build_opener,
         urlopen,
     )
-    from urlparse import urlparse
-
-# short_name = 'NSIDC-0080'
-# version = '1'
-# time_start = '2021-01-01T00:00:00Z'
-# time_end = '2021-04-09T16:55:54Z'
-# bounding_box = ''
-# polygon = ''
-# filename_filter = ''
-# url_list = []
+    from urlparse import urlparse  # type: ignore [no-redef]
 
 CMR_URL = "https://cmr.earthdata.nasa.gov"
 URS_URL = "https://urs.earthdata.nasa.gov"
@@ -79,68 +70,10 @@ CMR_FILE_URL = (
 )
 
 
-def get_username():
-    username = ""
-
-    # For Python 2/3 compatibility:
-    try:
-        do_input = raw_input  # noqa
-    except NameError:
-        do_input = input
-
-    while not username:
-        username = do_input("Earthdata username: ")
-    return username
-
-
-def get_password():
-    password = ""
-    while not password:
-        password = getpass("password: ")
-    return password
-
-
-def get_credentials(url):
-    """Get user credentials from .netrc or prompt for input."""
-    credentials = None
-    errprefix = ""
-    try:
-        info = netrc.netrc()
-        username, account, password = info.authenticators(urlparse(URS_URL).hostname)
-        errprefix = "netrc error: "
-    except Exception as e:
-        if not ("No such file" in str(e)):
-            print("netrc error: {0}".format(str(e)))
-        username = None
-        password = None
-
-    while not credentials:
-        if not username:
-            username = get_username()
-            password = get_password()
-        credentials = "{0}:{1}".format(username, password)
-        credentials = base64.b64encode(credentials.encode("ascii")).decode("ascii")
-
-        if url:
-            try:
-                req = Request(url)
-                req.add_header("Authorization", "Basic {0}".format(credentials))
-                opener = build_opener(HTTPCookieProcessor())
-                opener.open(req)
-            except HTTPError:
-                print(errprefix + "Incorrect username or password")
-                errprefix = ""
-                credentials = None
-                username = None
-                password = None
-
-    return credentials
-
-
 def build_version_query_params(version):
     desired_pad_length = 3
     if len(version) > desired_pad_length:
-        print('Version string too long: "{0}"'.format(version))
+        logger.info('Version string too long: "{0}"'.format(version))
         quit()
 
     version = str(int(version))  # Strip off any leading zeros
@@ -210,7 +143,9 @@ def output_progress(count, total, status="", bar_len=60):
     percents = int(round(100.0 * fraction))
     bar = "=" * filled_len + " " * (bar_len - filled_len)
     fmt = "  [{0}] {1:3d}%  {2}   ".format(bar, percents, status)
-    print("\b" * (len(fmt) + 4), end="")  # clears the line
+
+    # Clear the line
+    print("\b" * (len(fmt) + 4), end="")  # noqa: T201
     sys.stdout.write(fmt)
     sys.stdout.flush()
 
@@ -224,29 +159,23 @@ def cmr_read_in_chunks(file_object, chunk_size=1024 * 1024):
         yield data
 
 
-def cmr_download(urls, force=False, quiet=False, output_directory=None):
+def cmr_download(urls, force=False, progress=False, output_directory=None):
     """Download files from list of urls."""
     if not urls:
         return
 
     url_count = len(urls)
-    if not quiet:
-        print("Downloading {0} files...".format(url_count))
-    credentials = None
+    logger.info(f"Downloading {url_count} files...")
 
     files_saved = []
 
     for index, url in enumerate(urls, start=1):
-        if not credentials and urlparse(url).scheme == "https":
-            credentials = get_credentials(url)
-
         filename = url.split("/")[-1]
-        if not quiet:
-            print(
-                "{0}/{1}: {2}".format(
-                    str(index).zfill(len(str(url_count))), url_count, filename
-                )
+        logger.debug(
+            "{0}/{1}: {2}".format(
+                str(index).zfill(len(str(url_count))), url_count, filename
             )
+        )
 
         # Put the new file into the output directory where we want it.
         if output_directory:
@@ -255,14 +184,13 @@ def cmr_download(urls, force=False, quiet=False, output_directory=None):
         try:
             req = Request(url)
             if credentials:
-                req.add_header("Authorization", "Basic {0}".format(credentials))
+                req.add_header(f"Authorization", "Basic {credentials}")
             opener = build_opener(HTTPCookieProcessor())
             response = opener.open(req)
             length = int(response.headers["content-length"])
             try:
                 if not force and length == os.path.getsize(filename):
-                    if not quiet:
-                        print("  File exists, skipping")
+                    logger.debug("  File exists, skipping")
                     continue
             except OSError:
                 pass
@@ -273,201 +201,123 @@ def cmr_download(urls, force=False, quiet=False, output_directory=None):
             with open(filename, "wb") as out_file:
                 for data in cmr_read_in_chunks(response, chunk_size=chunk_size):
                     out_file.write(data)
-                    if not quiet:
+                    if progress:
                         count = count + 1
                         time_elapsed = time.time() - time_initial
                         download_speed = get_speed(time_elapsed, count * chunk_size)
                         output_progress(count, max_chunks, status=download_speed)
-            if not quiet:
-                print()
+            logger.debug("")
 
             files_saved.append(filename)
 
         except HTTPError as e:
-            print("HTTP error {0}, {1}".format(e.code, e.reason))
+            logger.error(f"HTTP error {e.code}, {e.reason} ({e.url})")
+            raise
         except URLError as e:
-            print("URL error: {0}".format(e.reason))
+            logger.warning(f"URL error: {e.reason} ({e.url})")
+            # TODO: Why don't we `raise` here?
         except IOError:
             raise
 
     return files_saved
 
 
-def cmr_filter_urls(search_results):
-    """Select only the desired data files from CMR response."""
-    if "feed" not in search_results or "entry" not in search_results["feed"]:
-        return []
+def _results_with_links(results: list) -> list:
+    """Filter results to only include those with download links.
 
-    entries = [e["links"] for e in search_results["feed"]["entry"] if "links" in e]
-    # Flatten "entries" to a simple list of links
-    links = list(itertools.chain(*entries))
-
-    urls = []
-    unique_filenames = set()
-    for link in links:
-        if "href" not in link:
-            # Exclude links with nothing to download
-            continue
-        if "inherited" in link and link["inherited"] is True:
-            # Why are we excluding these links?
-            continue
-        if "rel" in link and "data#" not in link["rel"]:
-            # Exclude links which are not classified by CMR as "data" or "metadata"
-            continue
-
-        if "title" in link and "opendap" in link["title"].lower():
-            # Exclude OPeNDAP links--they are responsible for many duplicates
-            # This is a hack; when the metadata is updated to properly identify
-            # non-datapool links, we should be able to do this in a non-hack way
-            continue
-
-        filename = link["href"].split("/")[-1]
-        if filename in unique_filenames:
-            # Exclude links with duplicate filenames (they would overwrite)
-            continue
-        unique_filenames.add(filename)
-
-        urls.append(link["href"])
-
-    return urls
+    Some NSIDC-0080 CMR results lack links, but it's OK because they're duplicates. I'm
+    not sure why it's like that.
+    """
+    filtered = [r for r in results if r.data_links()]
+    return filtered
 
 
-def cmr_search(
-    short_name,
-    version,
-    time_start,
-    time_end,
-    bounding_box="",
-    polygon="",
-    filename_filter="",
-    quiet=False,
-):
-    """Perform a scrolling CMR query for files matching input criteria."""
-    cmr_query_url = build_cmr_query_url(
-        short_name=short_name,
-        version=version,
-        time_start=time_start,
-        time_end=time_end,
-        bounding_box=bounding_box,
-        polygon=polygon,
-        filename_filter=filename_filter,
-    )
-    if not quiet:
-        print("Querying for data:\n\t{0}\n".format(cmr_query_url))
+def _get_mmdd_from_earthdata_granule(granule):
+    date_str = granule["umm"]["TemporalExtent"]["RangeDateTime"]["BeginningDateTime"]
+    dt = dateutil.parser.parse(date_str)
+    return dt.month, dt.day
 
-    cmr_scroll_id = None
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
 
-    urls = []
-    hits = 0
-    while True:
-        req = Request(cmr_query_url)
-        if cmr_scroll_id:
-            req.add_header("cmr-scroll-id", cmr_scroll_id)
-        response = urlopen(req, context=ctx)
-        if not cmr_scroll_id:
-            # Python 2 and 3 have different case for the http headers
-            headers = {k.lower(): v for k, v in dict(response.info()).items()}
-            cmr_scroll_id = headers["cmr-scroll-id"]
-            hits = int(headers["cmr-hits"])
-            if not quiet:
-                if hits > 0:
-                    print("Found {0} matches.".format(hits))
-                else:
-                    print("Found no matches.")
-        search_page = response.read()
-        search_page = json.loads(search_page.decode("utf-8"))
-        url_scroll_results = cmr_filter_urls(search_page)
-        if not url_scroll_results:
-            break
-        if not quiet and hits > CMR_PAGE_SIZE:
-            print(".", end="")
-            sys.stdout.flush()
-        urls += url_scroll_results
+def filter_data_only_in_melt_season(
+    results: list, mmdd_start: tuple = (10, 1), mmdd_end: tuple = (4, 30)
+) -> list:
+    """For Antarctica Today, we're interested only in dates that correspond with the melt season, defined here from
+    1st of October thru 30th of April of the following year (the Antarctic melt season).
+    Results outside of that date range will be omitted and not downloaded.
 
-    if not quiet and hits > CMR_PAGE_SIZE:
-        print()
-    return urls
+    Tb values in the cold frozen winter are used to calibrate the model and set thresholds before the beginning of
+    the next melt season.
+    """
+    mmdd_list = [_get_mmdd_from_earthdata_granule(granule) for granule in results]
+    results_to_return = []
+    for granule, mmdd in zip(results, mmdd_list):
+        # If the melt season wraps around the new year (as it does in Antartcica)
+        if mmdd_start > mmdd_end:
+            if mmdd >= mmdd_start or mmdd <= mmdd_end:
+                results_to_return.append(granule)
+        else:
+            if mmdd_start <= mmdd <= mmdd_end:
+                results_to_return.append(granule)
+
+    return results_to_return
 
 
 def download_new_files(
-    short_name="NSIDC-0080",
-    version="1",
-    time_start="2021-02-17T00:00:00Z",
-    time_end=datetime.datetime.now().strftime("%Y-%m-%dT00:00:00Z"),
-    bounding_box="-180,-90,180,0",
-    polygon=[],
-    filename_filters=["*s19v*", "*s37v*", "*s37h*"],
-    url_list=[],
-    output_directory="../Tb/nsidc-0080",
-    argv=None,
-):
-    """Download new files into the directory of your choice."""
+    *,
+    time_start="2022-01-10",
+    time_end=datetime.datetime.now().strftime("%Y-%m-%d"),
+    only_in_melt_season=True,
+) -> List[str]:
+    """Download new NSIDC-0080 files into the directory of your choice.
 
-    if argv is None:
-        argv = sys.argv[1:]
+    Will download 25km resolution data files from the southern hemisphere.
 
-    force = False
-    quiet = False
-    usage = "usage: nsidc-download_***.py [--help, -h] [--force, -f] [--quiet, -q]"
+    The default start date is the day after the end of the .bin data available in
+    `/data/daily_melt_bin_files/` directory in this repo.
+    """
+    short_name = "NSIDC-0080"
+    version = "2"
+    output_directory = DATA_TB_DIR / short_name.lower()
 
-    try:
-        opts, args = getopt.getopt(argv, "hfq", ["help", "force", "quiet"])
-        for opt, _arg in opts:
-            if opt in ("-f", "--force"):
-                force = True
-            elif opt in ("-q", "--quiet"):
-                quiet = True
-            elif opt in ("-h", "--help"):
-                print(usage)
-                sys.exit(0)
-    except getopt.GetoptError as e:
-        print(e.args[0])
-        print(usage)
-        sys.exit(1)
+    filename_filter = "*25km_*"
+    bounding_box = (-180, -90, 180, 0)
 
     try:
-        if url_list or filename_filters is None or len(filename_filters) == 0:
-            filename_filter = ""
-            if not url_list:
-                url_list = cmr_search(
-                    short_name,
-                    version,
-                    time_start,
-                    time_end,
-                    bounding_box=bounding_box,
-                    polygon=polygon,
-                    filename_filter=filename_filter,
-                    quiet=quiet,
-                )
+        earthaccess.login()
 
-        else:
-            url_list = []
-            for filename_filter in filename_filters:
-                url_list.extend(
-                    cmr_search(
-                        short_name,
-                        version,
-                        time_start,
-                        time_end,
-                        bounding_box=bounding_box,
-                        polygon=polygon,
-                        filename_filter=filename_filter,
-                        quiet=quiet,
-                    )
-                )
+        # Due to a known issue in earthdata, "Z" (Zulu-time) appended at the end of our string is breaking the search.
+        # Issue is documented here: https://github.com/nsidc/earthaccess/issues/330
+        # We don't need time-zone information in this search, so remove it here, which seems to fix things.
+        # It's a hack but it works for now. These two lines may be removed when that earthdata issue is fixed.
+        time_start = time_start.rstrip("Z")
+        time_end = time_end.rstrip("Z")
 
-        files_saved = cmr_download(
-            url_list, output_directory=output_directory, force=force, quiet=quiet
+        results = earthaccess.search_data(
+            short_name=short_name,
+            version=version,
+            bounding_box=bounding_box,
+            temporal=(time_start, time_end),
+            granule_name=filename_filter,
+            debug=True,
         )
+        results = _results_with_links(results)
+
+        if only_in_melt_season:
+            results = filter_data_only_in_melt_season(results)
+            logger.info(
+                f"Found {len(results)} downloadable granules within the Antarctic melt season."
+            )
+        else:
+            logger.info(f"Found {len(results)} downloadable granules.")
+
+        # If there are no granules to download, return an empty list of files without bothering to call "download()."
+        if len(results) == 0:
+            files_saved = []
+        # Otherwise download the files and return the list of files we downloaded.
+        else:
+            files_saved = earthaccess.download(results, str(output_directory))
 
     except KeyboardInterrupt:
         quit()
 
     return files_saved
-
-
-if __name__ == "__main__":
-    download_new_files(time_start="2021-10-01T00:00:00Z")

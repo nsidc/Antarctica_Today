@@ -1,0 +1,6 @@
+services:
+  cli:
+    image: "nsidc/antarctica_today:dev"
+    build: "."
+    volumes:
+      - "./antarctica_today/:/app/antarctica_today/"

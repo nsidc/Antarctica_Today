@@ -20,7 +20,7 @@
 # where 'myusername' and 'mypassword' are your Earthdata credentials.
 #
 # Update: 2020.06.02: Mike MacFerrin
-# Create a command-line version of this for flexible re-use
+# Create a command-line version of this for flexible reuse
 
 from __future__ import print_function
 
@@ -34,13 +34,16 @@ import os
 import ssl
 import sys
 from getpass import getpass
+from typing import List
+
+from loguru import logger
 
 try:
     from urllib.error import HTTPError, URLError
     from urllib.parse import urlparse
     from urllib.request import HTTPCookieProcessor, Request, build_opener, urlopen
 except ImportError:
-    from urllib2 import (
+    from urllib2 import (  # type: ignore [no-redef]
         HTTPCookieProcessor,
         HTTPError,
         Request,
@@ -48,7 +51,7 @@ except ImportError:
         build_opener,
         urlopen,
     )
-    from urlparse import urlparse
+    from urlparse import urlparse  # type: ignore [no-redef]
 
 short_name = "NSIDC-0001"
 version = "5"
@@ -57,7 +60,7 @@ time_end = "2020-04-30T23:59:59Z"
 bounding_box = ""
 polygon = ""
 filename_filter = ""
-url_list = []
+url_list: List[str] = []
 
 CMR_URL = "https://cmr.earthdata.nasa.gov"
 URS_URL = "https://urs.earthdata.nasa.gov"
@@ -106,7 +109,7 @@ def get_credentials(url):
         errprefix = "netrc error: "
     except Exception as e:
         if not ("No such file" in str(e)):
-            print("netrc error: {0}".format(str(e)))
+            logger.error("netrc error: {0}".format(str(e)))
         username = None
         password = None
 
@@ -124,7 +127,7 @@ def get_credentials(url):
                 opener = build_opener(HTTPCookieProcessor())
                 opener.open(req)
             except HTTPError:
-                print(errprefix + "Incorrect username or password")
+                logger.error(errprefix + "Incorrect username or password")
                 errprefix = ""
                 credentials = None
                 username = None
@@ -136,7 +139,7 @@ def get_credentials(url):
 def build_version_query_params(version):
     desired_pad_length = 3
     if len(version) > desired_pad_length:
-        print('Version string too long: "{0}"'.format(version))
+        logger.error('Version string too long: "{0}"'.format(version))
         quit()
 
     version = str(int(version))  # Strip off any leading zeros
@@ -177,7 +180,7 @@ def cmr_download(urls, output_dir=None, credentials=None):
         return
 
     url_count = len(urls)
-    print("Downloading {0} files...".format(url_count))
+    logger.info("Downloading {0} files...".format(url_count))
     # credentials = None
 
     for index, url in enumerate(urls, start=1):
@@ -187,7 +190,7 @@ def cmr_download(urls, output_dir=None, credentials=None):
         filename = url.split("/")[-1]
         if output_dir != None:
             filename = os.path.join(output_dir, filename)
-        print(
+        logger.info(
             "{0}/{1}: {2}".format(
                 str(index).zfill(len(str(url_count))), url_count, filename
             )
@@ -204,9 +207,9 @@ def cmr_download(urls, output_dir=None, credentials=None):
             data = opener.open(req).read()
             open(filename, "wb").write(data)
         except HTTPError as e:
-            print("HTTP error {0}, {1}".format(e.code, e.reason))
+            logger.info("HTTP error {0}, {1}".format(e.code, e.reason))
         except URLError as e:
-            print("URL error: {0}".format(e.reason))
+            logger.info("URL error: {0}".format(e.reason))
         except IOError:
             raise
         except KeyboardInterrupt:
@@ -271,7 +274,7 @@ def cmr_search(
         polygon=polygon,
         filename_filter=filename_filter,
     )
-    print("Querying for data:\n\t{0}\n".format(cmr_query_url))
+    logger.info("Querying for data:\n\t{0}\n".format(cmr_query_url))
 
     cmr_scroll_id = None
     ctx = ssl.create_default_context()
@@ -291,21 +294,21 @@ def cmr_search(
                 cmr_scroll_id = headers["cmr-scroll-id"]
                 hits = int(headers["cmr-hits"])
                 if hits > 0:
-                    print("Found {0} matches.".format(hits))
+                    logger.info("Found {0} matches.".format(hits))
                 else:
-                    print("Found no matches.")
+                    logger.info("Found no matches.")
             search_page = response.read()
             search_page = json.loads(search_page.decode("utf-8"))
             url_scroll_results = cmr_filter_urls(search_page)
             if not url_scroll_results:
                 break
             if hits > CMR_PAGE_SIZE:
-                print(".", end="")
+                print(".", end="")  # noqa: T201
                 sys.stdout.flush()
             urls += url_scroll_results
 
         if hits > CMR_PAGE_SIZE:
-            print()
+            print()  # noqa: T201
         return urls
     except KeyboardInterrupt:
         quit()

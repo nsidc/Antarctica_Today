@@ -11,6 +11,7 @@ import argparse
 import os
 
 import numpy
+from loguru import logger
 from osgeo import gdal
 
 
@@ -21,7 +22,6 @@ def write_array_to_binary(
     multiplier=1,
     byteorder="little",
     signed=False,
-    verbose=True,
 ):
     if int(numbytes) not in (1, 2, 4, 8):
         raise ValueError("Numbytes must be one of 1,2,4,8.")
@@ -36,36 +36,34 @@ def write_array_to_binary(
         byteorder = "big"
 
     # Open the output file name.
-    f = open(bin_filename, "wb")
+    with open(bin_filename, "wb") as f:
+        # Convert the number of bytes into the correct numpy array datatype.
+        if signed:
+            n_dtype = {1: numpy.int8, 2: numpy.int16, 4: numpy.int32, 8: numpy.int64}[
+                int(numbytes)
+            ]
+        else:
+            n_dtype = {
+                1: numpy.uint8,
+                2: numpy.uint16,
+                4: numpy.uint32,
+                8: numpy.uint64,
+            }[int(numbytes)]
 
-    # Convert the number of bytes into the correct numpy array datatype.
-    if signed:
-        n_dtype = {1: numpy.int8, 2: numpy.int16, 4: numpy.int32, 8: numpy.int64}[
-            int(numbytes)
-        ]
-    else:
-        n_dtype = {1: numpy.uint8, 2: numpy.uint16, 4: numpy.uint32, 8: numpy.uint64}[
-            int(numbytes)
-        ]
+        # Converte the array into the appropriate data type, and multiply by the multiplier
+        out_array = numpy.array(array * multiplier, dtype=n_dtype)
 
-    # Converte the array into the appropriate data type, and multiply by the multiplier
-    out_array = numpy.array(array * multiplier, dtype=n_dtype)
+        # Flatten the array.
+        out_array = out_array.flatten()
 
-    # Flatten the array.
-    out_array = out_array.flatten()
-
-    for value in out_array:
-        f.write(
-            int.to_bytes(
-                int(value), length=numbytes, byteorder=byteorder, signed=signed
+        for value in out_array:
+            f.write(
+                int.to_bytes(
+                    int(value), length=numbytes, byteorder=byteorder, signed=signed
+                )
             )
-        )
 
-    f.close()
-
-    if verbose:
-        print(os.path.split(bin_filename)[-1], "written.")
-
+    logger.debug(f"Wrote {os.path.split(bin_filename)[-1]}")
     return bin_filename
 
 
@@ -77,14 +75,12 @@ def write_gtif_to_binary(
     multiplier=1,
     byteorder="little",
     signed=False,
-    verbose=True,
 ):
     rasterband = int(rasterband)
     if rasterband < 1:
         raise ValueError("Raster band must be an integer greater than or equal to 1.")
 
-    if verbose:
-        print("Reading", os.path.split(gtif_filename)[-1])
+    logger.debug(f"Reading {os.path.split(gtif_filename)[-1]}")
 
     ds = gdal.Open(gtif_filename, gdal.GA_ReadOnly)
     if ds is None:
@@ -110,7 +106,6 @@ def write_gtif_to_binary(
         multiplier=multiplier,
         byteorder=byteorder,
         signed=signed,
-        verbose=verbose,
     )
 
 
@@ -160,13 +155,6 @@ def read_and_parse_args():
         default=False,
         help="Signed data. Defaults to unsigned. Results will be the same if no negative values are in the array.",
     )
-    parser.add_argument(
-        "--verbose",
-        "-v",
-        action="store_true",
-        default=False,
-        help="Increase output verbosity.",
-    )
 
     return parser.parse_args()
 
@@ -180,5 +168,4 @@ if __name__ == "__main__":
         numbytes=args.numbytes,
         multiplier=args.multiplier,
         byteorder=args.byteorder,
-        verbose=args.verbose,
     )
