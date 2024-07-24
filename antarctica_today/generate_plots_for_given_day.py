@@ -7,6 +7,7 @@ import datetime
 import os
 import re
 import shutil
+from pathlib import Path
 
 import dateutil.parser
 import matplotlib.pyplot
@@ -105,7 +106,7 @@ def generate_maps_and_plots_for_a_date(
             region_num=region_num,
             gap_filled=True,
             dpi=dpi,
-            outfile=lineplot_outfile,
+            outfile=Path(lineplot_outfile),
         )
 
         # Close the current plots open in matplotlib. (Keeps them from accumulating.)
