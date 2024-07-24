@@ -20,3 +20,10 @@ pre-commit install
 ### Mypy
 
 There's a basic config for Mypy, but it doesn't pass yet.
+
+
+## Development with Docker
+
+```bash
+ln -s compose.dev.yml compose.override.yml
+```

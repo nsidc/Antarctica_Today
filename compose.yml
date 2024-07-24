@@ -1,7 +1,6 @@
 services:
   cli:
-    image: "nsidc/antarctica_today:local"
-    build: "."
+    image: "nsidc/antarctica_today:${ANTARCTICA_TODAY_VERSION:-latest}"
     user: "root"
     volumes:
       - "./Tb/:/app/Tb/"
