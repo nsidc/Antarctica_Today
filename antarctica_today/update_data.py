@@ -21,6 +21,10 @@ from antarctica_today import (
     tb_file_data,
 )
 from antarctica_today.compute_mean_climatology import save_daily_melt_numbers_to_csv
+from antarctica_today.constants.dates import (
+    MELT_END_MMDD,
+    MELT_START_MMDD,
+)
 from antarctica_today.constants.paths import DATA_TB_DIR
 from antarctica_today.generate_antarctica_today_map import AT_map_generator
 from antarctica_today.generate_gap_filled_melt_picklefile import (
@@ -81,8 +85,8 @@ def update_everything_to_latest_date(
     melt_bin_dir=tb_file_data.model_results_dir,
     copy_to_gathered_dir=True,
     melt_season_only=True,
-    melt_season_start_mmdd=(10, 1),
-    melt_season_end_mmdd=(4, 30),
+    melt_season_start_mmdd=MELT_START_MMDD,
+    melt_season_end_mmdd=MELT_END_MMDD,
     date_today=None,
 ):
     """Using today's date, do everything to update with the newest data.

@@ -21,6 +21,10 @@ from antarctica_today.compute_mean_climatology import (
     open_baseline_climatology_csv_as_dataframe,
     read_daily_melt_numbers_as_dataframe,
 )
+from antarctica_today.constants.dates import (
+    MELT_END_MMDD,
+    MELT_START_MMDD,
+)
 from antarctica_today.melt_array_picklefile import read_model_array_picklefile
 from antarctica_today.tb_file_data import (
     antarctic_regions_dict,
@@ -212,8 +216,8 @@ def _add_region_area_at_bottom(fig, ax, region_number=0):
 def plot_current_year_melt_over_baseline_stats(
     current_date=None,
     region_num=0,
-    doy_start=(10, 1),
-    doy_end=(4, 30),
+    doy_start=MELT_START_MMDD,
+    doy_end=MELT_END_MMDD,
     outfile: Optional[Path] = None,
     gap_filled=True,
     add_max_line=False,
@@ -800,7 +804,7 @@ def special_figure_REG5_FEB_APR_2022(outfile):
     """
     region_num = 5
     doy_start = (2, 1)
-    doy_end = (4, 30)
+    doy_end = MELT_END_MMDD
     gap_filled = True
     add_max_line = True
     dpi = 600

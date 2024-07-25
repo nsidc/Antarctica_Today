@@ -9,6 +9,10 @@ import pandas
 from loguru import logger
 from osgeo import gdal
 
+from antarctica_today.constants.dates import (
+    MELT_END_MMDD,
+    MELT_START_MMDD,
+)
 from antarctica_today.melt_array_picklefile import (
     get_ice_mask_array,
     read_gap_filled_melt_picklefile,
@@ -30,9 +34,9 @@ from antarctica_today.write_NSIDC_bin_to_gtif import output_gtif
 
 def compute_daily_climatology_pixel_averages(
     baseline_start_year: int = 1990,
-    melt_start_mmdd: Tuple[int, int] = (10, 1),
+    melt_start_mmdd: Tuple[int, int] = MELT_START_MMDD,
     baseline_end_year: int = 2020,
-    melt_end_mmdd: Tuple[int, int] = (4, 30),
+    melt_end_mmdd: Tuple[int, int] = MELT_END_MMDD,
     output_picklefile: Path = daily_melt_averages_picklefile,
 ) -> Tuple[numpy.ndarray, Dict[Tuple[int, int], int]]:
     """Compute fraction of days in the baseline period in which each give pixel melts.
@@ -254,8 +258,8 @@ def read_daily_sum_melt_averages_picklefile(
 
 
 def create_baseline_climatology_tif(
-    start_date: datetime.datetime = datetime.datetime(1990, 10, 1),
-    end_date: datetime.datetime = datetime.datetime(2020, 4, 30),
+    start_date: datetime.datetime = datetime.datetime(1990, *MELT_START_MMDD),
+    end_date: datetime.datetime = datetime.datetime(2020, *MELT_END_MMDD),
     f_out_mean: str = mean_climatology_geotiff,
     f_out_std: str = std_climatology_geotiff,
     round_to_integers: bool = True,
@@ -561,8 +565,8 @@ def get_annual_melt_sum_array(
 def create_annual_melt_sum_tif(
     year: Union[Literal["all"], int] = "all",
     output_tif: Optional[str] = None,
-    melt_start_mmdd: Tuple[int, int] = (10, 1),
-    melt_end_mmdd: Tuple[int, int] = (4, 30),
+    melt_start_mmdd: Tuple[int, int] = MELT_START_MMDD,
+    melt_end_mmdd: Tuple[int, int] = MELT_END_MMDD,
     gap_filled: bool = True,
 ) -> Optional[numpy.ndarray]:
     """Create an integer tif file of that year's annual sum of melt-days, per pixel.
@@ -646,8 +650,8 @@ def save_climatologies_as_CSV(
     csv_file=baseline_percentiles_csv,
     baseline_start_year=1990,
     baseline_end_year=2020,
-    doy_start=(10, 1),
-    doy_end=(4, 30),
+    doy_start=MELT_START_MMDD,
+    doy_end=MELT_END_MMDD,
     gap_filled=True,
 ):
     """Compute the percentiles of climatologies and save them as a pandas dataframe for later use."""
@@ -752,8 +756,8 @@ def save_climatologies_as_CSV(
 def _generate_baseline_melt_climatology(
     baseline_start_year=1990,
     baseline_end_year=2020,
-    doy_start=(10, 1),  # (MM,DD)
-    doy_end=(4, 30),  # (MM,DD)
+    doy_start=MELT_START_MMDD,  # (MM,DD)
+    doy_end=MELT_END_MMDD,  # (MM,DD)
     include_regional_totals=True,
     gap_filled=True,
 ):

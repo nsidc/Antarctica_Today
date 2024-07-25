@@ -28,6 +28,10 @@ from antarctica_today.compute_mean_climatology import (
     create_partial_year_melt_anomaly_tif,
     read_annual_melt_anomaly_tif,
 )
+from antarctica_today.constants.dates import (
+    MELT_END_MMDD,
+    MELT_START_MMDD,
+)
 
 # import svgclip
 from antarctica_today.map_filedata import (
@@ -1427,7 +1431,11 @@ class AT_map_generator:
         return
 
     def _produce_melt_year_date_masks(
-        self, datetimes_dict, year="all", melt_start_mmdd=(10, 1), melt_end_mmdd=(4, 30)
+        self,
+        datetimes_dict,
+        year="all",
+        melt_start_mmdd=MELT_START_MMDD,
+        melt_end_mmdd=MELT_END_MMDD,
     ):
         """Given a dictionary of (datetime:index) key:value pairs, return masks for all the years requested.
 
@@ -1591,8 +1599,8 @@ class AT_map_generator:
         outfile_template=None,
         year="all",
         fmt="png",
-        melt_start_mmdd=(10, 1),
-        melt_end_mmdd=(4, 30),
+        melt_start_mmdd=MELT_START_MMDD,
+        melt_end_mmdd=MELT_END_MMDD,
         mmdd_of_year=None,
         dpi=150,
         region_number=0,
@@ -1767,8 +1775,8 @@ class AT_map_generator:
         year="all",
         fmt="png",
         mmdd_of_year=None,
-        melt_start_mmdd=(10, 1),
-        melt_end_mmdd=(4, 30),
+        melt_start_mmdd=MELT_START_MMDD,
+        melt_end_mmdd=MELT_END_MMDD,
         dpi=150,
         region_number=0,
         include_region_name_if_not_0=True,
@@ -1942,8 +1950,8 @@ class AT_map_generator:
         outfile_template=None,
         fmt="png",
         dpi=150,
-        melt_start_mmdd=(10, 1),
-        melt_end_mmdd=(4, 30),
+        melt_start_mmdd=MELT_START_MMDD,
+        melt_end_mmdd=MELT_END_MMDD,
         region_number=0,
         include_region_name_if_not_0=True,
         include_region_outline_if_not_0=True,

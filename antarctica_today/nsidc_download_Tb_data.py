@@ -43,6 +43,10 @@ import dateutil.parser
 import earthaccess
 from loguru import logger
 
+from antarctica_today.constants.dates import (
+    MELT_END_MMDD,
+    MELT_START_MMDD,
+)
 from antarctica_today.constants.paths import DATA_TB_DIR
 
 try:
@@ -239,7 +243,7 @@ def _get_mmdd_from_earthdata_granule(granule):
 
 
 def filter_data_only_in_melt_season(
-    results: list, mmdd_start: tuple = (10, 1), mmdd_end: tuple = (4, 30)
+    results: list, mmdd_start: tuple = MELT_START_MMDD, mmdd_end: tuple = MELT_END_MMDD
 ) -> list:
     """For Antarctica Today, we're interested only in dates that correspond with the melt season, defined here from
     1st of October thru 30th of April of the following year (the Antarctic melt season).

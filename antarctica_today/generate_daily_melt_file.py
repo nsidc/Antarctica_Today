@@ -24,6 +24,10 @@ import xarray
 from loguru import logger
 
 from antarctica_today import tb_file_data, write_NSIDC_bin_to_gtif
+from antarctica_today.constants.dates import (
+    MELT_END_MMDD,
+    MELT_START_MMDD,
+)
 from antarctica_today.date import date_within_melt_period
 from antarctica_today.melt_array_picklefile import get_ice_mask_array
 from antarctica_today.read_NSIDC_bin_file import read_NSIDC_bin_file
@@ -157,7 +161,7 @@ def create_daily_melt_file(
 
 
 def get_melt_year_of_current_date(
-    dt_object, melt_doy_start=(10, 1), melt_doy_end=(4, 30)
+    dt_object, melt_doy_start=MELT_START_MMDD, melt_doy_end=MELT_END_MMDD
 ):
     """For a given datetime object, return the melt year number that corresponds to that date.
     If the data falls outside of the melt year, return None.
@@ -193,8 +197,8 @@ def get_melt_year_of_current_date(
 
 def get_correct_threshold_file(
     dt_object,
-    melt_doy_start=(10, 1),
-    melt_doy_end=(4, 30),
+    melt_doy_start=MELT_START_MMDD,
+    melt_doy_end=MELT_END_MMDD,
     thresholds_dir=tb_file_data.threshold_file_dir,
 ):
     """For a given datetime object, return the threshold file that corresponds to that date.
