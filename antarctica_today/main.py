@@ -7,6 +7,7 @@ Created on Sun Feb  7 08:51:25 2021
 import argparse
 import datetime
 import os
+from pathlib import Path
 
 import click
 
@@ -20,7 +21,7 @@ from antarctica_today import (
 )
 
 
-def preprocessing_main():
+def preprocessing_main() -> None:
     """When we get new data (or new versions of the data), do all the things to get it ingested.
 
     1) Read all the .bin files and put them into the array picklefile
@@ -57,7 +58,7 @@ def preprocessing_main():
         compute_mean_climatology.create_annual_melt_anomaly_tif(year, gap_filled=True)
 
 
-def generate_all_plots_and_maps_main():
+def generate_all_plots_and_maps_main() -> None:
     """After all the preprocessing, re-generate all the plots and maps.
 
     4) Re-run the climatology & daily-melt plots for each year.
@@ -74,7 +75,7 @@ def generate_all_plots_and_maps_main():
             plot_daily_melt_and_climatology.plot_current_year_melt_over_baseline_stats(
                 datetime.datetime(year=year + 1, month=4, day=30),
                 region_num=region,
-                outfile=fname,
+                outfile=Path(fname),
             )
 
     # 5) Get a quick status check on the dates coverage.
