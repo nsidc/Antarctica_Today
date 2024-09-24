@@ -13,7 +13,7 @@
 version: 1
 metadata:
   content_hash:
-    linux-64: 5a8ecb85578447b396175b83bbbb9299310098579a3245564715c5d96ec659ba
+    linux-64: 2776cacc965c5d19b575a4bd2f43c9cca65bb10ec3b2184c661574caac7bb442
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -506,16 +506,16 @@ package:
   category: main
   optional: false
 - name: c-ares
-  version: 1.32.2
+  version: 1.32.3
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     libgcc-ng: '>=12'
-  url: https://conda.anaconda.org/conda-forge/linux-64/c-ares-1.32.2-h4bc722e_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/c-ares-1.32.3-h4bc722e_0.conda
   hash:
-    md5: 8024af1ee7078e37fa3101c0a0296af2
-    sha256: d1b01f9e3d10b97fd09e19fda0caf9bfad3c884a6b19fb3f654a9aed02a70b58
+    md5: 7624e34ee6baebfc80d67bac76cc9d9d
+    sha256: 3c5a844bb60b0d52d89c3f1bd828c9856417fe33a6102fd8bbd5c13c3351704a
   category: main
   optional: false
 - name: ca-certificates
@@ -1423,16 +1423,16 @@ package:
   category: main
   optional: false
 - name: importlib-metadata
-  version: 8.0.0
+  version: 8.1.0
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.8'
     zipp: '>=0.5'
-  url: https://conda.anaconda.org/conda-forge/noarch/importlib-metadata-8.0.0-pyha770c72_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/importlib-metadata-8.1.0-pyha770c72_0.conda
   hash:
-    md5: 3286556cdd99048d198f72c3f6f69103
-    sha256: e40d7e71c37ec95df9a19d39f5bb7a567c325be3ccde06290a71400aab719cac
+    md5: 03da20bf8b1f1021102633d2e9cee84e
+    sha256: b56e95c96d0afb1efd39cca3801bb5dd41506ffe996a02263d1805353f9b248e
   category: main
   optional: false
 - name: importlib-resources
@@ -1449,15 +1449,15 @@ package:
   category: main
   optional: false
 - name: importlib_metadata
-  version: 8.0.0
+  version: 8.1.0
   manager: conda
   platform: linux-64
   dependencies:
-    importlib-metadata: '>=8.0.0,<8.0.1.0a0'
-  url: https://conda.anaconda.org/conda-forge/noarch/importlib_metadata-8.0.0-hd8ed1ab_0.conda
+    importlib-metadata: '>=8.1.0,<8.1.1.0a0'
+  url: https://conda.anaconda.org/conda-forge/noarch/importlib_metadata-8.1.0-hd8ed1ab_0.conda
   hash:
-    md5: 5f8c8ebbe6413a7838cf6ecf14d5d31b
-    sha256: f786f67bcdd6debb6edc2bc496e2899a560bbcc970e66727d42a805a1a5bf9a3
+    md5: 1e7ab80593a1fdae4225f4df4fd150d0
+    sha256: b816a3bbe911adfb9d906bd096e61817a4ea4defffff0485ab5a0c1d94a249ca
   category: main
   optional: false
 - name: importlib_resources
@@ -2414,7 +2414,7 @@ package:
   category: main
   optional: false
 - name: mapclassify
-  version: 2.6.1
+  version: 2.7.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -2424,10 +2424,10 @@ package:
     python: '>=3.9'
     scikit-learn: '>=1.0'
     scipy: '>=1.8'
-  url: https://conda.anaconda.org/conda-forge/noarch/mapclassify-2.6.1-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/mapclassify-2.7.0-pyhd8ed1ab_0.conda
   hash:
-    md5: 6aceae1ad4f16cf7b73ee04189947f98
-    sha256: 204ab8b242229d422b33cfec07ea61cefa8bd22375a16658afbabaafce031d64
+    md5: 014ab9453f9e9fb915937b46830d48e8
+    sha256: 7b0be62b175db5cc36bcca1b995fccd4a22cd1ffdf612edc188f329087f048f7
   category: main
   optional: false
 - name: markupsafe
@@ -3037,6 +3037,20 @@ package:
     sha256: 203918a51383ab42161763317e44f505e2526aac4451613acae4d83633cf2676
   category: main
   optional: false
+- name: pydantic-settings
+  version: 2.3.4
+  manager: conda
+  platform: linux-64
+  dependencies:
+    pydantic: '>=2.7.0'
+    python: '>=3.8'
+    python-dotenv: '>=0.21.0'
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-settings-2.3.4-pyhd8ed1ab_0.conda
+  hash:
+    md5: 1f18bd4881aa003740072706b832e855
+    sha256: bf7536a6a5e2b7fb271921e7e4c7e0cb37cebb4f5323dd7047d5dd5fe6b7fdd3
+  category: main
+  optional: false
 - name: pylev
   version: 1.4.0
   manager: conda
@@ -3154,6 +3168,18 @@ package:
   hash:
     md5: 2cf4264fffb9e6eff6031c5b6884d61c
     sha256: f3ceef02ac164a8d3a080d0d32f8e2ebe10dd29e3a685d240e38b3599e146320
+  category: main
+  optional: false
+- name: python-dotenv
+  version: 1.0.1
+  manager: conda
+  platform: linux-64
+  dependencies:
+    python: '>=3.8'
+  url: https://conda.anaconda.org/conda-forge/noarch/python-dotenv-1.0.1-pyhd8ed1ab_0.conda
+  hash:
+    md5: c2997ea9360ac4e015658804a7a84f94
+    sha256: 2d4c80364f03315d606a50eddd493dbacc078e21412c2462c0f781eec49b572c
   category: main
   optional: false
 - name: python_abi

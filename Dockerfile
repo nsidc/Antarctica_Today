@@ -1,13 +1,15 @@
 FROM mambaorg/micromamba:1.5.8-alpine3.20
 
+VOLUME /data
 WORKDIR /app
 
 # Activate the conda environment during build process
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
 
-COPY ./conda-lock.yml .
 
+# Install dependencies
 # NOTE: `-p` is important to install to the "base" env
+COPY ./conda-lock.yml .
 RUN micromamba install -y \
     -p /opt/conda \
     -f conda-lock.yml \

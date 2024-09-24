@@ -3,8 +3,12 @@ services:
     image: "nsidc/antarctica_today:${ANTARCTICA_TODAY_VERSION:-latest}"
     user: "root"
     volumes:
-      - "./Tb/:/app/Tb/"
       - "./data/:/app/data/"
-      - "./database/:/app/database/"
       - "./plots/:/app/plots/"
       - "./baseline_datasets/:/app/baseline_datasets/:ro"
+      - "${ANTARCTICA_TODAY_STORAGE_BASEDIR:-/tmp/antarctica_today}:/data"
+    environment:
+      # NOTE: null value indicates passthrough from host.
+      EARTHDATA_USERNAME: null
+      EARTHDATA_PASSWORD: null
+      ANTARCTICA_TODAY_STORAGE_BASEDIR: "/data"

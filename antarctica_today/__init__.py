@@ -1,6 +1,11 @@
 import os
 import sys
 
+from antarctica_today.config import Settings
+
+config = Settings()
+
+
 # IMPORTANT: If we don't specify this setting, then the projection we want to use will
 # be replaced with another (and this warning will be printed)!
 #

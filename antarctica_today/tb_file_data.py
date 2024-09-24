@@ -9,11 +9,10 @@ Code for keeping track of Tb-based model result data, and other products
 
 import os
 
+from antarctica_today import config
 from antarctica_today.constants.paths import (
     DATA_BASELINE_DATASETS_DIR,
-    DATA_DATABASE_DIR,
     DATA_DIR,
-    DATA_PLOTS_DIR,
     DATA_TB_DIR,
 )
 
@@ -63,6 +62,7 @@ antarctic_regions_dict = {
 
 NSIDC_0080_file_dir = DATA_TB_DIR / "nsidc-0080"
 
+DATA_DATABASE_DIR = config.db_dir
 # TODO: More consistent names; "model_results" doesn't tell us much about where these
 # files live. These live in external storage, but others live in repo (for now). Pick
 # either "dir" or "folder". Do we need "v3" in the filenames? The code only supports one
@@ -89,7 +89,7 @@ daily_melt_csv = DATA_DATABASE_DIR / "daily_melt_totals.csv"
 
 model_results_v3_dir = DATA_DIR
 model_results_dir = model_results_v3_dir / "daily_melt_bin_files"
-model_results_plot_directory = DATA_PLOTS_DIR
+model_results_plot_directory = config.plots_dir
 # output_tifs_directory = os.path.join(model_results_v3_dir, "sample_results")
 outputs_annual_tifs_directory = os.path.join(model_results_v3_dir, "annual_sum_geotifs")
 outputs_annual_plots_directory = os.path.join(

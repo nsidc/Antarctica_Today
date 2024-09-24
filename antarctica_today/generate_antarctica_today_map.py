@@ -23,12 +23,11 @@ import PIL
 from loguru import logger
 from osgeo import gdal
 
-from antarctica_today import read_NSIDC_bin_file, write_NSIDC_bin_to_gtif
+from antarctica_today import config, read_NSIDC_bin_file, write_NSIDC_bin_to_gtif
 from antarctica_today.compute_mean_climatology import (
     create_partial_year_melt_anomaly_tif,
     read_annual_melt_anomaly_tif,
 )
-from antarctica_today.constants.paths import DATA_DIR, DATA_PLOTS_DIR
 
 # import svgclip
 from antarctica_today.map_filedata import (
@@ -67,7 +66,7 @@ def main():
             #        for fmt in ("png", "pdf", "svg"):
             fig, ax = m.generate_annual_melt_map(
                 outfile_template=(
-                    DATA_PLOTS_DIR
+                    config.plots_dir
                     / "annual_maps_sum"
                     / f"R{region}_{year}-{year+1}_sum.{fmt}"
                 ),
@@ -83,7 +82,7 @@ def main():
 
             fig, ax = m.generate_anomaly_melt_map(
                 outfile_template=(
-                    DATA_PLOTS_DIR
+                    config.plots_dir
                     / "annual_maps_anomaly"
                     / f"R{region}_{year}-{year+1}_anomaly.{fmt}"
                 ),
@@ -97,7 +96,7 @@ def main():
 
             plt.close(fig)
 
-    # fig, ax = m.generate_anomaly_melt_map(DATA_PLOTS_DIR / "annual_maps_anomaly/R0_2021-2022.04.30_text.png",
+    # fig, ax = m.generate_anomaly_melt_map(config.plots_dir / "annual_maps_anomaly/R0_2021-2022.04.30_text.png",
     #                                       year=2021+1,
     #                                       dpi=300,
     #                                       include_scalebar=True,
@@ -106,12 +105,12 @@ def main():
     #                                       reset_picklefile=False)
 
     # fig, ax = m.generate_daily_melt_map(DATA_DIR / "v2.5/antarctica_melt_S3B_2010-2020_20200129/antarctica_melt_20100101_S3B_20210129.bin",
-    #                           outfile = DATA_PLOTS_DIR / "v2.5/daily_maps/20100101_daily.jpg", dpi=150)
+    #                           outfile = config.plots_dir / "v2.5/daily_maps/20100101_daily.jpg", dpi=150)
 
     # print (m._get_current_axes_position(ax))
 
     # for fmt in ("png", "svg"):
-    #     m.generate_annual_melt_map(outfile_template=DATA_PLOTS_DIR / "v2.5/annual_maps/R{1}_{0}-{3}." + fmt,
+    #     m.generate_annual_melt_map(outfile_template=config.plots_dir / "v2.5/annual_maps/R{1}_{0}-{3}." + fmt,
     #                                 region_number=0,
     #                                 year=2020,
     #                                 dpi=600,
@@ -121,7 +120,7 @@ def main():
     #                                 # include_current_date_label=True)
 
     #     # m.generate_anomaly_melt_map(year="all", reset_picklefile=True)
-    #     m.generate_anomaly_melt_map(outfile_template=DATA_PLOTS_DIR / "v2.5/anomaly_maps/R{1}_{0}-{3}." + fmt,
+    #     m.generate_anomaly_melt_map(outfile_template=config.plots_dir / "v2.5/anomaly_maps/R{1}_{0}-{3}." + fmt,
     #                                 year=2020,
     #                                 region_number=0,
     #                                 message_below_year="through 16 February,\n relative to 1990-2020",
@@ -130,7 +129,7 @@ def main():
     #                                 # reset_picklefile=True)
 
     # for melt_code in range(2,8+1):
-    #     m.generate_cumulative_melt_map(outfile_template = DATA_PLOTS_DIR / "v2.5/annual_maps/{0}_region{1}_level{2}.jpg",
+    #     m.generate_cumulative_melt_map(outfile_template = config.plots_dir / "v2.5/annual_maps/{0}_region{1}_level{2}.jpg",
     #                                    melt_code_threshold=melt_code,
     #                                    year="all")
     #                                    # year=2015)

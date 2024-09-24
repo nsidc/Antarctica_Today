@@ -7,6 +7,8 @@
 
 import datetime
 import os
+from pathlib import Path
+from typing import Optional
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -212,7 +214,7 @@ def plot_current_year_melt_over_baseline_stats(
     region_num=0,
     doy_start=(10, 1),
     doy_end=(4, 30),
-    outfile=None,
+    outfile: Optional[Path] = None,
     gap_filled=True,
     add_max_line=False,
     dpi=300,
@@ -365,7 +367,7 @@ def _plot_current_year_and_baseline(
     current_year_percents,
     fraction_x,
     region_num=0,
-    outfile=None,
+    outfile: Optional[Path] = None,
     gap_filled=True,
     add_max_line=False,
     dpi=300,
@@ -434,12 +436,14 @@ def _plot_current_year_and_baseline(
         # _add_region_area_at_bottom(fig, ax, region_number=region_num)
 
     if outfile:
+        outfile.parent.mkdir(parents=True, exist_ok=True)
+
         if gap_filled and os.path.split(outfile)[1].find("gap_filled") == -1:
             base, ext = os.path.splitext(outfile)
-            outfile = base + "_gap_filled" + ext
+            outfile = Path(base + "_gap_filled" + ext)
 
         logger.debug(f"Plotting {outfile}")
-        if os.path.splitext(outfile)[1].lower() == ".eps":
+        if outfile.suffix.lower() == ".eps":
             fig.savefig(outfile, dpi=dpi, format="eps")
         else:
             fig.savefig(outfile, dpi=dpi)
@@ -1266,7 +1270,7 @@ if __name__ == "__main__":
             plot_current_year_melt_over_baseline_stats(
                 current_date=datetime.datetime(year + 1, 4, 30),
                 region_num=region_num,
-                outfile=fname,
+                outfile=Path(fname),
                 dpi=1200,
                 add_max_line=False,
                 gap_filled=True,
